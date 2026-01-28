@@ -1,0 +1,3 @@
+
+
+#splitDigit(predicate, accumulator, ) %::% 

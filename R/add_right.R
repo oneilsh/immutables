@@ -15,10 +15,8 @@ add_right(s, el) %as% {
 add_right(d, el) %::% Digit : . : Digit
 add_right(d, el) %as% {
   oldclasses <- class(d)
-  oldid <- attr(d, "id")
   newd <- list.append(d, el)
   class(newd) <- oldclasses
-  attr(newd, "id") <- oldid
   return(newd)
 }
 
@@ -50,4 +48,3 @@ add_all_right(t, els) %as% {
   }
   return(t)
 }
-

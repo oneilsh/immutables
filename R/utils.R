@@ -6,16 +6,16 @@ get_graph_df <- function(t) {
   EDGE_STACK <- rstack()
   NODE_STACK <- rstack()
   
-  add_edges <- function(t) {
+  add_edges <- function(t, path) {
     
     if(t %isa% Empty) {
-      parentid <- attr(t, "id")
+      parentid <- path
       parenttype <- class(t)[1]
       parentlabel <- ""
       NODE_STACK <<- insert_top(NODE_STACK, list(node = parentid, type = parenttype, label = parentlabel))
     }
     else if(t %isa% Element) {
-      parentid <- attr(t, "id")
+      parentid <- path
       parenttype <- class(t)[1]
       parentlabel <- paste0(as.character(unlist(t)), collapse = ", ")
       if(!is.null(attr(t, "value"))) {
@@ -31,29 +31,29 @@ get_graph_df <- function(t) {
         # the node ordering 
         for(subthing_name in rev(names(t))) {
           subthing <- t[[subthing_name]]
-          parentid <- attr(t, "id")
-          childid <- attr(subthing, "id")
+          parentid <- path
+          childid <- paste(path, subthing_name, sep = ":")
           EDGE_STACK <<- insert_top(EDGE_STACK, list(parent = parentid, child = childid, label = subthing_name))
           
           parenttype <- class(t)[1]
           parentlabel <- ""
           NODE_STACK <<- insert_top(NODE_STACK, list(node = parentid, type = parenttype, label = parentlabel))
           
-          add_edges(subthing)
+          add_edges(subthing, childid)
         }
         
       } else {
         index <- 1
         for(subthing in rev(t)) {
-          parentid <- attr(t, "id")
-          childid <- attr(subthing, "id")
+          parentid <- path
+          childid <- paste(path, index, sep = ":")
           EDGE_STACK <<- insert_top(EDGE_STACK, list(parent = parentid, child = childid, label = index))
           
           parenttype <- class(t)[1]
           parentlabel <- ""
           NODE_STACK <<- insert_top(NODE_STACK, list(node = parentid, type = parenttype, label = parentlabel))
           
-          add_edges(subthing)
+          add_edges(subthing, childid)
           index <- index + 1
         }
       }
@@ -61,7 +61,7 @@ get_graph_df <- function(t) {
     return(invisible())
   }
   
-  add_edges(t)
+  add_edges(t, "root")
   
   return(list(
     as.data.frame(EDGE_STACK, stringsAsFactors = FALSE),
@@ -154,7 +154,6 @@ as.FingerTree(l, v) %as% {
   }
   return(t)
 }
-
 
 
 

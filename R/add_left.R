@@ -21,10 +21,8 @@ add_left(s, el) %as% {
 add_left(d, el) %::% Digit : . : Digit
 add_left(d, el) %as% {
   oldclasses <- class(d)
-  oldid <- attr(d, "id")
   newd <- list.prepend(d, el)
   class(newd) <- oldclasses
-  attr(newd, "id") <- oldid
   return(newd)
 }
 

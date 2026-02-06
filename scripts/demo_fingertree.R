@@ -1,129 +1,104 @@
-# This script explores 2-3 finger trees, using lambda.r
-# (exploring typed structures similar to examples of 2-3 finger in haskell)
-library(lambda.r)
+# This script explores 2-3 finger trees.
 library(igraph)
-library(lambdass)  # shorter/nicer anonymous function syntax
+## using base anonymous functions (avoid lambdass/igraph conflicts)
 library(magrittr)
-library(rlist)
-library(rstackdeque)
 library(pryr)
-library(memoise)
+library(rstackdeque)
 
-source(file.path("R", "constructors.R"))
-source(file.path("R", "reduce_left.R"))
-source(file.path("R", "reduce_right.R"))
-source(file.path("R", "add_left.R"))
-source(file.path("R", "add_right.R"))
-source(file.path("R", "concat.R"))
-source(file.path("R", "split.R"))
-source(file.path("R", "utils.R"))
+if (requireNamespace("devtools", quietly = TRUE)) {
+  devtools::load_all()
+} else {
+  library(fingertree)
+}
 
 ##############################
 ## Splitting and concatenating - work in progress
 ##############################
 
-
-
-
-
 # ## just for figure development
-# t1 <- Empty()
+# t1 <- empty_tree()
 # for(i in sample(toupper(c(letters[1:12], "L")))) {
-#   t1 <- add_left(t1, Element(i))
+#   t1 <- prepend(t1, i)
 # }
-# 
-# # manually exchange a 3-node with a 2-node for illustration; 
+#
+# # manually exchange a 3-node with a 2-node for illustration;
 # # normally 2-nodes are only created during merge operations
-# t1$middle$prefix[[1]] <- Node2(Element("B"), Element("F"))
-# 
+# t1$middle$prefix[[1]] <- Node2("B", "F")
+#
 # plot_tree(t1, vertex.size = 8, edge.width = 1.5)
 
 
 dev.new()
-abcs <- as.FingerTree(as.list(letters[1:12]))
-xyzs <- as.FingerTree(as.list(letters[16:26]))
+abcs <- tree_from(as.list(letters[1:12]))
+xyzs <- tree_from(as.list(letters[16:26]))
 
-
-source(file.path("R", "utils.R"))
 dev.new()
 plot_tree(abcs)
 warnings()
 
 plot_tree(xyzs)
 
-all <- concat(abcs, xyzs)
+all <- concat_trees(abcs, xyzs)
 plot_tree(all, vertex.size = 9, title = "all!")
 
 
-
 indices <- sample(1:26)
-mix26 <- as.FingerTree(letters, indices)
+mix26 <- tree_from(letters, indices)
 plot_tree(mix26, vertex.size = 9, title = "valueed")
 
 
-catter <- Reducer({a; b} %->% {
-  Element(paste0(a, b))
-  }, Element(""))
+catter <- Reducer(function(a, b) paste0(a, b), "")
 print(reduce_right(mix26, catter))
 
 
-
-valueMinner <- Reducer({a; b} %->% {
+valueMinner <- Reducer(function(a, b) {
   if(attr(a, "value") < attr(b, "value")) {a} else {b}
-}, Element(Inf))
+}, structure(Inf, value = Inf))
+
 test <- reduce_left(mix26, valueMinner)
 print(test)
 
 
+valueSummer <- Reducer(function(a, b) {
+  structure(
+    paste0(a, b),
+    value = attr(a, "value") + attr(b, "value")
+  )
+}, structure("", value = 0))
 
-valueSummer <- Reducer({a; b} %->% {
-  Element(paste0(a, b), value = attr(a, "value") + attr(b, "value"))
-}, Element("", value = 0) )
-test <- as.FingerTree(1:10)
+test <- tree_from(1:10)
 um <- reduce_left(test, valueSummer)
 #str(test)
 um2 <- reduce_left(test, valueSummer)
 
 
-# minner <- Reducer({a; b} %->% {
-#   cat("\n")
-#   str(b)
-#   if(a > b) {a} else {b}
-# }, Inf)
-# test <- reduce_left(mix26, minner)
-# cat("-----")
-# str(test)
-
-
-
-
-collector <- Reducer(c, Element(list()))
+collector <- Reducer(c, list())
 consonants <- Reducer(function(a, b) {
                         vowels <- c("a", "e", "i", "o", "u")
                         c(a[!a %in% vowels], b[!b %in% vowels])
                       },
-                      Element(c()))
+                      list())
 
 #plot_tree(mix26)
 print(reduce_left(mix26, consonants) %>% unlist())
 
 
-#### this doesn't work... 
+#### this doesn't work...
 
-# fs <- as.FingerTree(list(
-#   Element(abs),
-#   Element(log),
-#   Element(sqrt)
+# fs <- tree_from(list(
+#   abs,
+#   log,
+#   sqrt
 # ))
-# 
+#
 # applyer <- Reducer(function(f1, f2) {
 #   function(...) {
 #       f1(f2(...))
 #     }
-#   }, 
+#   },
 # I)
 # f_all <- reduce_left(fs, applyer)
-# 
+#
 # x <- c(3, -5, 2, -4, 1)
 # abs(log(sqrt(x)))
 # sqrt(log(abs(x)))

@@ -2,9 +2,9 @@
 % Please edit documentation in R/00-docs.R
 \name{fingertree-docs}
 \alias{fingertree-docs}
-\title{Finger tree constructors and helpers}
+\title{Finger tree public API}
 \description{
-These are documentation stubs for lambda.r-based functions. The real
-implementations are defined via `%::%` / `%as%` and overwrite these.
+Documentation stubs for exported functions. Implementations live in the
+lambda.r definitions or in `R/api.R`.
 }
 \keyword{internal}

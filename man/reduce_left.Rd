@@ -4,12 +4,12 @@
 \alias{reduce_left}
 \title{Reduce from the left}
 \usage{
-reduce_left(...)
+reduce_left(t, reducer = NULL)
 }
 \arguments{
 \item{t}{FingerTree.}
 
-\item{r}{Reducer.}
+\item{reducer}{Optional reducer; falls back to tree attribute.}
 }
 \description{
 Reduce from the left

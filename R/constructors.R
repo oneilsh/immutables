@@ -60,7 +60,7 @@ Deep(prefix, middle, suffix) %as% {
 ##############################
 
 # A reducer is a generalized monoid, since it's not actually required that the
-# function be fully associative (which thus allows a "reduce_left" and "reduce_right" depending on
+# function be fully associative (which thus allows a "reduce_left_impl" and "reduce_right_impl" depending on
 # if we want to treat it as left-associative or right-associative)
 Reducer(f, i) %::% . : . : list
 Reducer(f, i) %as% {

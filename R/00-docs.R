@@ -1,53 +1,10 @@
-#' Finger tree constructors and helpers
+#' Finger tree public API
 #'
-#' These are documentation stubs for lambda.r-based functions. The real
-#' implementations are defined via `%::%` / `%as%` and overwrite these.
+#' Documentation stubs for exported functions. Implementations live in the
+#' lambda.r definitions or in `R/api.R`.
 #' @name fingertree-docs
 #' @keywords internal
 NULL
-
-#' Generic node type
-#' @param ... Elements in the node.
-#' @export
-Node <- function(...) { stop("Node is defined via lambda.r") }
-
-#' Node with two elements
-#' @param x First element.
-#' @param y Second element.
-#' @export
-Node2 <- function(x, y) { stop("Node2 is defined via lambda.r") }
-
-#' Node with three elements
-#' @param x First element.
-#' @param y Second element.
-#' @param z Third element.
-#' @export
-Node3 <- function(x, y, z) { stop("Node3 is defined via lambda.r") }
-
-#' Construct an empty FingerTree
-#' @export
-FingerTree <- function(...) { stop("FingerTree is defined via lambda.r") }
-
-#' Empty FingerTree
-#' @export
-Empty <- function() { stop("Empty is defined via lambda.r") }
-
-#' Single-element FingerTree
-#' @param x Element to store.
-#' @export
-Single <- function(x) { stop("Single is defined via lambda.r") }
-
-#' Digit (1 to 4 elements)
-#' @param ... Elements in the digit.
-#' @export
-Digit <- function(...) { stop("Digit is defined via lambda.r") }
-
-#' Deep FingerTree
-#' @param prefix Prefix digit.
-#' @param middle Middle tree.
-#' @param suffix Suffix digit.
-#' @export
-Deep <- function(prefix, middle, suffix) { stop("Deep is defined via lambda.r") }
 
 #' Reducer
 #' @param f Reduction function.
@@ -60,64 +17,50 @@ Reducer <- function(f, i) { stop("Reducer is defined via lambda.r") }
 #' @export
 Predicate <- function(f) { stop("Predicate is defined via lambda.r") }
 
-#' Add element to the left
-#' @param e Empty tree.
-#' @param el Element to add.
+#' Create an empty tree
+#' @param reducer Optional reducer to store on the tree.
 #' @export
-add_left <- function(e, el) { stop("add_left is defined via lambda.r") }
+empty_tree <- function(reducer = NULL) { stop("empty_tree is defined in api.R") }
 
-#' Add element to the right
-#' @param e Empty tree.
-#' @param el Element to add.
+#' Build a tree from a vector or list
+#' @param x Elements to insert.
+#' @param values Optional values for each element.
+#' @param reducer Optional reducer to store on the tree.
 #' @export
-add_right <- function(e, el) { stop("add_right is defined via lambda.r") }
+tree_from <- function(x, values = NULL, reducer = NULL) { stop("tree_from is defined in api.R") }
 
-#' Add multiple elements to the left
+#' Prepend an element
 #' @param t FingerTree.
-#' @param els Elements to add.
+#' @param x Element to prepend.
+#' @param reducer Optional reducer to store on the tree.
 #' @export
-add_all_left <- function(t, els) { stop("add_all_left is defined via lambda.r") }
+prepend <- function(t, x, reducer = NULL) { stop("prepend is defined in api.R") }
 
-#' Add multiple elements to the right
+#' Append an element
 #' @param t FingerTree.
-#' @param els Elements to add.
+#' @param x Element to append.
+#' @param reducer Optional reducer to store on the tree.
 #' @export
-add_all_right <- function(t, els) { stop("add_all_right is defined via lambda.r") }
+append <- function(t, x, reducer = NULL) { stop("append is defined in api.R") }
 
-#' Generalized concatenation helper
-#' @param xs Left tree.
-#' @param ts List of elements to insert between trees.
-#' @param ys Right tree.
+#' Concatenate two trees
+#' @param x Left tree.
+#' @param y Right tree.
+#' @param reducer Optional reducer to store on the tree.
 #' @export
-app3 <- function(xs, ts, ys) { stop("app3 is defined via lambda.r") }
-
-#' Concatenate two finger trees
-#' @param xs Left tree.
-#' @param ys Right tree.
-#' @export
-concat <- function(xs, ys) { stop("concat is defined via lambda.r") }
-
-#' Build internal nodes from a list
-#' @param l List of elements.
-#' @export
-nodes <- function(l) { stop("nodes is defined via lambda.r") }
-
-#' Convert list to finger tree
-#' @param l List or vector.
-#' @export
-as.FingerTree <- function(l, v = NULL) { stop("as.FingerTree is defined via lambda.r") }
+concat_trees <- function(x, y, reducer = NULL) { stop("concat_trees is defined in api.R") }
 
 #' Reduce from the left
 #' @param t FingerTree.
-#' @param r Reducer.
+#' @param reducer Optional reducer; falls back to tree attribute.
 #' @export
-reduce_left <- function(t, r) { stop("reduce_left is defined via lambda.r") }
+reduce_left <- function(t, reducer = NULL) { stop("reduce_left is defined in api.R") }
 
 #' Reduce from the right
 #' @param t FingerTree.
-#' @param r Reducer.
+#' @param reducer Optional reducer; falls back to tree attribute.
 #' @export
-reduce_right <- function(t, r) { stop("reduce_right is defined via lambda.r") }
+reduce_right <- function(t, reducer = NULL) { stop("reduce_right is defined in api.R") }
 
 #' Build graph data frames from a tree
 #' @param t FingerTree.

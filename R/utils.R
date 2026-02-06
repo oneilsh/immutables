@@ -156,4 +156,3 @@ as.FingerTree(l, v) %as% {
 }
 
 
-

@@ -1,19 +1,16 @@
 
-# adding to the left or right for empties returns singles
 add_left(e, el) %::% Empty : . : Single
 add_left(e, el) %as% {
   Single(el)
 }
 
 
-# adding to a single resutls in a deep (with two digits, each with one element)
 add_left(s, el) %::% Single : . : Deep
 add_left(s, el) %as% {
   Deep(Digit(el), Empty(), Digit(s[[1]]))
 }
 
 
-# adding to the left of a digit
 # this is actually a pain, because we implement digits as lists with various attributes
 # we can't just c() the element to the list, as we'd get a list(el, old_list), rather than list(el, old_list[[1]], old_list[[2]]), etc.
 # list.prepend from the rlist package takes care of that.
@@ -29,7 +26,6 @@ add_left(d, el) %as% {
 
 
 
-# adding to the left of a "deep" fingertree.
 # this is where the magic happens; 
 # if the prefix digit has 4 elements: then we push off the last to 
 # be stored deeper along inside a Node3, and just store the new el and the remaining 1 from the digit in the prefix as a digit.
@@ -49,7 +45,6 @@ add_left(d, el) %as% {
 
 
 
-# Just a helper that can add a collection of elements to the left or right
 add_all_left(t, els) %::% FingerTree : . : FingerTree
 add_all_left(t, els) %as% {
   for(el in rev(els)) {

@@ -7,6 +7,6 @@ inefficient, functionality is missing.
 
 `scripts/monoids_demo.R` - demo/exploration of monoid-annotated binary trees (not 2-3 finger trees).
 
-`R/monoids_typed.R` - typed monoid/tree implementation using `lambda.r`.
+`scripts/monoids_typed.R` - typed monoid/tree implementation using `lambda.r`.
 
 `scripts/` - demo/experiment scripts for finger trees and plotting.

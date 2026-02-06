@@ -1,5 +1,27 @@
 
 
+reduce_right_acc <- function(t, r, acc) {
+  if(t %isa% Empty) {
+    return(acc)
+  }
+  if(t %isa% Element) {
+    return(r$f(t, acc))
+  }
+  if(t %isa% Single) {
+    return(reduce_right_acc(t[[1]], r, acc))
+  }
+  if(t %isa% Deep) {
+    acc <- reduce_right_acc(t$suffix, r, acc)
+    acc <- reduce_right_acc(t$middle, r, acc)
+    acc <- reduce_right_acc(t$prefix, r, acc)
+    return(acc)
+  }
+  for(el in rev(t)) {
+    acc <- reduce_right_acc(el, r, acc)
+  }
+  return(acc)
+}
+
 reduce_right(e, r) %::% Empty : Reducer : .   # if it's an empty tree...
 reduce_right(e, r) %as% r$i    # it's just the identity
 
@@ -7,21 +29,16 @@ reduce_right(e, r) %as% r$i    # it's just the identity
 
 reduce_right(s, r) %::% Single : Reducer : .   # if it's a single element...
 reduce_right(s, r) %as% {
-  reduce_right(s[[1]], r)
+  reduce_right_acc(s, r, r$i)
 }
 
 reduce_right(e, r) %::% Element : Reducer : . # an element can be reduced too
-reduce_right(e, r) %as% r$f(e, r$i)
+reduce_right(e, r) %as% reduce_right_acc(e, r, r$i)
 
 
 reduce_right(n, r) %::% Node : Reducer: .
 reduce_right(n, r) %as% {
-  curr <- r$i
-  for(el in rev(n)) {
-    el_reduced <- reduce_right(el, r)
-    curr <- r$f(el_reduced, curr)
-  }
-  return(curr)
+  reduce_right_acc(n, r, r$i)
 }
 
 
@@ -29,12 +46,7 @@ reduce_right(n, r) %as% {
 # reduce_right for digits, which can have 1 to 4 elements; again we just call the reducer function with the right grouping
 reduce_right(d, r) %::% Digit : Reducer : .
 reduce_right(d, r) %as% {
-  curr <- r$i
-  for(el in rev(d)) {
-    el_reduced <- reduce_right(el, r)
-    curr <- r$f(el_reduced, curr)
-  }
-  return(curr)
+  reduce_right_acc(d, r, r$i)
 }
 
 
@@ -42,10 +54,5 @@ reduce_right(d, r) %as% {
 # reducing that)
 reduce_right(t, r) %::% Deep : Reducer : .
 reduce_right(t, r) %as% {
-  prefix_reduced <- reduce_right(t$prefix, r)
-  middle_reduced <- reduce_right(t$middle, r)
-  suffix_reduced <- reduce_right(t$suffix, r)
-  
-  answer <- reduce_right(Digit(prefix_reduced, middle_reduced, suffix_reduced), r)
-  return(answer)
+  reduce_right_acc(t, r, r$i)
 }

@@ -1,3 +1,4 @@
 library(testthat)
+library(fingertree)
 
-testthat::test_dir("tests/testthat")
+test_check("fingertree")

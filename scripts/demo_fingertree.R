@@ -9,46 +9,21 @@ library(rstackdeque)
 library(pryr)
 library(memoise)
 
-
+source(file.path("R", "constructors.R"))
+source(file.path("R", "reduce_left.R"))
+source(file.path("R", "reduce_right.R"))
+source(file.path("R", "add_left.R"))
+source(file.path("R", "add_right.R"))
+source(file.path("R", "concat.R"))
+source(file.path("R", "split.R"))
+source(file.path("R", "utils.R"))
 
 ##############################
 ## Splitting and concatenating - work in progress
 ##############################
 
 
-# no input: an empty fingertree
-as.FingerTree() %::% FingerTree
-as.FingerTree() %as% {
-  Empty()
-}
 
-# coerces its input to a list and builds a fingertree from it
-as.FingerTree(l) %::% . : FingerTree
-as.FingerTree(l) %as% {
-  l <- as.list(l)
-  t <- Empty()
-  for(el in l) {t <- add_right(t, Element(el))}
-  return(t)
-}
-
-
-# builds a tree of Elements with keys and values
-# supplied as list-like inputs
-as.FingerTree(l, v) %::% . : . : FingerTree
-as.FingerTree(l, v) %as% {
-  l <- as.list(l)
-  v <- as.list(v)
-  if(length(l) != length(v)) {
-    stop("length of entries and values lists given to as.FingerTree not equal.")
-  }
-  t <- Empty()
-  for(i in 1:length(l)) {
-    el <- l[[i]]
-    value <- v[[i]]
-    t <- add_right(t, Element(el, value = value))
-  }
-  return(t)
-}
 
 
 # ## just for figure development
@@ -64,12 +39,17 @@ as.FingerTree(l, v) %as% {
 # plot_tree(t1, vertex.size = 8, edge.width = 1.5)
 
 
-
+dev.new()
 abcs <- as.FingerTree(as.list(letters[1:12]))
 xyzs <- as.FingerTree(as.list(letters[16:26]))
 
-#plot_tree(abcs)
-#plot_tree(xyzs)
+
+source(file.path("R", "utils.R"))
+dev.new()
+plot_tree(abcs)
+warnings()
+
+plot_tree(xyzs)
 
 all <- concat(abcs, xyzs)
 plot_tree(all, vertex.size = 9, title = "all!")
@@ -116,16 +96,16 @@ um2 <- reduce_left(test, valueSummer)
 
 
 
-# 
-# collector <- Reducer(c, Element(list()))
-# consonants <- Reducer(function(a, b) {
-#                         vowels <- c("a", "e", "i", "o", "u")
-#                         c(a[!a %in% vowels], b[!b %in% vowels])
-#                       }, 
-#                       Element(c()))
-# 
-# #plot_tree(mix26)
-# print(reduce_left(mix26, consonants) %>% unlist()) 
+
+collector <- Reducer(c, Element(list()))
+consonants <- Reducer(function(a, b) {
+                        vowels <- c("a", "e", "i", "o", "u")
+                        c(a[!a %in% vowels], b[!b %in% vowels])
+                      },
+                      Element(c()))
+
+#plot_tree(mix26)
+print(reduce_left(mix26, consonants) %>% unlist())
 
 
 #### this doesn't work... 

@@ -72,7 +72,7 @@ get_graph_df <- function(t) {
 
 
 # plotting a tree with igraph, using the get_graph_df() helper
-plot_tree <- function(t1, vertex.size = 4, edge.width = 1, label_edges = FALSE, title = NULL) {
+plot_tree <- function(t1, vertex.size = 4, edge.width = 1, label_edges = FALSE, title = NULL, ...) {
   t1_edge_df <- get_graph_df(t1)[[1]]
   t1_node_df <- get_graph_df(t1)[[2]]
   t1_node_df$color <- NA
@@ -85,7 +85,6 @@ plot_tree <- function(t1, vertex.size = 4, edge.width = 1, label_edges = FALSE, 
   t1_node_df$color[t1_node_df$type == "Node2"] <- "#b3de69"
   
   g <- graph_from_data_frame(t1_edge_df, vertices = unique(t1_node_df), directed = TRUE)
-  
   par(lheight = 0.3)
   plot(g, 
        layout = layout_as_tree(g), 
@@ -99,7 +98,8 @@ plot_tree <- function(t1, vertex.size = 4, edge.width = 1, label_edges = FALSE, 
        edge.width = edge.width,
        edge.label = ifelse(label_edges, t1_edge_df$label, ""),
        main = title,
-       vertex.label.family = "Arial"
+       #vertex.label.family = "Sans Serif",
+       ...
   )
 }
 

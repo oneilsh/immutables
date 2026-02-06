@@ -9,25 +9,18 @@ library(rstackdeque)
 library(pryr)
 library(memoise)
 
-source("constructors.R")
-
-source("reduce_left.R")
-source("reduce_right.R")
-
-source("add_left.R")
-source("add_right.R")
-
-source("concat.R")
-source("split.R")
-source("utils.R")
+source(file.path("R", "constructors.R"))
+source(file.path("R", "reduce_left.R"))
+source(file.path("R", "reduce_right.R"))
+source(file.path("R", "add_left.R"))
+source(file.path("R", "add_right.R"))
+source(file.path("R", "concat.R"))
+source(file.path("R", "split.R"))
+source(file.path("R", "utils.R"))
 
 ##############################
 ## Splitting and concatenating - work in progress
 ##############################
-
-
-
-
 
 # ## just for figure development
 # t1 <- Empty()
@@ -46,8 +39,8 @@ source("utils.R")
 abcs <- as.FingerTree(as.list(letters[1:12]))
 xyzs <- as.FingerTree(as.list(letters[16:26]))
 
-plot_tree(abcs)
-plot_tree(xyzs)
+#plot_tree(abcs)
+#plot_tree(xyzs)
 
 all <- concat(abcs, xyzs)
 plot_tree(all, vertex.size = 9, title = "all!")
@@ -94,16 +87,16 @@ um2 <- reduce_left(test, valueSummer)
 
 
 
-
-collector <- Reducer(c, Element(list()))
-consonants <- Reducer(function(a, b) {
-                        vowels <- c("a", "e", "i", "o", "u")
-                        c(a[!a %in% vowels], b[!b %in% vowels])
-                      },
-                      Element(c()))
-
-#plot_tree(mix26)
-print(reduce_left(mix26, consonants) %>% unlist())
+# 
+# collector <- Reducer(c, Element(list()))
+# consonants <- Reducer(function(a, b) {
+#                         vowels <- c("a", "e", "i", "o", "u")
+#                         c(a[!a %in% vowels], b[!b %in% vowels])
+#                       }, 
+#                       Element(c()))
+# 
+# #plot_tree(mix26)
+# print(reduce_left(mix26, consonants) %>% unlist()) 
 
 
 #### this doesn't work... 

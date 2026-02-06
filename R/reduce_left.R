@@ -1,5 +1,6 @@
 
 
+# reducer fold helper; folds left over a tree or node structure
 reduce_left_acc <- function(t, r, acc) {
   if(is_structural_node(t) && t %isa% Empty) {
     return(acc)
@@ -22,7 +23,7 @@ reduce_left_acc <- function(t, r, acc) {
   return(acc)
 }
 
-# reduce_left_impl and reduce_right_impl for empties and singles; these require utilizing the reducers identity element
+# reduce_left_impl methods for different node types; uses identity once at top
 reduce_left_impl(e, r) %::% Empty : Reducer : .   # if it's an empty tree...
 reduce_left_impl(e, r) %as% r$i    # it's just the identity
 

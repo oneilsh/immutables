@@ -4,6 +4,7 @@ add_left(e, el) %as% {
   Single(el)
 }
 
+# measured overload: returns a measured Single
 add_left(e, el, r) %::% Empty : . : MeasuredReducer : Single
 add_left(e, el, r) %as% {
   measured_single(el, r)
@@ -14,6 +15,7 @@ add_left(s, el) %as% {
   Deep(Digit(el), Empty(), Digit(s[[1]]))
 }
 
+# measured overload: builds a measured Deep from a Single
 add_left(s, el, r) %::% Single : . : MeasuredReducer : Deep
 add_left(s, el, r) %as% {
   measured_deep(
@@ -36,6 +38,7 @@ add_left(d, el) %as% {
   return(newd)
 }
 
+# measured overload: updates digit measure after prepend
 add_left(d, el, r) %::% Digit : . : MeasuredReducer : Digit
 add_left(d, el, r) %as% {
   oldclasses <- class(d)
@@ -64,6 +67,7 @@ add_left(d, el) %as% {
   }
 }
 
+# measured overload: only new nodes get measures
 add_left(d, el, r) %::% Deep : . : MeasuredReducer : Deep
 add_left(d, el, r) %as% {
   if(length(d$prefix) == 4) {

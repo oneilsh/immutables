@@ -1,6 +1,7 @@
 
 # a fancy recursive function that returns two data frames for building an igraph object out of;
 # takes a fingertree, returns a list of edge_dataframe and node_dataframe with edge and node information
+# build edge/node data frames for plotting (igraph)
 get_graph_df <- function(t) {
   
   EDGE_STACK <- rstack()
@@ -66,6 +67,7 @@ get_graph_df <- function(t) {
 
 
 # plotting a tree with igraph, using the get_graph_df() helper
+# plot a tree using igraph; for exploration/debugging
 plot_tree <- function(t1, vertex.size = 4, edge.width = 1, label_edges = FALSE, title = NULL, ...) {
   t1_edge_df <- get_graph_df(t1)[[1]]
   t1_node_df <- get_graph_df(t1)[[2]]
@@ -102,6 +104,7 @@ plot_tree <- function(t1, vertex.size = 4, edge.width = 1, label_edges = FALSE, 
 # returns a list of nodes such as: list(Node3(a, b, c), Node2(d, e), Node2(f, g))
 # a pretty inefficient recursive implementation at the moment
 # this was the name used in the paper, but it's pretty generic
+# convert a flat list into Node2/Node3 list for concatenation
 nodes(l) %::% list : list
 nodes(l) %as% {
   if(length(l) == 2) { return(list(
@@ -121,6 +124,7 @@ nodes(l) %as% {
   return(rest)
 }
 
+# measured overload: uses measured node constructors
 nodes(l, r) %::% list : MeasuredReducer : list
 nodes(l, r) %as% {
   if(length(l) == 2) { return(list(
@@ -142,6 +146,7 @@ nodes(l, r) %as% {
 
 
 
+# build a tree from a list/vector (unmeasured)
 as.FingerTree(l) %::% . : FingerTree
 as.FingerTree(l) %as% {
   l <- as.list(l)
@@ -151,6 +156,7 @@ as.FingerTree(l) %as% {
 }
 
 
+# build a tree from values + separate value list
 as.FingerTree(l, v) %::% . : . : FingerTree
 as.FingerTree(l, v) %as% {
   l <- as.list(l)

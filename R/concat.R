@@ -30,7 +30,37 @@ app3(xs, ts, ys) %as% {
        ys$suffix)
 }
 
+app3(e, ts, xs, r) %::% Empty : list : FingerTree : MeasuredReducer : FingerTree
+app3(e, ts, xs, r) %as% add_all_left(xs, ts, r)
+
+app3(xs, ts, e, r) %::% FingerTree : list : Empty : MeasuredReducer : FingerTree
+app3(xs, ts, e, r) %as% add_all_right(xs, ts, r)
+
+app3(x, ts, xs, r) %::% Single : list : FingerTree : MeasuredReducer : FingerTree
+app3(x, ts, xs, r) %as% add_left(add_all_left(xs, ts, r), x, r)
+
+app3(xs, ts, x, r) %::% FingerTree : list : Single : MeasuredReducer : FingerTree
+app3(xs, ts, x, r) %as% add_right(add_all_right(xs, ts, r), x, r)
+
+app3(xs, ts, ys, r) %::% Deep : list : Deep : MeasuredReducer : FingerTree
+app3(xs, ts, ys, r) %as% {
+  measured_deep(
+    xs$prefix,
+    app3(xs$middle,
+         nodes(c(xs$suffix, ts, ys$prefix), r),
+         ys$middle,
+         r),
+    ys$suffix,
+    r
+  )
+}
+
 concat(xs, ys) %::% FingerTree : FingerTree : FingerTree
 concat(xs, ys) %as% {
   app3(xs, list(), ys)
+}
+
+concat(xs, ys, r) %::% FingerTree : FingerTree : MeasuredReducer : FingerTree
+concat(xs, ys, r) %as% {
+  app3(xs, list(), ys, r)
 }

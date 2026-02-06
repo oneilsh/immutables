@@ -121,6 +121,24 @@ nodes(l) %as% {
   return(rest)
 }
 
+nodes(l, r) %::% list : MeasuredReducer : list
+nodes(l, r) %as% {
+  if(length(l) == 2) { return(list(
+    measured_node2( l[[1]], l[[2]], r )
+  ))}
+  if(length(l) == 3) { return(list(
+    measured_node3( l[[1]], l[[2]], l[[3]], r )
+  ))}
+  if(length(l) == 4) { return(list(
+    measured_node2( l[[1]], l[[2]], r ),
+    measured_node2( l[[3]], l[[4]], r )
+  ))}
+  
+  first = measured_node3( l[[1]], l[[2]], l[[3]], r )
+  rest = nodes(l[4:length(l)], r)
+  rest = list.prepend(rest, first)
+  return(rest)
+}
 
 
 

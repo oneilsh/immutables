@@ -12,6 +12,13 @@ NULL
 #' @export
 Reducer <- function(f, i) { stop("Reducer is defined via lambda.r") }
 
+#' Measured reducer
+#' @param f Reduction function.
+#' @param i Identity element.
+#' @param measure Function mapping an element to a measure.
+#' @export
+MeasuredReducer <- function(f, i, measure) { stop("MeasuredReducer is defined via lambda.r") }
+
 #' Predicate
 #' @param f Predicate function.
 #' @export

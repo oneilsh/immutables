@@ -67,6 +67,13 @@ Reducer(f, i) %as% {
   list(f = f, i = i)
 }
 
+MeasuredReducer(f, i, measure) %::% . : . : Function : list
+MeasuredReducer(f, i, measure) %as% {
+  res <- list(f = f, i = i, measure = measure)
+  class(res) <- c("MeasuredReducer", class(res))
+  res
+}
+
 
 Predicate(f) %::% Function : .
 Predicate(f) %as% Function(f)

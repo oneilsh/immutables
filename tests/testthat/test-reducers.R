@@ -1,10 +1,9 @@
 testthat::test_that("Single reducers do not reapply identity", {
   r <- Reducer(function(a, b) paste0("(", a, ",", b, ")"), "i")
-  e <- Element("a")
-  s <- Single(e)
+  s <- Single("a")
 
-  testthat::expect_identical(reduce_left(s, r), reduce_left(e, r))
-  testthat::expect_identical(reduce_right(s, r), reduce_right(e, r))
+  testthat::expect_identical(reduce_left(s, r), "(i,a)")
+  testthat::expect_identical(reduce_right(s, r), "(a,i)")
 })
 
 testthat::test_that("Reduce order is correct for left and right folds", {
@@ -22,4 +21,17 @@ testthat::test_that("Concat preserves element order", {
   t <- concat(t1, t2)
 
   testthat::expect_identical(reduce_left(t, r), "abcd")
+})
+
+testthat::test_that("Elements can be lists and data.frames", {
+  r <- Reducer(function(a, b) c(a, list(b)), list())
+  df <- data.frame(x = 1:2, y = c("a", "b"), stringsAsFactors = FALSE)
+  t <- Empty()
+  t <- add_right(t, list(a = 1, b = 2))
+  t <- add_right(t, df)
+
+  reduced <- reduce_left(t, r)
+  testthat::expect_identical(length(reduced), 2L)
+  testthat::expect_true(is.list(reduced[[1]]))
+  testthat::expect_true(is.data.frame(reduced[[2]]))
 })

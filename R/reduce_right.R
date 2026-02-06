@@ -1,16 +1,16 @@
 
 
 reduce_right_acc <- function(t, r, acc) {
-  if(t %isa% Empty) {
+  if(is_structural_node(t) && t %isa% Empty) {
     return(acc)
   }
-  if(t %isa% Element) {
+  if(!is_structural_node(t)) {
     return(r$f(t, acc))
   }
-  if(t %isa% Single) {
+  if(is_structural_node(t) && t %isa% Single) {
     return(reduce_right_acc(t[[1]], r, acc))
   }
-  if(t %isa% Deep) {
+  if(is_structural_node(t) && t %isa% Deep) {
     acc <- reduce_right_acc(t$suffix, r, acc)
     acc <- reduce_right_acc(t$middle, r, acc)
     acc <- reduce_right_acc(t$prefix, r, acc)
@@ -32,9 +32,8 @@ reduce_right(s, r) %as% {
   reduce_right_acc(s, r, r$i)
 }
 
-reduce_right(e, r) %::% Element : Reducer : . # an element can be reduced too
-reduce_right(e, r) %as% reduce_right_acc(e, r, r$i)
 
+# legacy Element wrapper (elements now can be any type)
 
 reduce_right(n, r) %::% Node : Reducer: .
 reduce_right(n, r) %as% {

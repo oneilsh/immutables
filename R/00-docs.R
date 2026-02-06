@@ -49,12 +49,6 @@ Digit <- function(...) { stop("Digit is defined via lambda.r") }
 #' @export
 Deep <- function(prefix, middle, suffix) { stop("Deep is defined via lambda.r") }
 
-#' Element
-#' @param x Element.
-#' @param value Optional display value.
-#' @export
-Element <- function(x, value = x) { stop("Element is defined via lambda.r") }
-
 #' Reducer
 #' @param f Reduction function.
 #' @param i Identity element.
@@ -134,9 +128,3 @@ get_graph_df <- function(t) { stop("get_graph_df is defined via lambda.r") }
 #' @param t FingerTree.
 #' @export
 plot_tree <- function(t, ...) { stop("plot_tree is defined via lambda.r") }
-
-#' Print Element
-#' @param e Element to print.
-#' @export
-#' @method print Element
-print.Element <- function(e) { stop("print.Element is defined via lambda.r") }

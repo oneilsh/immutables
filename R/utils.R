@@ -8,22 +8,16 @@ get_graph_df <- function(t) {
   
   add_edges <- function(t, path) {
     
-    if(t %isa% Empty) {
+    if(is_structural_node(t) && t %isa% Empty) {
       parentid <- path
       parenttype <- class(t)[1]
       parentlabel <- ""
       NODE_STACK <<- insert_top(NODE_STACK, list(node = parentid, type = parenttype, label = parentlabel))
     }
-    else if(t %isa% Element) {
+    else if(!is_structural_node(t)) {
       parentid <- path
-      parenttype <- class(t)[1]
+      parenttype <- "Element"
       parentlabel <- paste0(as.character(unlist(t)), collapse = ", ")
-      if(!is.null(attr(t, "value"))) {
-        if(any(attr(t, "value") != t)) {
-          parentlabelValue <- paste0(as.character(unlist(attr(t, "value"))), collapse = ", ")
-          parentlabel <- paste0(parentlabelValue, "\n", parentlabel)
-        }
-      }
       NODE_STACK <<- insert_top(NODE_STACK, list(node = parentid, type = parenttype, label = parentlabel))
     } else {
       if(!is.null(names(t))) {
@@ -134,7 +128,7 @@ as.FingerTree(l) %::% . : FingerTree
 as.FingerTree(l) %as% {
   l <- as.list(l)
   t <- Empty()
-  for(el in l) {t <- add_right(t, Element(el))}
+  for(el in l) {t <- add_right(t, el)}
   return(t)
 }
 
@@ -150,9 +144,8 @@ as.FingerTree(l, v) %as% {
   for(i in 1:length(l)) {
     el <- l[[i]]
     value <- v[[i]]
-    t <- add_right(t, Element(el, value = value))
+    attr(el, "value") <- value
+    t <- add_right(t, el)
   }
   return(t)
 }
-
-

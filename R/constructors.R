@@ -68,31 +68,6 @@ Reducer(f, i) %as% {
 }
 
 
-# in order to convert the tree to an igraph object, we need an obvious way to determine that
-# the node is an element (non-recursive case); this could also probably inherit from Node to grab it's random id
-Element(x) %::% . : .
-Element(x, value = x) %as% {
-  res <- x
-  # @ is used to set attributes (in lambda.r constructors)
-  res@value <- value
-  return(res)
-}
-
-print.Element <- function(e) {
-  #cat("Data Element: \n")
-  ecopy <- e
-  class(ecopy) <- class(e)[class(e) != "Element"]
-  attr(ecopy, "value") <- NULL
-  #print(ecopy)
-  if(!is.null(attr(e, "value"))) {
-    cat("Value: \n")
-    print(attr(e, "value"))
-    cat("\n")
-  }
-  cat("\n")
-}
-
-
 Predicate(f) %::% Function : .
 Predicate(f) %as% Function(f)
 

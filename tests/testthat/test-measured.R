@@ -1,5 +1,5 @@
 testthat::test_that("Measured reducer caches size measures", {
-  mr <- MeasuredReducer(function(a, b) a + b, 0, function(el) 1)
+  mr <- MeasureReducer(function(a, b) a + b, 0, function(el) 1)
   t <- tree_from(1:5, reducer = mr)
 
   testthat::expect_identical(attr(t, "measure"), 5)
@@ -7,7 +7,7 @@ testthat::test_that("Measured reducer caches size measures", {
 })
 
 testthat::test_that("Measured reducer propagates through prepend/append", {
-  mr <- MeasuredReducer(function(a, b) a + b, 0, function(el) 1)
+  mr <- MeasureReducer(function(a, b) a + b, 0, function(el) 1)
   t <- empty_tree(reducer = mr)
   t <- append(t, "a")
   t <- append(t, "b")
@@ -17,7 +17,7 @@ testthat::test_that("Measured reducer propagates through prepend/append", {
 })
 
 testthat::test_that("Measured reducer works with list elements", {
-  mr <- MeasuredReducer(function(a, b) a + b, 0, function(el) length(el))
+  mr <- MeasureReducer(function(a, b) a + b, 0, function(el) length(el))
   t <- empty_tree(reducer = mr)
   t <- append(t, list(1, 2, 3))
   t <- append(t, list("a"))

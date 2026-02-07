@@ -70,12 +70,12 @@ Reducer(f, i) %as% {
   list(f = f, i = i)
 }
 
-# MeasuredReducer is a monoid with a measure() function for raw elements.
+# MeasureReducer is a monoid with a measure() function for raw elements.
 # The reduce function must be associative for measured trees to be correct.
-MeasuredReducer(f, i, measure) %::% . : . : Function : list
-MeasuredReducer(f, i, measure) %as% {
+MeasureReducer(f, i, measure) %::% . : . : Function : list
+MeasureReducer(f, i, measure) %as% {
   res <- list(f = f, i = i, measure = measure)
-  class(res) <- c("MeasuredReducer", class(res))
+  class(res) <- c("MeasureReducer", class(res))
   res
 }
 

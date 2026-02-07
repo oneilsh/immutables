@@ -26,7 +26,7 @@ empty_tree <- function(reducer = NULL) {
   t <- Empty()
   if(!is.null(reducer)) {
     attr(t, "reducer") <- reducer
-    if(is_measured_reducer(reducer)) {
+    if(is_measure_reducer(reducer)) {
       t <- measured_empty(reducer)
       attr(t, "reducer") <- reducer
     }
@@ -45,7 +45,7 @@ empty_tree <- function(reducer = NULL) {
 #' t <- tree_from(1:3)
 #' @export
 tree_from <- function(x, values = NULL, reducer = NULL) {
-  if(is_measured_reducer(reducer)) {
+  if(is_measure_reducer(reducer)) {
     t <- empty_tree(reducer)
     x_list <- as.list(x)
     if(is.null(values)) {
@@ -85,7 +85,7 @@ tree_from <- function(x, values = NULL, reducer = NULL) {
 #' @export
 prepend <- function(t, x, reducer = NULL) {
   r <- resolve_tree_reducer(t, reducer, required = FALSE)
-  t2 <- if(is_measured_reducer(r)) add_left(t, x, r) else add_left(t, x)
+  t2 <- if(is_measure_reducer(r)) add_left(t, x, r) else add_left(t, x)
   if(!is.null(r)) { attr(t2, "reducer") <- r }
   t2
 }
@@ -99,7 +99,7 @@ prepend <- function(t, x, reducer = NULL) {
 #' @export
 append <- function(t, x, reducer = NULL) {
   r <- resolve_tree_reducer(t, reducer, required = FALSE)
-  t2 <- if(is_measured_reducer(r)) add_right(t, x, r) else add_right(t, x)
+  t2 <- if(is_measure_reducer(r)) add_right(t, x, r) else add_right(t, x)
   if(!is.null(r)) { attr(t2, "reducer") <- r }
   t2
 }
@@ -113,7 +113,7 @@ append <- function(t, x, reducer = NULL) {
 #' @export
 concat_trees <- function(x, y, reducer = NULL) {
   r <- resolve_tree_reducer(x, reducer, required = FALSE)
-  t <- if(is_measured_reducer(r)) concat(x, y, r) else concat(x, y)
+  t <- if(is_measure_reducer(r)) concat(x, y, r) else concat(x, y)
   if(!is.null(r)) { attr(t, "reducer") <- r }
   t
 }

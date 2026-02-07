@@ -27,7 +27,7 @@ reduce_left_acc <- function(t, r, acc) {
 reduce_left_impl(e, r) %::% Empty : Reducer : .   # if it's an empty tree...
 reduce_left_impl(e, r) %as% r$i    # it's just the identity
 
-reduce_left_impl(e, r) %::% Empty : MeasuredReducer : .
+reduce_left_impl(e, r) %::% Empty : MeasureReducer : .
 reduce_left_impl(e, r) %as% r$i
 
 
@@ -37,7 +37,7 @@ reduce_left_impl(s, r) %as% {
   reduce_left_acc(s, r, r$i)
 }
 
-reduce_left_impl(s, r) %::% Single : MeasuredReducer : .
+reduce_left_impl(s, r) %::% Single : MeasureReducer : .
 reduce_left_impl(s, r) %as% {
   reduce_left_acc(s, r, r$i)
 }
@@ -50,7 +50,7 @@ reduce_left_impl(n, r) %as% {
   reduce_left_acc(n, r, r$i)
 }
 
-reduce_left_impl(n, r) %::% Node : MeasuredReducer : .
+reduce_left_impl(n, r) %::% Node : MeasureReducer : .
 reduce_left_impl(n, r) %as% {
   reduce_left_acc(n, r, r$i)
 }
@@ -60,7 +60,7 @@ reduce_left_impl(d, r) %as% {
   reduce_left_acc(d, r, r$i)
 }
 
-reduce_left_impl(d, r) %::% Digit : MeasuredReducer : .
+reduce_left_impl(d, r) %::% Digit : MeasureReducer : .
 reduce_left_impl(d, r) %as% {
   reduce_left_acc(d, r, r$i)
 }
@@ -73,7 +73,7 @@ reduce_left_impl(t, r) %as% {
   reduce_left_acc(t, r, r$i)
 }
 
-reduce_left_impl(t, r) %::% Deep : MeasuredReducer : .
+reduce_left_impl(t, r) %::% Deep : MeasureReducer : .
 reduce_left_impl(t, r) %as% {
   reduce_left_acc(t, r, r$i)
 }

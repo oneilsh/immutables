@@ -27,7 +27,7 @@ reduce_right_acc <- function(t, r, acc) {
 reduce_right_impl(e, r) %::% Empty : Reducer : .   # if it's an empty tree...
 reduce_right_impl(e, r) %as% r$i    # it's just the identity
 
-reduce_right_impl(e, r) %::% Empty : MeasuredReducer : .
+reduce_right_impl(e, r) %::% Empty : MeasureReducer : .
 reduce_right_impl(e, r) %as% r$i
 
 
@@ -37,7 +37,7 @@ reduce_right_impl(s, r) %as% {
   reduce_right_acc(s, r, r$i)
 }
 
-reduce_right_impl(s, r) %::% Single : MeasuredReducer : .
+reduce_right_impl(s, r) %::% Single : MeasureReducer : .
 reduce_right_impl(s, r) %as% {
   reduce_right_acc(s, r, r$i)
 }
@@ -49,7 +49,7 @@ reduce_right_impl(n, r) %as% {
   reduce_right_acc(n, r, r$i)
 }
 
-reduce_right_impl(n, r) %::% Node : MeasuredReducer : .
+reduce_right_impl(n, r) %::% Node : MeasureReducer : .
 reduce_right_impl(n, r) %as% {
   reduce_right_acc(n, r, r$i)
 }
@@ -61,7 +61,7 @@ reduce_right_impl(d, r) %as% {
   reduce_right_acc(d, r, r$i)
 }
 
-reduce_right_impl(d, r) %::% Digit : MeasuredReducer : .
+reduce_right_impl(d, r) %::% Digit : MeasureReducer : .
 reduce_right_impl(d, r) %as% {
   reduce_right_acc(d, r, r$i)
 }
@@ -73,7 +73,7 @@ reduce_right_impl(t, r) %as% {
   reduce_right_acc(t, r, r$i)
 }
 
-reduce_right_impl(t, r) %::% Deep : MeasuredReducer : .
+reduce_right_impl(t, r) %::% Deep : MeasureReducer : .
 reduce_right_impl(t, r) %as% {
   reduce_right_acc(t, r, r$i)
 }

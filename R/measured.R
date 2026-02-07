@@ -1,6 +1,6 @@
-# check for MeasuredReducer type
-is_measured_reducer <- function(r) {
-  inherits(r, "MeasuredReducer")
+# check for MeasureReducer type
+is_measure_reducer <- function(r) {
+  inherits(r, "MeasureReducer")
 }
 
 # compute measure for a child node or raw element, using cached values when present
@@ -45,7 +45,7 @@ combine_measures <- function(measures, r) {
 
 # attach a measure attribute to a structural node
 set_measure <- function(x, r) {
-  if(!is_measured_reducer(r)) {
+  if(!is_measure_reducer(r)) {
     return(x)
   }
   if(!is_structural_node(x)) {

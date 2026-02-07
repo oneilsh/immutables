@@ -125,7 +125,7 @@ nodes(l) %as% {
 }
 
 # measured overload: uses measured node constructors
-nodes(l, r) %::% list : MeasuredReducer : list
+nodes(l, r) %::% list : MeasureReducer : list
 nodes(l, r) %as% {
   if(length(l) == 2) { return(list(
     measured_node2( l[[1]], l[[2]], r )

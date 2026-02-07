@@ -5,7 +5,7 @@ add_right(e, el) %as% {
 }
 
 # measured overload: returns a measured Single
-add_right(e, el, r) %::% Empty : . : MeasuredReducer : Single
+add_right(e, el, r) %::% Empty : . : MeasureReducer : Single
 add_right(e, el, r) %as% {
   measured_single(el, r)
 }
@@ -17,7 +17,7 @@ add_right(s, el) %as% {
 }
 
 # measured overload: builds a measured Deep from a Single
-add_right(s, el, r) %::% Single : . : MeasuredReducer : Deep
+add_right(s, el, r) %::% Single : . : MeasureReducer : Deep
 add_right(s, el, r) %as% {
   measured_deep(
     measured_digit(s[[1]], r = r),
@@ -36,7 +36,7 @@ add_right(d, el) %as% {
 }
 
 # measured overload: updates digit measure after append
-add_right(d, el, r) %::% Digit : . : MeasuredReducer : Digit
+add_right(d, el, r) %::% Digit : . : MeasureReducer : Digit
 add_right(d, el, r) %as% {
   oldclasses <- class(d)
   newd <- list.append(d, el)
@@ -63,7 +63,7 @@ add_right(d, el) %as% {
 }
 
 # measured overload: only new nodes get measures
-add_right(d, el, r) %::% Deep : . : MeasuredReducer : Deep
+add_right(d, el, r) %::% Deep : . : MeasureReducer : Deep
 add_right(d, el, r) %as% {
   if(length(d$suffix) == 4) {
     new_suffix <- measured_digit(d$suffix[[4]], el, r = r)
@@ -86,7 +86,7 @@ add_all_right(t, els) %as% {
   return(t)
 }
 
-add_all_right(t, els, r) %::% FingerTree : . : MeasuredReducer : FingerTree
+add_all_right(t, els, r) %::% FingerTree : . : MeasureReducer : FingerTree
 add_all_right(t, els, r) %as% {
   for(el in els) {
     t <- add_right(t, el, r)

@@ -1,5 +1,6 @@
 # split a digit at the first point where predicate flips from FALSE to TRUE
-split_digit <- function(p, i, digit, mr) {
+split_digit(p, i, digit, mr) %::% Function : . : list : MeasureReducer : list
+split_digit(p, i, digit, mr) %as% {
   if(length(digit) == 0) {
     stop("split_digit called with empty digit")
   }

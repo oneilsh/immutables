@@ -1,7 +1,8 @@
 
 
 # reducer fold helper; folds left over a tree or node structure
-reduce_left_acc <- function(t, r, acc) {
+reduce_left_acc(t, r, acc) %::% . : . : . : .
+reduce_left_acc(t, r, acc) %as% {
   if(is_structural_node(t) && t %isa% Empty) {
     return(acc)
   }

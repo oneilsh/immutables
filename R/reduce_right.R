@@ -1,7 +1,8 @@
 
 
 # reducer fold helper; folds right over a tree or node structure
-reduce_right_acc <- function(t, r, acc) {
+reduce_right_acc(t, r, acc) %::% . : . : . : .
+reduce_right_acc(t, r, acc) %as% {
   if(is_structural_node(t) && t %isa% Empty) {
     return(acc)
   }

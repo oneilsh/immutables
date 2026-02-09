@@ -28,18 +28,18 @@ if (requireNamespace("devtools", quietly = TRUE)) {
 # plot_tree(t1, vertex.size = 8, edge.width = 1.5)
 
 
-dev.new()
 abcs <- tree_from(as.list(letters[1:12]))
 xyzs <- tree_from(as.list(letters[16:26]))
 
-dev.new()
 plot_tree(abcs)
 warnings()
 
 plot_tree(xyzs)
 
 all <- concat_trees(abcs, xyzs)
-plot_tree(all, vertex.size = 9, title = "all!")
+plot_tree(sample(letters, size = 37, replace = TRUE) |> 
+            as.list() |> tree_from(),
+          vertex.size = 9, title = "all!", node_label = "both")
 
 
 indices <- sample(1:26)

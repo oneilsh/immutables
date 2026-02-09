@@ -68,7 +68,8 @@ get_graph_df <- function(t) {
 
 # plotting a tree with igraph, using the get_graph_df() helper
 # plot a tree using igraph; for exploration/debugging
-plot_tree <- function(t1, vertex.size = 4, edge.width = 1, label_edges = FALSE, title = NULL, ...) {
+plot_tree <- function(t1, vertex.size = 4, edge.width = 1, label_edges = FALSE, title = NULL,
+                      node_label = c("value", "type", "both", "none"), ...) {
   t1_edge_df <- get_graph_df(t1)[[1]]
   t1_node_df <- get_graph_df(t1)[[2]]
   t1_node_df$color <- NA
@@ -80,12 +81,26 @@ plot_tree <- function(t1, vertex.size = 4, edge.width = 1, label_edges = FALSE, 
   t1_node_df$color[t1_node_df$type == "Node3"] <- "#fdb462"
   t1_node_df$color[t1_node_df$type == "Node2"] <- "#b3de69"
   
-  g <- graph_from_data_frame(t1_edge_df, vertices = unique(t1_node_df), directed = TRUE)
+  vertices_df <- unique(t1_node_df)
+  g <- graph_from_data_frame(t1_edge_df, vertices = vertices_df, directed = TRUE)
+  old_par <- par(no.readonly = TRUE)
+  on.exit(par(old_par), add = TRUE)
   par(lheight = 0.3)
+  node_label <- match.arg(node_label)
+  if(node_label == "none") {
+    vlabels <- rep("", vcount(g))
+  } else if(node_label == "type") {
+    vlabels <- V(g)$type
+  } else if(node_label == "both") {
+    vlabels <- ifelse(V(g)$label == "", V(g)$type, paste0(V(g)$type, "\n", V(g)$label))
+  } else {
+    vlabels <- V(g)$label
+  }
+
   plot(g, 
        layout = layout_as_tree(g), 
        #layout = layout.reingold.tilford, 
-       vertex.label=V(g)$label, 
+       vertex.label=vlabels, 
        #vertex.color = as.integer(as.factor(V(g)$type)),
        vertex.size = vertex.size,
        edge.arrow.size = 0.4,

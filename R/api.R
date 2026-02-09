@@ -139,3 +139,60 @@ reduce_right <- function(t, reducer = NULL) {
   r <- resolve_tree_reducer(t, reducer, required = TRUE)
   reduce_right_impl(t, r)
 }
+
+#' Split tree around first predicate flip
+#'
+#' @param t FingerTree.
+#' @param predicate Function on measure values.
+#' @param reducer Optional reducer; falls back to tree attribute.
+#' @param accumulator Optional starting measure (defaults to reducer identity).
+#' @return A list with `left`, `elem`, and `right`.
+#' @export
+split_tree <- function(t, predicate, reducer = NULL, accumulator = NULL) {
+  r <- resolve_tree_reducer(t, reducer, required = TRUE)
+  if(!is_measure_reducer(r)) {
+    stop("split_tree requires a MeasureReducer.")
+  }
+  if(t %isa% Empty) {
+    stop("split_tree requires a non-empty tree.")
+  }
+  i <- if(is.null(accumulator)) r$i else accumulator
+  res <- split_tree_impl(predicate, i, t, r)
+  attr(res$left, "reducer") <- r
+  attr(res$right, "reducer") <- r
+  res
+}
+
+#' Split tree into left and right parts
+#'
+#' @param t FingerTree.
+#' @param predicate Function on measure values.
+#' @param reducer Optional reducer; falls back to tree attribute.
+#' @return A list with `left` and `right`.
+#' @export
+split <- function(t, predicate, reducer = NULL) {
+  r <- resolve_tree_reducer(t, reducer, required = TRUE)
+  if(!is_measure_reducer(r)) {
+    stop("split requires a MeasureReducer.")
+  }
+
+  if(t %isa% Empty) {
+    out <- list(left = measured_empty(r), right = measured_empty(r))
+    attr(out$left, "reducer") <- r
+    attr(out$right, "reducer") <- r
+    return(out)
+  }
+
+  if(predicate(measure_child(t, r))) {
+    s <- split_tree_impl(predicate, r$i, t, r)
+    right <- prepend(s$right, s$elem, r)
+    attr(s$left, "reducer") <- r
+    attr(right, "reducer") <- r
+    return(list(left = s$left, right = right))
+  }
+
+  out <- list(left = t, right = measured_empty(r))
+  attr(out$left, "reducer") <- r
+  attr(out$right, "reducer") <- r
+  out
+}

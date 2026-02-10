@@ -25,18 +25,10 @@ reduce_left_acc(t, r, acc) %as% {
 }
 
 # reduce_left_impl methods for different node types; uses identity once at top
-reduce_left_impl(e, r) %::% Empty : Monoid : .   # if it's an empty tree...
-reduce_left_impl(e, r) %as% r$i    # it's just the identity
-
 reduce_left_impl(e, r) %::% Empty : MeasureMonoid : .
 reduce_left_impl(e, r) %as% r$i
 
 
-
-reduce_left_impl(s, r) %::% Single : Monoid : .   # if it's a single element...
-reduce_left_impl(s, r) %as% {
-  reduce_left_acc(s, r, r$i)
-}
 
 reduce_left_impl(s, r) %::% Single : MeasureMonoid : .
 reduce_left_impl(s, r) %as% {
@@ -46,19 +38,9 @@ reduce_left_impl(s, r) %as% {
 # legacy Element wrapper (elements now can be any type)
 
 
-reduce_left_impl(n, r) %::% Node : Monoid: .
-reduce_left_impl(n, r) %as% {
-  reduce_left_acc(n, r, r$i)
-}
-
 reduce_left_impl(n, r) %::% Node : MeasureMonoid : .
 reduce_left_impl(n, r) %as% {
   reduce_left_acc(n, r, r$i)
-}
-
-reduce_left_impl(d, r) %::% Digit : Monoid : .
-reduce_left_impl(d, r) %as% {
-  reduce_left_acc(d, r, r$i)
 }
 
 reduce_left_impl(d, r) %::% Digit : MeasureMonoid : .
@@ -69,11 +51,6 @@ reduce_left_impl(d, r) %as% {
 
 # reduce_left_impl for deep nodes: recursively reduce, then reduce the reductions (I'm cheating by putting them into a digit and then 
 # reducing that)
-reduce_left_impl(t, r) %::% Deep : Monoid : .
-reduce_left_impl(t, r) %as% {
-  reduce_left_acc(t, r, r$i)
-}
-
 reduce_left_impl(t, r) %::% Deep : MeasureMonoid : .
 reduce_left_impl(t, r) %as% {
   reduce_left_acc(t, r, r$i)

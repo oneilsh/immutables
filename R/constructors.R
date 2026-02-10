@@ -63,13 +63,6 @@ Deep(prefix, middle, suffix) %as% {
 ## to sequences of tags, either from the left or the right)
 ##############################
 
-# A monoid is a generalized fold algebra; associativity is NOT required.
-# This allows left vs right folds to differ.
-Monoid(f, i) %::% . : . : list
-Monoid(f, i) %as% {
-  list(f = f, i = i)
-}
-
 # MeasureMonoid is a monoid with a measure() function for raw elements.
 # The reduce function must be associative for measured trees to be correct.
 MeasureMonoid(f, i, measure) %::% . : . : Function : list

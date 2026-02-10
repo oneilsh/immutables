@@ -25,18 +25,10 @@ reduce_right_acc(t, r, acc) %as% {
 }
 
 # reduce_right_impl methods for different node types; uses identity once at top
-reduce_right_impl(e, r) %::% Empty : Monoid : .   # if it's an empty tree...
-reduce_right_impl(e, r) %as% r$i    # it's just the identity
-
 reduce_right_impl(e, r) %::% Empty : MeasureMonoid : .
 reduce_right_impl(e, r) %as% r$i
 
 
-
-reduce_right_impl(s, r) %::% Single : Monoid : .   # if it's a single element...
-reduce_right_impl(s, r) %as% {
-  reduce_right_acc(s, r, r$i)
-}
 
 reduce_right_impl(s, r) %::% Single : MeasureMonoid : .
 reduce_right_impl(s, r) %as% {
@@ -44,12 +36,6 @@ reduce_right_impl(s, r) %as% {
 }
 
 # legacy Element wrapper (elements now can be any type)
-
-reduce_right_impl(n, r) %::% Node : Monoid: .
-reduce_right_impl(n, r) %as% {
-  reduce_right_acc(n, r, r$i)
-}
-
 reduce_right_impl(n, r) %::% Node : MeasureMonoid : .
 reduce_right_impl(n, r) %as% {
   reduce_right_acc(n, r, r$i)
@@ -57,11 +43,6 @@ reduce_right_impl(n, r) %as% {
 
 
 # reduce_right_impl for digits, which can have 1 to 4 elements; again we just call the monoid function with the right grouping
-reduce_right_impl(d, r) %::% Digit : Monoid : .
-reduce_right_impl(d, r) %as% {
-  reduce_right_acc(d, r, r$i)
-}
-
 reduce_right_impl(d, r) %::% Digit : MeasureMonoid : .
 reduce_right_impl(d, r) %as% {
   reduce_right_acc(d, r, r$i)
@@ -69,11 +50,6 @@ reduce_right_impl(d, r) %as% {
 
 # reduce_right_impl for deep nodes: recursively reduce, then reduce the reductions (I'm cheating by putting them into a digit and then 
 # reducing that)
-reduce_right_impl(t, r) %::% Deep : Monoid : .
-reduce_right_impl(t, r) %as% {
-  reduce_right_acc(t, r, r$i)
-}
-
 reduce_right_impl(t, r) %::% Deep : MeasureMonoid : .
 reduce_right_impl(t, r) %as% {
   reduce_right_acc(t, r, r$i)

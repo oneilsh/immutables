@@ -1,22 +1,9 @@
-
-add_right(e, el) %::% Empty : . : Single
-add_right(e, el) %as% {
-  Single(el)
-}
-
-# measured overload: returns a measured Single
 add_right(e, el, r) %::% Empty : . : MeasureMonoid : Single
 add_right(e, el, r) %as% {
   measured_single(el, r)
 }
 
 
-add_right(s, el) %::% Single : . : Deep
-add_right(s, el) %as% {
-  Deep(Digit(s[[1]]), Empty(), Digit(el))
-}
-
-# measured overload: builds a measured Deep from a Single
 add_right(s, el, r) %::% Single : . : MeasureMonoid : Deep
 add_right(s, el, r) %as% {
   measured_deep(
@@ -27,15 +14,6 @@ add_right(s, el, r) %as% {
   )
 }
 
-add_right(d, el) %::% Digit : . : Digit
-add_right(d, el) %as% {
-  oldclasses <- class(d)
-  newd <- list.append(d, el)
-  class(newd) <- oldclasses
-  return(newd)
-}
-
-# measured overload: updates digit measure after append
 add_right(d, el, r) %::% Digit : . : MeasureMonoid : Digit
 add_right(d, el, r) %as% {
   oldclasses <- class(d)
@@ -48,21 +26,7 @@ add_right(d, el, r) %as% {
 
 
 
-# symmetric case for add_right
-add_right(d, el) %::% Deep : . : Deep
-add_right(d, el) %as% {
-  if(length(d$suffix) == 4) {
-    new_suffix <- Digit(d$suffix[[4]], el)
-    new_middle_node <- Node3(d$suffix[[1]], d$suffix[[2]], d$suffix[[3]])
-    new_middle <- add_right(d$middle, new_middle_node)
-    return(Deep(prefix = d$prefix, middle = new_middle, suffix = new_suffix))
-  } else {
-    new_suffix <- add_right(d$suffix, el)
-    return(Deep(prefix = d$prefix, middle = d$middle, suffix = new_suffix))
-  }
-}
-
-# measured overload: only new nodes get measures
+# symmetric case for add_right. Only new nodes get measures.
 add_right(d, el, r) %::% Deep : . : MeasureMonoid : Deep
 add_right(d, el, r) %as% {
   if(length(d$suffix) == 4) {
@@ -76,15 +40,6 @@ add_right(d, el, r) %as% {
   }
 }
 
-
-
-add_all_right(t, els) %::% FingerTree : . : FingerTree
-add_all_right(t, els) %as% {
-  for(el in els) {
-    t <- add_right(t, el)
-  }
-  return(t)
-}
 
 add_all_right(t, els, r) %::% FingerTree : . : MeasureMonoid : FingerTree
 add_all_right(t, els, r) %as% {

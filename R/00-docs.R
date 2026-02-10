@@ -6,12 +6,6 @@
 #' @keywords internal
 NULL
 
-#' Monoid
-#' @param f Reduction function.
-#' @param i Identity element.
-#' @export
-Monoid <- function(f, i) { stop("Monoid is defined via lambda.r") }
-
 #' Measured monoid
 #' @param f Reduction function.
 #' @param i Identity element.

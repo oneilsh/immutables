@@ -10,13 +10,14 @@ testthat::test_that("split_tree returns distinguished element and context", {
 
 testthat::test_that("split returns left/right trees with split element prepended to right", {
   mr <- MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
+  sr <- MeasureMonoid(function(a, b) paste0(a, b), "", function(el) "")
   t <- tree_from(letters[1:6], monoid = mr)
 
   s <- split(t, function(v) v >= 4)
   testthat::expect_identical(attr(s$left, "measure"), 3)
   testthat::expect_identical(attr(s$right, "measure"), 3)
-  testthat::expect_identical(reduce_left(s$left, Monoid(function(a, b) paste0(a, b), "")), "abc")
-  testthat::expect_identical(reduce_left(s$right, Monoid(function(a, b) paste0(a, b), "")), "def")
+  testthat::expect_identical(reduce_left(s$left, sr), "abc")
+  testthat::expect_identical(reduce_left(s$right, sr), "def")
 })
 
 testthat::test_that("split handles empty and predicate-never-true cases", {
@@ -34,23 +35,25 @@ testthat::test_that("split handles empty and predicate-never-true cases", {
 
 testthat::test_that("split boundary at first element keeps full right side", {
   mr <- MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
+  sr <- MeasureMonoid(function(a, b) paste0(a, b), "", function(el) "")
   t <- tree_from(letters[1:5], monoid = mr)
   s <- split(t, function(v) v >= 1)
 
   testthat::expect_true(s$left %isa% Empty)
   testthat::expect_identical(attr(s$right, "measure"), 5)
-  testthat::expect_identical(reduce_left(s$right, Monoid(function(a, b) paste0(a, b), "")), "abcde")
+  testthat::expect_identical(reduce_left(s$right, sr), "abcde")
 })
 
 testthat::test_that("split boundary at last element keeps single-element right side", {
   mr <- MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
+  sr <- MeasureMonoid(function(a, b) paste0(a, b), "", function(el) "")
   t <- tree_from(letters[1:5], monoid = mr)
   s <- split(t, function(v) v >= 5)
 
   testthat::expect_identical(attr(s$left, "measure"), 4)
   testthat::expect_identical(attr(s$right, "measure"), 1)
-  testthat::expect_identical(reduce_left(s$left, Monoid(function(a, b) paste0(a, b), "")), "abcd")
-  testthat::expect_identical(reduce_left(s$right, Monoid(function(a, b) paste0(a, b), "")), "e")
+  testthat::expect_identical(reduce_left(s$left, sr), "abcd")
+  testthat::expect_identical(reduce_left(s$right, sr), "e")
 })
 
 testthat::test_that("split_tree respects custom accumulator offsets", {
@@ -75,9 +78,6 @@ testthat::test_that("split_tree edge behavior on single and invalid precondition
   testthat::expect_error(split_tree(t, function(v) v >= 10), "predicate never became true")
 })
 
-testthat::test_that("split and split_tree require MeasureMonoid", {
-  r <- Monoid(function(a, b) a + b, 0)
-  t <- tree_from(1:4, monoid = r)
-  testthat::expect_error(split(t, function(v) v >= 2), "MeasureMonoid")
-  testthat::expect_error(split_tree(t, function(v) v >= 2), "MeasureMonoid")
+testthat::test_that("split and split_tree require a monoid on the tree", {
+  testthat::expect_error(tree_from(1:4), "No monoid provided")
 })

@@ -54,12 +54,13 @@ validate_fingertree_invariants <- function(t) {
 }
 
 testthat::test_that("structural invariants hold after mixed updates", {
-  t <- empty_tree()
+  mr <- MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
+  t <- empty_tree(mr)
   for(i in 1:30) {
     if(i %% 2 == 0) {
-      t <- append(t, letters[i %% 26 + 1])
+      t <- append(t, letters[i %% 26 + 1], mr)
     } else {
-      t <- prepend(t, letters[i %% 26 + 1])
+      t <- prepend(t, letters[i %% 26 + 1], mr)
     }
   }
   validate_fingertree_invariants(t)

@@ -1,36 +1,51 @@
 resolve_tree_monoid <- function(t, monoid = NULL, required = FALSE) {
-  if(!is.null(monoid)) {
-    return(monoid)
-  }
-  r <- attr(t, "monoid")
+  r <- if(!is.null(monoid)) monoid else attr(t, "monoid")
   if(required && is.null(r)) {
     stop("No monoid provided and tree has no monoid attribute.")
+  }
+  if(!is.null(r) && !is_measure_monoid(r)) {
+    stop("This package now requires a MeasureMonoid.")
   }
   r
 }
 
-set_tree_monoid <- function(t, monoid) {
-  attr(t, "monoid") <- monoid
-  t
+resolve_concat_monoid <- function(x, y, monoid = NULL) {
+  if(!is.null(monoid)) {
+    return(resolve_tree_monoid(x, monoid, required = TRUE))
+  }
+
+  rx <- attr(x, "monoid")
+  ry <- attr(y, "monoid")
+
+  if(!is.null(rx) && !is_measure_monoid(rx)) {
+    stop("Left tree has non-measured monoid; expected MeasureMonoid.")
+  }
+  if(!is.null(ry) && !is_measure_monoid(ry)) {
+    stop("Right tree has non-measured monoid; expected MeasureMonoid.")
+  }
+  if(!is.null(rx) && !is.null(ry) && !identical(rx, ry)) {
+    stop("Left/right trees have different monoid attributes. Pass an explicit monoid.")
+  }
+
+  r <- if(!is.null(rx)) rx else ry
+  if(is.null(r)) {
+    stop("No monoid provided and neither tree has a monoid attribute.")
+  }
+  r
 }
 
 #' Create an empty finger tree
 #'
-#' @param monoid Optional monoid stored on the tree for later use.
+#' @param monoid Measure monoid stored on the tree.
 #' @return An empty finger tree.
 #' @examples
-#' r <- Monoid(function(a, b) a + b, 0)
+#' r <- MeasureMonoid(function(a, b) a + b, 0, function(el) 0)
 #' t <- empty_tree(monoid = r)
 #' @export
 empty_tree <- function(monoid = NULL) {
-  t <- Empty()
-  if(!is.null(monoid)) {
-    attr(t, "monoid") <- monoid
-    if(is_measure_monoid(monoid)) {
-      t <- measured_empty(monoid)
-      attr(t, "monoid") <- monoid
-    }
-  }
+  r <- resolve_tree_monoid(Empty(), monoid, required = TRUE)
+  t <- measured_empty(r)
+  attr(t, "monoid") <- r
   t
 }
 
@@ -39,40 +54,32 @@ empty_tree <- function(monoid = NULL) {
 #' @param x Elements to insert.
 #' @param values Optional parallel values (same length as x). Stored as the
 #'   `value` attribute on each element when provided.
-#' @param monoid Optional monoid stored on the tree for later use.
+#' @param monoid Measure monoid stored on the tree.
 #' @return A finger tree containing the elements.
 #' @examples
-#' t <- tree_from(1:3)
+#' r <- MeasureMonoid(function(a, b) a + b, 0, function(el) 0)
+#' t <- tree_from(1:3, monoid = r)
 #' @export
 tree_from <- function(x, values = NULL, monoid = NULL) {
-  if(is_measure_monoid(monoid)) {
-    t <- empty_tree(monoid)
-    x_list <- as.list(x)
-    if(is.null(values)) {
-      for(el in x_list) {
-        t <- append(t, el, monoid)
-      }
-    } else {
-      v_list <- as.list(values)
-      if(length(x_list) != length(v_list)) {
-        stop("length of entries and values lists given to tree_from not equal.")
-      }
-      for(i in seq_along(x_list)) {
-        el <- x_list[[i]]
-        attr(el, "value") <- v_list[[i]]
-        t <- append(t, el, monoid)
-      }
+  r <- resolve_tree_monoid(Empty(), monoid, required = TRUE)
+  t <- empty_tree(r)
+  x_list <- as.list(x)
+  if(is.null(values)) {
+    for(el in x_list) {
+      t <- append(t, el, r)
     }
   } else {
-    t <- if(is.null(values)) {
-      as.FingerTree(x)
-    } else {
-      as.FingerTree(x, values)
+    v_list <- as.list(values)
+    if(length(x_list) != length(v_list)) {
+      stop("length of entries and values lists given to tree_from not equal.")
+    }
+    for(i in seq_along(x_list)) {
+      el <- x_list[[i]]
+      attr(el, "value") <- v_list[[i]]
+      t <- append(t, el, r)
     }
   }
-  if(!is.null(monoid)) {
-    attr(t, "monoid") <- monoid
-  }
+  attr(t, "monoid") <- r
   t
 }
 
@@ -80,12 +87,12 @@ tree_from <- function(x, values = NULL, monoid = NULL) {
 #'
 #' @param t FingerTree.
 #' @param x Element to prepend.
-#' @param monoid Optional monoid to store on the tree.
+#' @param monoid Optional measure monoid; falls back to tree attribute.
 #' @return Updated tree.
 #' @export
 prepend <- function(t, x, monoid = NULL) {
-  r <- resolve_tree_monoid(t, monoid, required = FALSE)
-  t2 <- if(is_measure_monoid(r)) add_left(t, x, r) else add_left(t, x)
+  r <- resolve_tree_monoid(t, monoid, required = TRUE)
+  t2 <- add_left(t, x, r)
   if(!is.null(r)) { attr(t2, "monoid") <- r }
   t2
 }
@@ -94,12 +101,12 @@ prepend <- function(t, x, monoid = NULL) {
 #'
 #' @param t FingerTree.
 #' @param x Element to append.
-#' @param monoid Optional monoid to store on the tree.
+#' @param monoid Optional measure monoid; falls back to tree attribute.
 #' @return Updated tree.
 #' @export
 append <- function(t, x, monoid = NULL) {
-  r <- resolve_tree_monoid(t, monoid, required = FALSE)
-  t2 <- if(is_measure_monoid(r)) add_right(t, x, r) else add_right(t, x)
+  r <- resolve_tree_monoid(t, monoid, required = TRUE)
+  t2 <- add_right(t, x, r)
   if(!is.null(r)) { attr(t2, "monoid") <- r }
   t2
 }
@@ -108,12 +115,13 @@ append <- function(t, x, monoid = NULL) {
 #'
 #' @param x Left tree.
 #' @param y Right tree.
-#' @param monoid Optional monoid to store on the result.
+#' @param monoid Optional measure monoid. If omitted, uses left/right tree
+#'   attributes; errors if neither tree has one or both differ.
 #' @return Concatenated tree.
 #' @export
 concat_trees <- function(x, y, monoid = NULL) {
-  r <- resolve_tree_monoid(x, monoid, required = FALSE)
-  t <- if(is_measure_monoid(r)) concat(x, y, r) else concat(x, y)
+  r <- resolve_concat_monoid(x, y, monoid)
+  t <- concat(x, y, r)
   if(!is.null(r)) { attr(t, "monoid") <- r }
   t
 }
@@ -121,7 +129,7 @@ concat_trees <- function(x, y, monoid = NULL) {
 #' Reduce from the left
 #'
 #' @param t FingerTree.
-#' @param monoid Optional monoid; falls back to tree attribute.
+#' @param monoid Optional measure monoid; falls back to tree attribute.
 #' @return Reduced value.
 #' @export
 reduce_left <- function(t, monoid = NULL) {
@@ -132,7 +140,7 @@ reduce_left <- function(t, monoid = NULL) {
 #' Reduce from the right
 #'
 #' @param t FingerTree.
-#' @param monoid Optional monoid; falls back to tree attribute.
+#' @param monoid Optional measure monoid; falls back to tree attribute.
 #' @return Reduced value.
 #' @export
 reduce_right <- function(t, monoid = NULL) {
@@ -144,15 +152,12 @@ reduce_right <- function(t, monoid = NULL) {
 #'
 #' @param t FingerTree.
 #' @param predicate Function on measure values.
-#' @param monoid Optional monoid; falls back to tree attribute.
+#' @param monoid Optional measure monoid; falls back to tree attribute.
 #' @param accumulator Optional starting measure (defaults to monoid identity).
 #' @return A list with `left`, `elem`, and `right`.
 #' @export
 split_tree <- function(t, predicate, monoid = NULL, accumulator = NULL) {
   r <- resolve_tree_monoid(t, monoid, required = TRUE)
-  if(!is_measure_monoid(r)) {
-    stop("split_tree requires a MeasureMonoid.")
-  }
   if(t %isa% Empty) {
     stop("split_tree requires a non-empty tree.")
   }
@@ -167,14 +172,11 @@ split_tree <- function(t, predicate, monoid = NULL, accumulator = NULL) {
 #'
 #' @param t FingerTree.
 #' @param predicate Function on measure values.
-#' @param monoid Optional monoid; falls back to tree attribute.
+#' @param monoid Optional measure monoid; falls back to tree attribute.
 #' @return A list with `left` and `right`.
 #' @export
 split <- function(t, predicate, monoid = NULL) {
   r <- resolve_tree_monoid(t, monoid, required = TRUE)
-  if(!is_measure_monoid(r)) {
-    stop("split requires a MeasureMonoid.")
-  }
 
   if(t %isa% Empty) {
     out <- list(left = measured_empty(r), right = measured_empty(r))

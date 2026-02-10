@@ -115,81 +115,22 @@ plot_tree <- function(t1, vertex.size = 4, edge.width = 1, label_edges = FALSE, 
 }
 
 
-# takes a list of elements such as: a, b, c, d, e, f, g
-# returns a list of nodes such as: list(Node3(a, b, c), Node2(d, e), Node2(f, g))
-# a pretty inefficient recursive implementation at the moment
-# this was the name used in the paper, but it's pretty generic
-# convert a flat list into Node2/Node3 list for concatenation
-nodes(l) %::% list : list
-nodes(l) %as% {
+# convert a flat list into measured Node2/Node3 list for concatenation.
+measured_nodes(l, r) %::% list : MeasureMonoid : list
+measured_nodes(l, r) %as% {
   if(length(l) == 2) { return(list(
-    Node2( l[[1]], l[[2]] )
+    measured_node2( l[[1]], l[[2]], r )
   ))}
   if(length(l) == 3) { return(list(
-    Node3( l[[1]], l[[2]], l[[3]] )
+    measured_node3( l[[1]], l[[2]], l[[3]], r )
   ))}
   if(length(l) == 4) { return(list(
-    Node2( l[[1]], l[[2]] ),
-    Node2( l[[3]], l[[4]] )
+    measured_node2( l[[1]], l[[2]], r ),
+    measured_node2( l[[3]], l[[4]], r )
   ))}
   
-  first = Node3( l[[1]], l[[2]], l[[3]] )
-  rest = nodes(l[4:length(l)])
+  first = measured_node3( l[[1]], l[[2]], l[[3]], r )
+  rest = measured_nodes(l[4:length(l)], r)
   rest = list.prepend(rest, first)
   return(rest)
-}
-
-# two-arg overload: use measured constructors when r is a MeasureMonoid,
-# otherwise fall back to unmeasured Node2/Node3 construction.
-nodes(l, r) %::% list : . : list
-nodes(l, r) %as% {
-  if(is_measure_monoid(r)) {
-    if(length(l) == 2) { return(list(
-      measured_node2( l[[1]], l[[2]], r )
-    ))}
-    if(length(l) == 3) { return(list(
-      measured_node3( l[[1]], l[[2]], l[[3]], r )
-    ))}
-    if(length(l) == 4) { return(list(
-      measured_node2( l[[1]], l[[2]], r ),
-      measured_node2( l[[3]], l[[4]], r )
-    ))}
-    
-    first = measured_node3( l[[1]], l[[2]], l[[3]], r )
-    rest = nodes(l[4:length(l)], r)
-    rest = list.prepend(rest, first)
-    return(rest)
-  }
-
-  nodes(l)
-}
-
-
-
-# build a tree from a list/vector (unmeasured)
-as.FingerTree(l) %::% . : FingerTree
-as.FingerTree(l) %as% {
-  l <- as.list(l)
-  t <- Empty()
-  for(el in l) {t <- add_right(t, el)}
-  return(t)
-}
-
-
-# build a tree from values + separate value list
-as.FingerTree(l, v) %::% . : . : FingerTree
-as.FingerTree(l, v) %as% {
-  l <- as.list(l)
-  v <- as.list(v)
-  if(length(l) != length(v)) {
-    stop("length of entries and values lists given to as.FingerTree not equal.")
-  }
-  t <- Empty()
-  for(i in 1:length(l)) {
-    el <- l[[i]]
-    value <- v[[i]]
-    attr(el, "value") <- value
-    t <- add_right(t, el)
-  }
-  return(t)
 }

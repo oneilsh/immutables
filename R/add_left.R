@@ -5,7 +5,7 @@ add_left(e, el) %as% {
 }
 
 # measured overload: returns a measured Single
-add_left(e, el, r) %::% Empty : . : MeasureReducer : Single
+add_left(e, el, r) %::% Empty : . : MeasureMonoid : Single
 add_left(e, el, r) %as% {
   measured_single(el, r)
 }
@@ -16,7 +16,7 @@ add_left(s, el) %as% {
 }
 
 # measured overload: builds a measured Deep from a Single
-add_left(s, el, r) %::% Single : . : MeasureReducer : Deep
+add_left(s, el, r) %::% Single : . : MeasureMonoid : Deep
 add_left(s, el, r) %as% {
   measured_deep(
     measured_digit(el, r = r),
@@ -39,7 +39,7 @@ add_left(d, el) %as% {
 }
 
 # measured overload: updates digit measure after prepend
-add_left(d, el, r) %::% Digit : . : MeasureReducer : Digit
+add_left(d, el, r) %::% Digit : . : MeasureMonoid : Digit
 add_left(d, el, r) %as% {
   oldclasses <- class(d)
   newd <- list.prepend(d, el)
@@ -68,7 +68,7 @@ add_left(d, el) %as% {
 }
 
 # measured overload: only new nodes get measures
-add_left(d, el, r) %::% Deep : . : MeasureReducer : Deep
+add_left(d, el, r) %::% Deep : . : MeasureMonoid : Deep
 add_left(d, el, r) %as% {
   if(length(d$prefix) == 4) {
     new_prefix <- measured_digit(el, d$prefix[[1]], r = r)
@@ -90,7 +90,7 @@ add_all_left(t, els) %as% {
   return(t)
 }
 
-add_all_left(t, els, r) %::% FingerTree : . : MeasureReducer : FingerTree
+add_all_left(t, els, r) %::% FingerTree : . : MeasureMonoid : FingerTree
 add_all_left(t, els, r) %as% {
   for(el in rev(els)) {
     t <- add_left(t, el, r)

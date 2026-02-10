@@ -1,8 +1,8 @@
 # helpers for converting between digits/nodes/trees and for deconstructing trees
 
 # construct a Digit from a list of elements.
-# input: xs list of 1..4 elements (raw elements or nodes), optional measure reducer r.
-# output: Digit(xs...) with preserved order, measured if r is a MeasureReducer.
+# input: xs list of 1..4 elements (raw elements or nodes), optional measure monoid r.
+# output: Digit(xs...) with preserved order, measured if r is a MeasureMonoid.
 # note: empty input returns an empty list() sentinel, used by deepL/deepR rebuild logic.
 build_digit(xs) %::% list : .
 build_digit(xs) %as% {
@@ -12,7 +12,7 @@ build_digit(xs) %as% {
   do.call(Digit, xs)
 }
 
-build_digit(xs, r) %::% list : MeasureReducer : .
+build_digit(xs, r) %::% list : MeasureMonoid : .
 build_digit(xs, r) %as% {
   if(length(xs) == 0) {
     return(list())
@@ -21,16 +21,16 @@ build_digit(xs, r) %as% {
 }
 
 # build a Deep node from prefix digit, middle tree, and suffix digit.
-# input: pr (Digit), m (FingerTree), sf (Digit), optional measure reducer r.
-# output: Deep(pr, m, sf), measured if r is a MeasureReducer.
+# input: pr (Digit), m (FingerTree), sf (Digit), optional measure monoid r.
+# output: Deep(pr, m, sf), measured if r is a MeasureMonoid.
 build_deep(pr, m, sf) %::% Digit : FingerTree : Digit : Deep
 build_deep(pr, m, sf) %as% Deep(pr, m, sf)
 
-build_deep(pr, m, sf, r) %::% Digit : FingerTree : Digit : MeasureReducer : Deep
+build_deep(pr, m, sf, r) %::% Digit : FingerTree : Digit : MeasureMonoid : Deep
 build_deep(pr, m, sf, r) %as% measured_deep(pr, m, sf, r)
 
 # convert a small list/digit (size 0..4) into a valid FingerTree shape.
-# input: d list of elements (typically a Digit), optional measure reducer r.
+# input: d list of elements (typically a Digit), optional measure monoid r.
 # output: Empty / Single / Deep representing the same left-to-right sequence.
 digit_to_tree(d) %::% list : FingerTree
 digit_to_tree(d) %as% {
@@ -55,7 +55,7 @@ digit_to_tree(d) %as% {
   stop("digit_to_tree expects a digit of size 0..4")
 }
 
-digit_to_tree(d, r) %::% list : MeasureReducer : FingerTree
+digit_to_tree(d, r) %::% list : MeasureMonoid : FingerTree
 digit_to_tree(d, r) %as% {
   n <- length(d)
   if(n == 0) { return(measured_empty(r)) }
@@ -79,16 +79,16 @@ digit_to_tree(d, r) %as% {
 }
 
 # convert a Node2/Node3 into a Digit of its children.
-# input: node (Node2 or Node3), optional measure reducer r.
+# input: node (Node2 or Node3), optional measure monoid r.
 # output: Digit with 2 or 3 elements in the same order.
 node_to_digit(node) %::% Node : Digit
 node_to_digit(node) %as% build_digit(as.list(node))
 
-node_to_digit(node, r) %::% Node : MeasureReducer : Digit
+node_to_digit(node, r) %::% Node : MeasureMonoid : Digit
 node_to_digit(node, r) %as% build_digit(as.list(node), r)
 
 # viewL: return leftmost element and the remaining tree
-# input: t non-empty FingerTree, optional measure reducer r.
+# input: t non-empty FingerTree, optional measure monoid r.
 # output: list(elem = leftmost element of t, rest = t without that element).
 viewL(t) %::% FingerTree : list
 viewL(t) %as% {
@@ -117,7 +117,7 @@ viewL(t) %as% {
   list(elem = head, rest = build_deep(new_pr, m_rest, t$suffix))
 }
 
-viewL(t, r) %::% FingerTree : MeasureReducer : list
+viewL(t, r) %::% FingerTree : MeasureMonoid : list
 viewL(t, r) %as% {
   if(t %isa% Empty) {
     stop("viewL on Empty")
@@ -145,7 +145,7 @@ viewL(t, r) %as% {
 }
 
 # viewR: return rightmost element and the remaining tree
-# input: t non-empty FingerTree, optional measure reducer r.
+# input: t non-empty FingerTree, optional measure monoid r.
 # output: list(elem = rightmost element of t, rest = t without that element).
 viewR(t) %::% FingerTree : list
 viewR(t) %as% {
@@ -174,7 +174,7 @@ viewR(t) %as% {
   list(elem = head, rest = build_deep(t$prefix, m_rest, new_sf))
 }
 
-viewR(t, r) %::% FingerTree : MeasureReducer : list
+viewR(t, r) %::% FingerTree : MeasureMonoid : list
 viewR(t, r) %as% {
   if(t %isa% Empty) {
     stop("viewR on Empty")
@@ -220,7 +220,7 @@ deepL(pr, m, sf) %as% {
   build_deep(new_pr, m_rest, sf)
 }
 
-deepL(pr, m, sf, r) %::% . : FingerTree : . : MeasureReducer : FingerTree
+deepL(pr, m, sf, r) %::% . : FingerTree : . : MeasureMonoid : FingerTree
 deepL(pr, m, sf, r) %as% {
   if(length(pr) > 0) {
     return(build_deep(pr, m, sf, r))
@@ -254,7 +254,7 @@ deepR(pr, m, sf) %as% {
   build_deep(pr, m_rest, new_sf)
 }
 
-deepR(pr, m, sf, r) %::% . : FingerTree : . : MeasureReducer : FingerTree
+deepR(pr, m, sf, r) %::% . : FingerTree : . : MeasureMonoid : FingerTree
 deepR(pr, m, sf, r) %as% {
   if(length(sf) > 0) {
     return(build_deep(pr, m, sf, r))

@@ -4,14 +4,14 @@
 \alias{concat_trees}
 \title{Concatenate two trees}
 \usage{
-concat_trees(x, y, reducer = NULL)
+concat_trees(x, y, monoid = NULL)
 }
 \arguments{
 \item{x}{Left tree.}
 
 \item{y}{Right tree.}
 
-\item{reducer}{Optional reducer to store on the result.}
+\item{monoid}{Optional monoid to store on the result.}
 }
 \value{
 Concatenated tree.

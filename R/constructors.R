@@ -59,23 +59,23 @@ Deep(prefix, middle, suffix) %as% {
 
 ##############################
 ## Monoid-annotation
-## (actually, generalized, "reducer" annotation, and reduction functions that apply monoids (sorry, reducers),
+## (actually, generalized, "monoid" annotation, and reduction functions that apply monoids,
 ## to sequences of tags, either from the left or the right)
 ##############################
 
-# A reducer is a generalized monoid; associativity is NOT required.
+# A monoid is a generalized fold algebra; associativity is NOT required.
 # This allows left vs right folds to differ.
-Reducer(f, i) %::% . : . : list
-Reducer(f, i) %as% {
+Monoid(f, i) %::% . : . : list
+Monoid(f, i) %as% {
   list(f = f, i = i)
 }
 
-# MeasureReducer is a monoid with a measure() function for raw elements.
+# MeasureMonoid is a monoid with a measure() function for raw elements.
 # The reduce function must be associative for measured trees to be correct.
-MeasureReducer(f, i, measure) %::% . : . : Function : list
-MeasureReducer(f, i, measure) %as% {
+MeasureMonoid(f, i, measure) %::% . : . : Function : list
+MeasureMonoid(f, i, measure) %as% {
   res <- list(f = f, i = i, measure = measure)
-  class(res) <- c("MeasureReducer", class(res))
+  class(res) <- c("MeasureMonoid", class(res))
   res
 }
 

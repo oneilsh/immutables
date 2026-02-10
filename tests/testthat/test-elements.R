@@ -1,5 +1,5 @@
 testthat::test_that("Elements can be lists and data.frames", {
-  r <- Reducer(function(a, b) c(a, list(b)), list())
+  r <- Monoid(function(a, b) c(a, list(b)), list())
   df <- data.frame(x = 1:2, y = c("a", "b"), stringsAsFactors = FALSE)
   t <- empty_tree()
   t <- append(t, list(a = 1, b = 2))

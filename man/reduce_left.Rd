@@ -4,12 +4,12 @@
 \alias{reduce_left}
 \title{Reduce from the left}
 \usage{
-reduce_left(t, reducer = NULL)
+reduce_left(t, monoid = NULL)
 }
 \arguments{
 \item{t}{FingerTree.}
 
-\item{reducer}{Optional reducer; falls back to tree attribute.}
+\item{monoid}{Optional monoid; falls back to tree attribute.}
 }
 \value{
 Reduced value.

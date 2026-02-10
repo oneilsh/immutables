@@ -1,5 +1,5 @@
 tree_chars <- function(t) {
-  reduce_left(t, Reducer(function(a, b) paste0(a, b), ""))
+  reduce_left(t, Monoid(function(a, b) paste0(a, b), ""))
 }
 
 testthat::test_that("viewL and viewR return boundary element and remainder", {
@@ -39,8 +39,8 @@ testthat::test_that("deepL/deepR collapse correctly when middle is Empty", {
 })
 
 testthat::test_that("measured view helpers preserve measure attributes", {
-  mr <- MeasureReducer(function(a, b) a + b, 0, function(el) 1)
-  t <- tree_from(letters[1:4], reducer = mr)
+  mr <- MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
+  t <- tree_from(letters[1:4], monoid = mr)
 
   vl <- fingertree:::viewL(t, mr)
   vr <- fingertree:::viewR(t, mr)

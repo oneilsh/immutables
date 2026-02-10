@@ -33,19 +33,19 @@ app3(xs, ts, ys) %as% {
 }
 
 # measured overloads: ensure measures are computed only on new nodes
-app3(e, ts, xs, r) %::% Empty : list : FingerTree : MeasureReducer : FingerTree
+app3(e, ts, xs, r) %::% Empty : list : FingerTree : MeasureMonoid : FingerTree
 app3(e, ts, xs, r) %as% add_all_left(xs, ts, r)
 
-app3(xs, ts, e, r) %::% FingerTree : list : Empty : MeasureReducer : FingerTree
+app3(xs, ts, e, r) %::% FingerTree : list : Empty : MeasureMonoid : FingerTree
 app3(xs, ts, e, r) %as% add_all_right(xs, ts, r)
 
-app3(x, ts, xs, r) %::% Single : list : FingerTree : MeasureReducer : FingerTree
+app3(x, ts, xs, r) %::% Single : list : FingerTree : MeasureMonoid : FingerTree
 app3(x, ts, xs, r) %as% add_left(add_all_left(xs, ts, r), x, r)
 
-app3(xs, ts, x, r) %::% FingerTree : list : Single : MeasureReducer : FingerTree
+app3(xs, ts, x, r) %::% FingerTree : list : Single : MeasureMonoid : FingerTree
 app3(xs, ts, x, r) %as% add_right(add_all_right(xs, ts, r), x, r)
 
-app3(xs, ts, ys, r) %::% Deep : list : Deep : MeasureReducer : FingerTree
+app3(xs, ts, ys, r) %::% Deep : list : Deep : MeasureMonoid : FingerTree
 app3(xs, ts, ys, r) %as% {
   measured_deep(
     xs$prefix,
@@ -65,7 +65,7 @@ concat(xs, ys) %as% {
 }
 
 # measured concatenation entrypoint
-concat(xs, ys, r) %::% FingerTree : FingerTree : MeasureReducer : FingerTree
+concat(xs, ys, r) %::% FingerTree : FingerTree : MeasureMonoid : FingerTree
 concat(xs, ys, r) %as% {
   app3(xs, list(), ys, r)
 }

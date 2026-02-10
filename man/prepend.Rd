@@ -4,14 +4,14 @@
 \alias{prepend}
 \title{Prepend an element}
 \usage{
-prepend(t, x, reducer = NULL)
+prepend(t, x, monoid = NULL)
 }
 \arguments{
 \item{t}{FingerTree.}
 
 \item{x}{Element to prepend.}
 
-\item{reducer}{Optional reducer to store on the tree.}
+\item{monoid}{Optional monoid to store on the tree.}
 }
 \value{
 Updated tree.

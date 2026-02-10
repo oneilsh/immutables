@@ -3,7 +3,7 @@
 Alpha tests on monoid-annotated fingertrees in R. Please note that this repository is very much an alpha work-in-progress; code is 
 inefficient, functionality is missing. 
 
-`R/` - implementation files for the 2-3 finger tree and reducers.
+`R/` - implementation files for the 2-3 finger tree and monoids.
 
 `scripts/monoids_demo.R` - demo/exploration of monoid-annotated binary trees (not 2-3 finger trees).
 

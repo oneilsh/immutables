@@ -4,7 +4,7 @@
 \alias{tree_from}
 \title{Build a tree from a vector or list}
 \usage{
-tree_from(x, values = NULL, reducer = NULL)
+tree_from(x, values = NULL, monoid = NULL)
 }
 \arguments{
 \item{x}{Elements to insert.}
@@ -12,7 +12,7 @@ tree_from(x, values = NULL, reducer = NULL)
 \item{values}{Optional parallel values (same length as x). Stored as the
 `value` attribute on each element when provided.}
 
-\item{reducer}{Optional reducer stored on the tree for later use.}
+\item{monoid}{Optional monoid stored on the tree for later use.}
 }
 \value{
 A finger tree containing the elements.

@@ -4,10 +4,10 @@
 \alias{empty_tree}
 \title{Create an empty finger tree}
 \usage{
-empty_tree(reducer = NULL)
+empty_tree(monoid = NULL)
 }
 \arguments{
-\item{reducer}{Optional reducer stored on the tree for later use.}
+\item{monoid}{Optional monoid stored on the tree for later use.}
 }
 \value{
 An empty finger tree.
@@ -16,6 +16,6 @@ An empty finger tree.
 Create an empty finger tree
 }
 \examples{
-r <- Reducer(function(a, b) a + b, 0)
-t <- empty_tree(reducer = r)
+r <- Monoid(function(a, b) a + b, 0)
+t <- empty_tree(monoid = r)
 }

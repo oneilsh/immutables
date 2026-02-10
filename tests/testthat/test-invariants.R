@@ -66,9 +66,9 @@ testthat::test_that("structural invariants hold after mixed updates", {
 })
 
 testthat::test_that("structural invariants hold after concat and split", {
-  mr <- MeasureReducer(function(a, b) a + b, 0, function(el) 1)
-  t1 <- tree_from(letters[1:12], reducer = mr)
-  t2 <- tree_from(letters[13:20], reducer = mr)
+  mr <- MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
+  t1 <- tree_from(letters[1:12], monoid = mr)
+  t2 <- tree_from(letters[13:20], monoid = mr)
   t <- concat_trees(t1, t2)
   validate_fingertree_invariants(t)
 
@@ -78,8 +78,8 @@ testthat::test_that("structural invariants hold after concat and split", {
 })
 
 testthat::test_that("measured deep trees retain root measure through updates", {
-  mr <- MeasureReducer(function(a, b) a + b, 0, function(el) 1)
-  t <- tree_from(letters[1:10], reducer = mr)
+  mr <- MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
+  t <- tree_from(letters[1:10], monoid = mr)
   t <- prepend(t, "z")
   t <- append(t, "y")
   testthat::expect_identical(attr(t, "measure"), 12)

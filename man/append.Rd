@@ -4,14 +4,14 @@
 \alias{append}
 \title{Append an element}
 \usage{
-append(t, x, reducer = NULL)
+append(t, x, monoid = NULL)
 }
 \arguments{
 \item{t}{FingerTree.}
 
 \item{x}{Element to append.}
 
-\item{reducer}{Optional reducer to store on the tree.}
+\item{monoid}{Optional monoid to store on the tree.}
 }
 \value{
 Updated tree.

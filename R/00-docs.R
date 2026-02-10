@@ -6,18 +6,18 @@
 #' @keywords internal
 NULL
 
-#' Reducer
+#' Monoid
 #' @param f Reduction function.
 #' @param i Identity element.
 #' @export
-Reducer <- function(f, i) { stop("Reducer is defined via lambda.r") }
+Monoid <- function(f, i) { stop("Monoid is defined via lambda.r") }
 
-#' Measured reducer
+#' Measured monoid
 #' @param f Reduction function.
 #' @param i Identity element.
 #' @param measure Function mapping an element to a measure.
 #' @export
-MeasureReducer <- function(f, i, measure) { stop("MeasureReducer is defined via lambda.r") }
+MeasureMonoid <- function(f, i, measure) { stop("MeasureMonoid is defined via lambda.r") }
 
 #' Predicate
 #' @param f Predicate function.

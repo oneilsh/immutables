@@ -6,7 +6,7 @@
 # - t is non-empty
 # - p(i) is FALSE and p(i <> measure(t)) is TRUE for strict split semantics
 # The public wrappers relax these preconditions (matching the paper's split).
-split_tree_impl(p, i, t, mr) %::% Function : . : FingerTree : MeasureReducer : list
+split_tree_impl(p, i, t, mr) %::% Function : . : FingerTree : MeasureMonoid : list
 split_tree_impl(p, i, t, mr) %as% {
   if(t %isa% Empty) {
     stop("split_tree_impl requires a non-empty tree")

@@ -10,6 +10,7 @@ plot_tree(
   edge.width = 1,
   label_edges = FALSE,
   title = NULL,
+  node_label = c("value", "type", "both", "none"),
   ...
 )
 }

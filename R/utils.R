@@ -139,24 +139,29 @@ nodes(l) %as% {
   return(rest)
 }
 
-# measured overload: uses measured node constructors
-nodes(l, r) %::% list : MeasureReducer : list
+# two-arg overload: use measured constructors when r is a MeasureMonoid,
+# otherwise fall back to unmeasured Node2/Node3 construction.
+nodes(l, r) %::% list : . : list
 nodes(l, r) %as% {
-  if(length(l) == 2) { return(list(
-    measured_node2( l[[1]], l[[2]], r )
-  ))}
-  if(length(l) == 3) { return(list(
-    measured_node3( l[[1]], l[[2]], l[[3]], r )
-  ))}
-  if(length(l) == 4) { return(list(
-    measured_node2( l[[1]], l[[2]], r ),
-    measured_node2( l[[3]], l[[4]], r )
-  ))}
-  
-  first = measured_node3( l[[1]], l[[2]], l[[3]], r )
-  rest = nodes(l[4:length(l)], r)
-  rest = list.prepend(rest, first)
-  return(rest)
+  if(is_measure_monoid(r)) {
+    if(length(l) == 2) { return(list(
+      measured_node2( l[[1]], l[[2]], r )
+    ))}
+    if(length(l) == 3) { return(list(
+      measured_node3( l[[1]], l[[2]], l[[3]], r )
+    ))}
+    if(length(l) == 4) { return(list(
+      measured_node2( l[[1]], l[[2]], r ),
+      measured_node2( l[[3]], l[[4]], r )
+    ))}
+    
+    first = measured_node3( l[[1]], l[[2]], l[[3]], r )
+    rest = nodes(l[4:length(l)], r)
+    rest = list.prepend(rest, first)
+    return(rest)
+  }
+
+  nodes(l)
 }
 
 

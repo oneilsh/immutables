@@ -1,5 +1,5 @@
 testthat::test_that("split_digit handles first/middle/last boundaries", {
-  mr <- MeasureReducer(function(a, b) a + b, 0, function(el) 1)
+  mr <- MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
   d <- Digit("a", "b", "c")
 
   s1 <- fingertree:::split_digit(function(v) v >= 1, 0, d, mr)
@@ -19,7 +19,7 @@ testthat::test_that("split_digit handles first/middle/last boundaries", {
 })
 
 testthat::test_that("split_digit works when digit holds nodes", {
-  mr <- MeasureReducer(function(a, b) a + b, 0, function(el) 1)
+  mr <- MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
   n2 <- Node2("a", "b")
   n3 <- Node3("c", "d", "e")
   d <- Digit(n2, n3)
@@ -31,7 +31,7 @@ testthat::test_that("split_digit works when digit holds nodes", {
 })
 
 testthat::test_that("split_digit errors for invalid preconditions", {
-  mr <- MeasureReducer(function(a, b) a + b, 0, function(el) 1)
+  mr <- MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
   testthat::expect_error(
     fingertree:::split_digit(function(v) v >= 1, 0, list(), mr),
     "empty digit"

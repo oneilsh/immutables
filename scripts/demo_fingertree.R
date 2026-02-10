@@ -47,11 +47,11 @@ mix26 <- tree_from(letters, indices)
 plot_tree(mix26, vertex.size = 9, title = "valueed")
 
 
-catter <- Reducer(function(a, b) paste0(a, b), "")
+catter <- Monoid(function(a, b) paste0(a, b), "")
 print(reduce_right(mix26, catter))
 
 
-valueMinner <- Reducer(function(a, b) {
+valueMinner <- Monoid(function(a, b) {
   if(attr(a, "value") < attr(b, "value")) {a} else {b}
 }, structure(Inf, value = Inf))
 
@@ -59,7 +59,7 @@ test <- reduce_left(mix26, valueMinner)
 print(test)
 
 
-valueSummer <- Reducer(function(a, b) {
+valueSummer <- Monoid(function(a, b) {
   structure(
     paste0(a, b),
     value = attr(a, "value") + attr(b, "value")
@@ -72,8 +72,8 @@ um <- reduce_left(test, valueSummer)
 um2 <- reduce_left(test, valueSummer)
 
 
-collector <- Reducer(c, list())
-consonants <- Reducer(function(a, b) {
+collector <- Monoid(c, list())
+consonants <- Monoid(function(a, b) {
                         vowels <- c("a", "e", "i", "o", "u")
                         c(a[!a %in% vowels], b[!b %in% vowels])
                       },
@@ -91,7 +91,7 @@ print(reduce_left(mix26, consonants) %>% unlist())
 #   sqrt
 # ))
 #
-# applyer <- Reducer(function(f1, f2) {
+# applyer <- Monoid(function(f1, f2) {
 #   function(...) {
 #       f1(f2(...))
 #     }

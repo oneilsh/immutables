@@ -10,7 +10,7 @@ reduce_right_acc(t, r, acc) %as% {
     return(r$f(t, acc))
   }
   if(is_structural_node(t) && t %isa% Single) {
-    return(reduce_right_acc(t[[1]], r, acc))
+    return(reduce_right_acc(.subset2(t, 1), r, acc))
   }
   if(is_structural_node(t) && t %isa% Deep) {
     acc <- reduce_right_acc(t$suffix, r, acc)

@@ -16,7 +16,7 @@ if (requireNamespace("devtools", quietly = TRUE)) {
 ##############################
 
 # baseline monoid for building trees; keeps a cheap size measure
-size_monoid <- MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
+#size_monoid <- MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
 
 # ## just for figure development
 # t1 <- empty_tree()
@@ -31,7 +31,7 @@ size_monoid <- MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
 # plot_tree(t1, vertex.size = 8, edge.width = 1.5)
 
 
-abcs <- tree_from(as.list(letters[1:12]), monoid = size_monoid)
+abcs <- tree_from(as.list(letters[1:12]))
 xyzs <- tree_from(as.list(letters[16:26]), monoid = size_monoid)
 
 plot_tree(abcs)
@@ -85,6 +85,16 @@ consonants <- MeasureMonoid(function(a, b) {
 
 #plot_tree(mix26)
 print(reduce_left(mix26, consonants) %>% unlist())
+
+# indexing examples (read + replacement)
+idx_tree <- tree_from(1:8, monoid = size_monoid)
+print(idx_tree[[4]])           # 4
+print(reduce_left(idx_tree[c(2, 4, 6)]))
+
+idx_tree2 <- idx_tree
+idx_tree2[[3]] <- 99
+idx_tree2[c(1, 8)] <- list(111, 888)
+print(reduce_left(idx_tree2))
 
 
 #### this doesn't work...

@@ -1,14 +1,29 @@
 resolve_tree_monoid <- function(t, monoid = NULL, required = FALSE) {
   tree_monoids <- attr(t, "monoids")
-  tree_monoid <- attr(t, "monoid")
-  r <- if(!is.null(monoid)) monoid else if(!is.null(tree_monoids)) tree_monoids else tree_monoid
+  r <- if(!is.null(monoid)) monoid else tree_monoids
   if(required && is.null(r)) {
-    stop("No monoid provided and tree has no monoid attribute.")
+    stop("No monoid provided and tree has no monoids attribute.")
   }
   if(is.null(r)) {
     return(NULL)
   }
   as_measure_context(r)
+}
+
+resolve_reduce_monoid <- function(t, monoid = NULL) {
+  # Reduce should never silently use a size-only fallback.
+  if(!is.null(monoid)) {
+    return(as_measure_context(monoid))
+  }
+  monoids <- attr(t, "monoids")
+  if(is.null(monoids)) {
+    stop("No reduction monoid provided. Pass monoid=... to reduce_left/reduce_right.")
+  }
+  reduce_names <- setdiff(names(monoids), ".size")
+  if(length(reduce_names) == 0L) {
+    stop("No reduction monoid available on tree; only .size is present. Pass monoid=...")
+  }
+  as_measure_context(list(.reduce = monoids[[reduce_names[[1]]]], .size = monoids[[".size"]]))
 }
 
 resolve_concat_monoid <- function(x, y, monoid = NULL) {
@@ -19,13 +34,19 @@ resolve_concat_monoid <- function(x, y, monoid = NULL) {
   rx <- resolve_tree_monoid(x, required = FALSE)
   ry <- resolve_tree_monoid(y, required = FALSE)
 
-  if(!is.null(rx) && !is.null(ry) && !identical(context_monoids(rx), context_monoids(ry))) {
-    stop("Left/right trees have different monoid attributes. Pass an explicit monoid.")
+  same_monoid_sets <- function(a, b) {
+    # all.equal is more robust than identical for function-containing lists
+    # that may be normalized/wrapped independently.
+    isTRUE(all.equal(context_monoids(a), context_monoids(b), check.attributes = TRUE))
+  }
+
+  if(!is.null(rx) && !is.null(ry) && !same_monoid_sets(rx, ry)) {
+    stop("Left/right trees have different monoids attributes. Pass an explicit monoid.")
   }
 
   r <- if(!is.null(rx)) rx else ry
   if(is.null(r)) {
-    stop("No monoid provided and neither tree has a monoid attribute.")
+    stop("No monoid provided and neither tree has a monoids attribute.")
   }
   r
 }
@@ -39,9 +60,14 @@ resolve_concat_monoid <- function(x, y, monoid = NULL) {
 #' t <- empty_tree(monoid = r)
 #' @export
 empty_tree <- function(monoid = NULL) {
+  if(is.null(monoid)) {
+    r <- as_measure_context(size_measure_monoid())
+    t <- measured_empty(r)
+    attr(t, "monoids") <- context_monoids(r)
+    return(t)
+  }
   r <- resolve_tree_monoid(Empty(), monoid, required = TRUE)
   t <- measured_empty(r)
-  attr(t, "monoid") <- r
   attr(t, "monoids") <- context_monoids(r)
   t
 }
@@ -58,7 +84,7 @@ empty_tree <- function(monoid = NULL) {
 #' t <- tree_from(1:3, monoid = r)
 #' @export
 tree_from <- function(x, values = NULL, monoid = NULL) {
-  r <- resolve_tree_monoid(Empty(), monoid, required = TRUE)
+  r <- if(is.null(monoid)) as_measure_context(size_measure_monoid()) else resolve_tree_monoid(Empty(), monoid, required = TRUE)
   t <- empty_tree(r)
   x_list <- as.list(x)
   if(is.null(values)) {
@@ -76,7 +102,6 @@ tree_from <- function(x, values = NULL, monoid = NULL) {
       t <- append(t, el, r)
     }
   }
-  attr(t, "monoid") <- r
   attr(t, "monoids") <- context_monoids(r)
   t
 }
@@ -93,7 +118,6 @@ prepend <- function(t, x, monoid = NULL) {
   r <- resolve_tree_monoid(t, monoid, required = TRUE)
   t2 <- add_left(t, x, r)
   if(!is.null(r)) {
-    attr(t2, "monoid") <- r
     attr(t2, "monoids") <- context_monoids(r)
   }
   t2
@@ -111,7 +135,6 @@ append <- function(t, x, monoid = NULL) {
   r <- resolve_tree_monoid(t, monoid, required = TRUE)
   t2 <- add_right(t, x, r)
   if(!is.null(r)) {
-    attr(t2, "monoid") <- r
     attr(t2, "monoids") <- context_monoids(r)
   }
   t2
@@ -130,7 +153,6 @@ concat_trees <- function(x, y, monoid = NULL) {
   r <- resolve_concat_monoid(x, y, monoid)
   t <- concat(x, y, r)
   if(!is.null(r)) {
-    attr(t, "monoid") <- r
     attr(t, "monoids") <- context_monoids(r)
   }
   t
@@ -144,7 +166,7 @@ concat_trees <- function(x, y, monoid = NULL) {
 #' @return Reduced value.
 #' @export
 reduce_left <- function(t, monoid = NULL) {
-  r <- resolve_tree_monoid(t, monoid, required = TRUE)
+  r <- resolve_reduce_monoid(t, monoid)
   reduce_left_impl(t, r)
 }
 
@@ -156,7 +178,7 @@ reduce_left <- function(t, monoid = NULL) {
 #' @return Reduced value.
 #' @export
 reduce_right <- function(t, monoid = NULL) {
-  r <- resolve_tree_monoid(t, monoid, required = TRUE)
+  r <- resolve_reduce_monoid(t, monoid)
   reduce_right_impl(t, r)
 }
 
@@ -176,8 +198,6 @@ split_tree <- function(t, predicate, monoid = NULL, accumulator = NULL) {
   }
   i <- if(is.null(accumulator)) r$i else accumulator
   res <- split_tree_impl(predicate, i, t, r)
-  attr(res$left, "monoid") <- r
-  attr(res$right, "monoid") <- r
   attr(res$left, "monoids") <- context_monoids(r)
   attr(res$right, "monoids") <- context_monoids(r)
   res
@@ -196,8 +216,6 @@ split <- function(t, predicate, monoid = NULL) {
 
   if(t %isa% Empty) {
     out <- list(left = measured_empty(r), right = measured_empty(r))
-    attr(out$left, "monoid") <- r
-    attr(out$right, "monoid") <- r
     attr(out$left, "monoids") <- context_monoids(r)
     attr(out$right, "monoids") <- context_monoids(r)
     return(out)
@@ -206,16 +224,12 @@ split <- function(t, predicate, monoid = NULL) {
   if(predicate(measure_child(t, r))) {
     s <- split_tree_impl(predicate, r$i, t, r)
     right <- prepend(s$right, s$elem, r)
-    attr(s$left, "monoid") <- r
-    attr(right, "monoid") <- r
     attr(s$left, "monoids") <- context_monoids(r)
     attr(right, "monoids") <- context_monoids(r)
     return(list(left = s$left, right = right))
   }
 
   out <- list(left = t, right = measured_empty(r))
-  attr(out$left, "monoid") <- r
-  attr(out$right, "monoid") <- r
   attr(out$left, "monoids") <- context_monoids(r)
   attr(out$right, "monoids") <- context_monoids(r)
   out

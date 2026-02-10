@@ -55,7 +55,7 @@ viewL(t, r) %as% {
     stop("viewL on Empty")
   }
   if(t %isa% Single) {
-    return(list(elem = t[[1]], rest = measured_empty(r)))
+    return(list(elem = .subset2(t, 1), rest = measured_empty(r)))
   }
   pr <- t$prefix
   if(length(pr) > 1) {
@@ -85,7 +85,7 @@ viewR(t, r) %as% {
     stop("viewR on Empty")
   }
   if(t %isa% Single) {
-    return(list(elem = t[[1]], rest = measured_empty(r)))
+    return(list(elem = .subset2(t, 1), rest = measured_empty(r)))
   }
   sf <- t$suffix
   if(length(sf) > 1) {

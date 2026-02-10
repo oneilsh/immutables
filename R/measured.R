@@ -8,6 +8,24 @@ is_measure_monoid_list(x) %as% {
   is.list(x) && length(x) > 0 && all(vapply(x, is_measure_monoid, logical(1)))
 }
 
+# default size measure used for indexing semantics
+size_measure_monoid() %::% MeasureMonoid
+size_measure_monoid() %as% {
+  MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
+}
+
+ensure_size_monoid(monoids) %::% list : list
+ensure_size_monoid(monoids) %as% {
+  out <- monoids
+  if(is.null(names(out)) || any(names(out) == "")) {
+    names(out) <- paste0("m", seq_along(out))
+  }
+  if(is.null(out[[".size"]])) {
+    out <- c(out, list(.size = size_measure_monoid()))
+  }
+  out
+}
+
 # normalize a single MeasureMonoid OR a list of MeasureMonoids into a context
 # object that still dispatches as MeasureMonoid (primary monoid in f/i/measure)
 as_measure_context(r) %::% . : MeasureMonoid
@@ -17,18 +35,16 @@ as_measure_context(r) %as% {
   }
 
   if(is_measure_monoid(r)) {
-    monoids <- list(default = r)
-    ctx <- list(f = r$f, i = r$i, measure = r$measure, monoids = monoids, primary = "default")
+    monoids <- ensure_size_monoid(list(.reduce = r))
+    ctx <- list(f = r$f, i = r$i, measure = r$measure, monoids = monoids, primary = ".reduce")
     class(ctx) <- c("MeasureMonoidSet", "MeasureMonoid", "list")
     return(ctx)
   }
 
   if(is_measure_monoid_list(r)) {
-    monoids <- r
-    if(is.null(names(monoids)) || any(names(monoids) == "")) {
-      names(monoids) <- paste0("m", seq_along(monoids))
-    }
-    primary <- names(monoids)[[1]]
+    monoids <- ensure_size_monoid(r)
+    primary_candidates <- setdiff(names(monoids), ".size")
+    primary <- if(length(primary_candidates) > 0) primary_candidates[[1]] else ".size"
     base <- monoids[[1]]
     ctx <- list(f = base$f, i = base$i, measure = base$measure, monoids = monoids, primary = primary)
     class(ctx) <- c("MeasureMonoidSet", "MeasureMonoid", "list")
@@ -44,7 +60,7 @@ context_monoids(ctx) %as% {
   if(inherits(ctx, "MeasureMonoidSet")) {
     return(ctx$monoids)
   }
-  list(default = ctx)
+  ensure_size_monoid(list(.reduce = ctx))
 }
 
 # name of primary monoid in the context
@@ -53,7 +69,7 @@ context_primary_name(ctx) %as% {
   if(inherits(ctx, "MeasureMonoidSet")) {
     return(ctx$primary)
   }
-  "default"
+  ".reduce"
 }
 
 # combine a list of measure values with the monoid's associative function
@@ -93,7 +109,7 @@ measure_child_named(x, ctx, name) %as% {
       return(r$i)
     }
     if(x %isa% Single) {
-      return(measure_child_named(x[[1]], ctx, name))
+      return(measure_child_named(.subset2(x, 1), ctx, name))
     }
     if(x %isa% Deep) {
       return(combine_measures(

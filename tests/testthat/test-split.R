@@ -78,6 +78,12 @@ testthat::test_that("split_tree edge behavior on single and invalid precondition
   testthat::expect_error(split_tree(t, function(v) v >= 10), "predicate never became true")
 })
 
-testthat::test_that("split and split_tree require a monoid on the tree", {
-  testthat::expect_error(tree_from(1:4), "No monoid provided")
+testthat::test_that("split and split_tree work with default .size monoid", {
+  t <- tree_from(1:4)
+  s <- split(t, function(v) v >= 2)
+  testthat::expect_identical(attr(s$left, "measure"), 1)
+  testthat::expect_identical(attr(s$right, "measure"), 3)
+
+  st <- split_tree(t, function(v) v >= 2)
+  testthat::expect_identical(st$elem, 2L)
 })

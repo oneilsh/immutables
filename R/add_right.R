@@ -7,7 +7,7 @@ add_right(e, el, r) %as% {
 add_right(s, el, r) %::% Single : . : MeasureMonoid : Deep
 add_right(s, el, r) %as% {
   measured_deep(
-    measured_digit(s[[1]], r = r),
+    measured_digit(.subset2(s, 1), r = r),
     measured_empty(r),
     measured_digit(el, r = r),
     r

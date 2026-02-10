@@ -15,7 +15,7 @@ split_tree_impl(p, i, t, mr) %as% {
   if(t %isa% Single) {
     return(list(
       left = measured_empty(mr),
-      elem = t[[1]],
+      elem = .subset2(t, 1),
       right = measured_empty(mr)
     ))
   }

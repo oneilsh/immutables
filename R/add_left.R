@@ -22,8 +22,7 @@ add_left(d, el, r) %as% {
   oldclasses <- class(d)
   newd <- list.prepend(d, el)
   class(newd) <- oldclasses
-  attr(newd, "measure") <- measure_child(newd, r)
-  return(newd)
+  set_measure(newd, r)
 }
 
 

@@ -1,5 +1,7 @@
-# This script explores monoid-annotated binary trees with elements stored in leaves, using lambda.r
-# (exploring typed structures similar to examples of monoid-annotated trees in haskell)
+# Legacy standalone exploration script.
+# It defines its own local Monoid/Tree types and does NOT use the fingertree
+# package API (which now expects MeasureMonoid).
+# Kept for historical learning notes.
 
 
 library(lambda.r)
@@ -291,4 +293,3 @@ print(search_in(t1, p, minner))
 
 
 ######
-

@@ -15,6 +15,9 @@ if (requireNamespace("devtools", quietly = TRUE)) {
 ## Splitting and concatenating - work in progress
 ##############################
 
+# baseline monoid for building trees; keeps a cheap size measure
+size_monoid <- MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
+
 # ## just for figure development
 # t1 <- empty_tree()
 # for(i in sample(toupper(c(letters[1:12], "L")))) {
@@ -28,8 +31,8 @@ if (requireNamespace("devtools", quietly = TRUE)) {
 # plot_tree(t1, vertex.size = 8, edge.width = 1.5)
 
 
-abcs <- tree_from(as.list(letters[1:12]))
-xyzs <- tree_from(as.list(letters[16:26]))
+abcs <- tree_from(as.list(letters[1:12]), monoid = size_monoid)
+xyzs <- tree_from(as.list(letters[16:26]), monoid = size_monoid)
 
 plot_tree(abcs)
 warnings()
@@ -37,47 +40,48 @@ warnings()
 plot_tree(xyzs)
 
 all <- concat_trees(abcs, xyzs)
-plot_tree(sample(letters, size = 37, replace = TRUE) |> 
-            as.list() |> tree_from(),
+rand_tree <- tree_from(as.list(sample(letters, size = 37, replace = TRUE)), monoid = size_monoid)
+plot_tree(rand_tree,
           vertex.size = 9, title = "all!", node_label = "both")
 
 
 indices <- sample(1:26)
-mix26 <- tree_from(letters, indices)
+mix26 <- tree_from(letters, indices, monoid = size_monoid)
 plot_tree(mix26, vertex.size = 9, title = "valueed")
 
 
-catter <- Monoid(function(a, b) paste0(a, b), "")
+catter <- MeasureMonoid(function(a, b) paste0(a, b), "", function(el) "")
 print(reduce_right(mix26, catter))
 
 
-valueMinner <- Monoid(function(a, b) {
+valueMinner <- MeasureMonoid(function(a, b) {
   if(attr(a, "value") < attr(b, "value")) {a} else {b}
-}, structure(Inf, value = Inf))
+}, structure(Inf, value = Inf), function(el) attr(el, "value"))
 
 test <- reduce_left(mix26, valueMinner)
 print(test)
 
 
-valueSummer <- Monoid(function(a, b) {
+valueSummer <- MeasureMonoid(function(a, b) {
   structure(
     paste0(a, b),
     value = attr(a, "value") + attr(b, "value")
   )
-}, structure("", value = 0))
+}, structure("", value = 0), function(el) attr(el, "value"))
 
-test <- tree_from(1:10)
+test <- tree_from(1:10, monoid = size_monoid)
 um <- reduce_left(test, valueSummer)
 #str(test)
 um2 <- reduce_left(test, valueSummer)
 
 
-collector <- Monoid(c, list())
-consonants <- Monoid(function(a, b) {
+collector <- MeasureMonoid(c, list(), function(el) list())
+consonants <- MeasureMonoid(function(a, b) {
                         vowels <- c("a", "e", "i", "o", "u")
                         c(a[!a %in% vowels], b[!b %in% vowels])
                       },
-                      list())
+                      list(),
+                      function(el) list())
 
 #plot_tree(mix26)
 print(reduce_left(mix26, consonants) %>% unlist())

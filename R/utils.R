@@ -1,7 +1,9 @@
 
-# a fancy recursive function that returns two data frames for building an igraph object out of;
-# takes a fingertree, returns a list of edge_dataframe and node_dataframe with edge and node information
-# build edge/node data frames for plotting (igraph)
+#' Build graph data frames for a finger tree
+#'
+#' @param t FingerTree.
+#' @return A list with edge and node data frames for igraph plotting.
+#' @export
 get_graph_df <- function(t) {
   
   EDGE_STACK <- rstack()
@@ -66,8 +68,16 @@ get_graph_df <- function(t) {
 
 
 
-# plotting a tree with igraph, using the get_graph_df() helper
-# plot a tree using igraph; for exploration/debugging
+#' Plot a finger tree with igraph
+#'
+#' @param t1 FingerTree.
+#' @param vertex.size Vertex size passed to `igraph::plot.igraph`.
+#' @param edge.width Edge width passed to `igraph::plot.igraph`.
+#' @param label_edges Whether to draw edge labels.
+#' @param title Optional plot title.
+#' @param node_label Node label mode: value, type, both, or none.
+#' @param ... Additional arguments passed to `igraph::plot.igraph`.
+#' @export
 plot_tree <- function(t1, vertex.size = 4, edge.width = 1, label_edges = FALSE, title = NULL,
                       node_label = c("value", "type", "both", "none"), ...) {
   t1_edge_df <- get_graph_df(t1)[[1]]

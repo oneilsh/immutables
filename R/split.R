@@ -1,56 +1,34 @@
-# core split implementation following Hinze/Paterson 4.4
-#
-# split_tree_impl returns a distinguished element with left/right context:
-#   list(left = FingerTree, elem = element, right = FingerTree)
-# It assumes:
-# - t is non-empty
-# - p(i) is FALSE and p(i <> measure(t)) is TRUE for strict split semantics
-# The public wrappers relax these preconditions (matching the paper's split).
-split_tree_impl(p, i, t, monoids, monoid_name) %::% Function : . : FingerTree : list : character : list
-split_tree_impl(p, i, t, monoids, monoid_name) %as% {
-  ms <- ensure_size_monoids(monoids)
-  mr <- ms[[monoid_name]]
-  if(is.null(mr)) {
-    stop(paste0("Unknown measure monoid '", monoid_name, "'."))
-  }
+#' Split tree into left and right parts
+#'
+#' @param t FingerTree.
+#' @param predicate Function on measure values.
+#' @param monoid_name Name of monoid from `attr(t, "monoids")`.
+#' @return A list with `left` and `right`.
+#' @export
+split <- function(t, predicate, monoid_name) {
+  assert_structural_attrs(t)
+  ctx <- resolve_named_monoid(t, monoid_name)
+  ms <- ctx$monoids
+  mr <- ctx$monoid
 
   if(t %isa% Empty) {
-    stop("split_tree_impl requires a non-empty tree")
+    out <- list(left = measured_empty(ms), right = measured_empty(ms))
+    assert_structural_attrs(out$left)
+    assert_structural_attrs(out$right)
+    return(out)
   }
 
-  if(t %isa% Single) {
-    return(list(
-      left = measured_empty(ms),
-      elem = .subset2(t, 1),
-      right = measured_empty(ms)
-    ))
+  if(predicate(node_measure(t, monoid_name))) {
+    s <- split_tree_impl(predicate, mr$i, t, ms, monoid_name)
+    right <- prepend(s$right, s$elem)
+    out <- list(left = s$left, right = right)
+    assert_structural_attrs(out$left)
+    assert_structural_attrs(out$right)
+    return(out)
   }
 
-  # Deep(pr, m, sf): test where predicate first flips using cached measures.
-  vpr <- mr$f(i, node_measure(t$prefix, monoid_name))
-  vm <- mr$f(vpr, node_measure(t$middle, monoid_name))
-
-  if(p(vpr)) {
-    # split occurs in prefix digit
-    s <- split_digit(p, i, t$prefix, ms, monoid_name)
-    left_tree <- digit_to_tree(s$left, ms)
-    right_tree <- deepL(build_digit(s$right, ms), t$middle, t$suffix, ms)
-    return(list(left = left_tree, elem = s$elem, right = right_tree))
-  }
-
-  if(p(vm)) {
-    # split occurs in middle tree, then inside the selected Node2/Node3
-    sm <- split_tree_impl(p, vpr, t$middle, ms, monoid_name)
-    inode <- mr$f(vpr, node_measure(sm$left, monoid_name))
-    sx <- split_digit(p, inode, as.list(sm$elem), ms, monoid_name)
-    left_tree <- deepR(t$prefix, sm$left, build_digit(sx$left, ms), ms)
-    right_tree <- deepL(build_digit(sx$right, ms), sm$right, t$suffix, ms)
-    return(list(left = left_tree, elem = sx$elem, right = right_tree))
-  }
-
-  # split occurs in suffix digit
-  s <- split_digit(p, vm, t$suffix, ms, monoid_name)
-  left_tree <- deepR(t$prefix, t$middle, build_digit(s$left, ms), ms)
-  right_tree <- digit_to_tree(s$right, ms)
-  list(left = left_tree, elem = s$elem, right = right_tree)
+  out <- list(left = t, right = measured_empty(ms))
+  assert_structural_attrs(out$left)
+  assert_structural_attrs(out$right)
+  out
 }

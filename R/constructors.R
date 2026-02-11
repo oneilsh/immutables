@@ -54,28 +54,3 @@ Deep(prefix, middle, suffix) %::% Digit : FingerTree : Digit : FingerTree
 Deep(prefix, middle, suffix) %as% {
   FingerTree(prefix = prefix, middle = middle, suffix = suffix)   
 }
-
-
-
-##############################
-## Monoid-annotation
-## (actually, generalized, "monoid" annotation, and reduction functions that apply monoids,
-## to sequences of tags, either from the left or the right)
-##############################
-
-# MeasureMonoid is a monoid with a measure() function for raw elements.
-# The reduce function must be associative for measured trees to be correct.
-MeasureMonoid(f, i, measure) %::% . : . : Function : list
-MeasureMonoid(f, i, measure) %as% {
-  res <- list(f = f, i = i, measure = measure)
-  class(res) <- c("MeasureMonoid", class(res))
-  res
-}
-
-
-Predicate(f) %::% Function : .
-Predicate(f) %as% Function(f)
-
-
-  
-  

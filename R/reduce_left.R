@@ -55,3 +55,16 @@ reduce_left_impl(t, r) %::% Deep : MeasureMonoid : .
 reduce_left_impl(t, r) %as% {
   reduce_left_acc(t, r, r$i)
 }
+
+#' Reduce from the left
+#'
+#' @param t FingerTree.
+#' @param monoid A `MeasureMonoid` object.
+#' @return Reduced value.
+#' @export
+reduce_left <- function(t, monoid) {
+  if(!is_measure_monoid(monoid)) {
+    stop("`monoid` must be a MeasureMonoid object.")
+  }
+  reduce_left_impl(t, monoid)
+}

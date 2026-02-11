@@ -54,3 +54,16 @@ reduce_right_impl(t, r) %::% Deep : MeasureMonoid : .
 reduce_right_impl(t, r) %as% {
   reduce_right_acc(t, r, r$i)
 }
+
+#' Reduce from the right
+#'
+#' @param t FingerTree.
+#' @param monoid A `MeasureMonoid` object.
+#' @return Reduced value.
+#' @export
+reduce_right <- function(t, monoid) {
+  if(!is_measure_monoid(monoid)) {
+    stop("`monoid` must be a MeasureMonoid object.")
+  }
+  reduce_right_impl(t, monoid)
+}

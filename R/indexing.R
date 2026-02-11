@@ -1,5 +1,6 @@
 # flatten a fingertree into its element sequence (left-to-right)
-.ft_to_list <- function(x) {
+.ft_to_list(x) %::% . : list
+.ft_to_list(x) %as% {
   if(!is_structural_node(x)) {
     return(list(x))
   }
@@ -19,7 +20,8 @@
   out
 }
 
-.ft_assert_int_indices <- function(idx, n) {
+.ft_assert_int_indices(idx, n) %::% . : numeric : integer
+.ft_assert_int_indices(idx, n) %as% {
   if(is.null(idx)) {
     stop("Index is required.")
   }

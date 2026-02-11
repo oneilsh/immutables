@@ -1,95 +1,97 @@
-resolve_tree_monoid <- function(t, monoid = NULL, required = FALSE) {
-  tree_monoids <- attr(t, "monoids")
-  r <- if(!is.null(monoid)) monoid else tree_monoids
-  if(required && is.null(r)) {
-    stop("No monoid provided and tree has no monoids attribute.")
+resolve_tree_monoids <- function(t, required = FALSE) {
+  ms <- attr(t, "monoids", exact = TRUE)
+  if(required && is.null(ms)) {
+    stop("Tree has no monoids attribute.")
   }
-  if(is.null(r)) {
+  if(is.null(ms)) {
     return(NULL)
   }
-  as_measure_context(r)
+  ensure_size_monoids(ms)
 }
 
-resolve_reduce_monoid <- function(t, monoid = NULL) {
-  # Reduce should never silently use a size-only fallback.
-  if(!is.null(monoid)) {
-    return(as_measure_context(monoid))
+resolve_named_monoid <- function(t, monoid_name) {
+  if(!is.character(monoid_name) || length(monoid_name) != 1L || is.na(monoid_name) || monoid_name == "") {
+    stop("`monoid_name` must be a single non-empty string.")
   }
-  monoids <- attr(t, "monoids")
-  if(is.null(monoids)) {
-    stop("No reduction monoid provided. Pass monoid=... to reduce_left/reduce_right.")
+  ms <- resolve_tree_monoids(t, required = TRUE)
+  mr <- ms[[monoid_name]]
+  if(is.null(mr)) {
+    stop(paste0("Monoid name `", monoid_name, "` not found in tree monoids."))
   }
-  reduce_names <- setdiff(names(monoids), ".size")
-  if(length(reduce_names) == 0L) {
-    stop("No reduction monoid available on tree; only .size is present. Pass monoid=...")
-  }
-  as_measure_context(list(.reduce = monoids[[reduce_names[[1]]]], .size = monoids[[".size"]]))
+  list(monoids = ms, monoid = mr)
 }
 
-resolve_concat_monoid <- function(x, y, monoid = NULL) {
-  if(!is.null(monoid)) {
-    return(resolve_tree_monoid(x, monoid, required = TRUE))
+merge_monoid_sets <- function(base, add, overwrite = FALSE) {
+  b <- ensure_size_monoids(base)
+  a <- ensure_size_monoids(add)
+
+  overlap <- intersect(names(b), names(a))
+  overlap <- setdiff(overlap, ".size")
+  if(length(overlap) > 0 && !isTRUE(overwrite)) {
+    stop("Monoid names already exist: ", paste(overlap, collapse = ", "), ". Use overwrite = TRUE to replace.")
   }
 
-  rx <- resolve_tree_monoid(x, required = FALSE)
-  ry <- resolve_tree_monoid(y, required = FALSE)
-
-  same_monoid_sets <- function(a, b) {
-    # all.equal is more robust than identical for function-containing lists
-    # that may be normalized/wrapped independently.
-    isTRUE(all.equal(context_monoids(a), context_monoids(b), check.attributes = TRUE))
+  if(length(overlap) > 0 && isTRUE(overwrite)) {
+    for(nm in overlap) {
+      b[[nm]] <- a[[nm]]
+    }
   }
 
-  if(!is.null(rx) && !is.null(ry) && !same_monoid_sets(rx, ry)) {
-    stop("Left/right trees have different monoids attributes. Pass an explicit monoid.")
+  add_only <- setdiff(names(a), names(b))
+  if(length(add_only) > 0) {
+    b <- c(b, a[add_only])
   }
+  ensure_size_monoids(b)
+}
 
-  r <- if(!is.null(rx)) rx else ry
-  if(is.null(r)) {
-    stop("No monoid provided and neither tree has a monoids attribute.")
-  }
-  r
+emit_concat_assumption_warning <- function(shared_names) {
+  msg <- paste0(
+    "concat_trees(): shared monoid names assumed equivalent; left-tree definitions are used for: ",
+    paste(shared_names, collapse = ", ")
+  )
+  w <- structure(
+    list(message = msg, call = NULL),
+    class = c("fingertree_monoid_assumption_warning", "warning", "condition")
+  )
+  warning(w)
 }
 
 #' Create an empty finger tree
 #'
-#' @param monoid A `MeasureMonoid` or named list of `MeasureMonoid` objects.
-#' @return An empty finger tree.
-#' @examples
-#' r <- MeasureMonoid(function(a, b) a + b, 0, function(el) 0)
-#' t <- empty_tree(monoid = r)
+#' @param monoids Optional named list of `MeasureMonoid` objects.
+#' @return An empty finger tree with structural `monoids` and `measures` attrs.
 #' @export
-empty_tree <- function(monoid = NULL) {
-  if(is.null(monoid)) {
-    r <- as_measure_context(size_measure_monoid())
-    t <- measured_empty(r)
-    attr(t, "monoids") <- context_monoids(r)
-    return(t)
+empty_tree <- function(monoids = NULL) {
+  ms <- if(is.null(monoids)) {
+    list(.size = size_measure_monoid())
+  } else {
+    ensure_size_monoids(monoids)
   }
-  r <- resolve_tree_monoid(Empty(), monoid, required = TRUE)
-  t <- measured_empty(r)
-  attr(t, "monoids") <- context_monoids(r)
+  t <- measured_empty(ms)
+  assert_structural_attrs(t)
   t
 }
 
 #' Build a tree from a vector or list
 #'
 #' @param x Elements to insert.
-#' @param values Optional parallel values (same length as x). Stored as the
-#'   `value` attribute on each element when provided.
-#' @param monoid A `MeasureMonoid` or named list of `MeasureMonoid` objects.
-#' @return A finger tree containing the elements.
-#' @examples
-#' r <- MeasureMonoid(function(a, b) a + b, 0, function(el) 0)
-#' t <- tree_from(1:3, monoid = r)
+#' @param values Optional parallel values (same length as `x`).
+#' @param monoids Optional named list of `MeasureMonoid` objects.
+#' @return A finger tree with cached measures for all monoids.
 #' @export
-tree_from <- function(x, values = NULL, monoid = NULL) {
-  r <- if(is.null(monoid)) as_measure_context(size_measure_monoid()) else resolve_tree_monoid(Empty(), monoid, required = TRUE)
-  t <- empty_tree(r)
+tree_from <- function(x, values = NULL, monoids = NULL) {
+  ms <- if(is.null(monoids)) {
+    list(.size = size_measure_monoid())
+  } else {
+    ensure_size_monoids(monoids)
+  }
+
+  t <- empty_tree(monoids = ms)
   x_list <- as.list(x)
+
   if(is.null(values)) {
     for(el in x_list) {
-      t <- append(t, el, r)
+      t <- append(t, el)
     }
   } else {
     v_list <- as.list(values)
@@ -99,27 +101,55 @@ tree_from <- function(x, values = NULL, monoid = NULL) {
     for(i in seq_along(x_list)) {
       el <- x_list[[i]]
       attr(el, "value") <- v_list[[i]]
-      t <- append(t, el, r)
+      t <- append(t, el)
     }
   }
-  attr(t, "monoids") <- context_monoids(r)
+
+  assert_structural_attrs(t)
   t
+}
+
+#' Add/merge monoids on an existing tree
+#'
+#' @param t FingerTree.
+#' @param monoids Named list of `MeasureMonoid` objects to add.
+#' @param overwrite Logical; whether overlapping names replace existing monoids.
+#' @return A persistent copy with recomputed cached measures.
+#' @export
+add_monoids <- function(t, monoids, overwrite = FALSE) {
+  assert_structural_attrs(t)
+  add <- ensure_size_monoids(monoids)
+  cur <- resolve_tree_monoids(t, required = TRUE)
+  merged <- merge_monoid_sets(cur, add, overwrite = overwrite)
+
+  add_only <- setdiff(names(add), names(cur))
+  overlap <- setdiff(intersect(names(add), names(cur)), ".size")
+  recompute_names <- add_only
+  if(isTRUE(overwrite) && length(overlap) > 0) {
+    recompute_names <- union(recompute_names, overlap)
+  }
+  recompute_names <- setdiff(recompute_names, ".size")
+
+  if(length(recompute_names) == 0) {
+    return(t)
+  }
+
+  t2 <- rebind_tree_monoids(t, merged, recompute_names)
+  assert_structural_attrs(t2)
+  t2
 }
 
 #' Prepend an element
 #'
 #' @param t FingerTree.
 #' @param x Element to prepend.
-#' @param monoid Optional `MeasureMonoid` or named list of `MeasureMonoid`
-#'   objects; falls back to tree attributes.
 #' @return Updated tree.
 #' @export
-prepend <- function(t, x, monoid = NULL) {
-  r <- resolve_tree_monoid(t, monoid, required = TRUE)
-  t2 <- add_left(t, x, r)
-  if(!is.null(r)) {
-    attr(t2, "monoids") <- context_monoids(r)
-  }
+prepend <- function(t, x) {
+  assert_structural_attrs(t)
+  ms <- resolve_tree_monoids(t, required = TRUE)
+  t2 <- add_left(t, x, ms)
+  assert_structural_attrs(t2)
   t2
 }
 
@@ -127,79 +157,102 @@ prepend <- function(t, x, monoid = NULL) {
 #'
 #' @param t FingerTree.
 #' @param x Element to append.
-#' @param monoid Optional `MeasureMonoid` or named list of `MeasureMonoid`
-#'   objects; falls back to tree attributes.
 #' @return Updated tree.
 #' @export
-append <- function(t, x, monoid = NULL) {
-  r <- resolve_tree_monoid(t, monoid, required = TRUE)
-  t2 <- add_right(t, x, r)
-  if(!is.null(r)) {
-    attr(t2, "monoids") <- context_monoids(r)
-  }
+append <- function(t, x) {
+  assert_structural_attrs(t)
+  ms <- resolve_tree_monoids(t, required = TRUE)
+  t2 <- add_right(t, x, ms)
+  assert_structural_attrs(t2)
   t2
 }
 
 #' Concatenate two trees
 #'
+#' Same-name monoids are assumed equivalent; left-tree definitions win.
+#' Missing monoids are added to each side before concatenation.
+#'
 #' @param x Left tree.
 #' @param y Right tree.
-#' @param monoid Optional `MeasureMonoid` or named list of `MeasureMonoid`
-#'   objects. If omitted, uses left/right tree attributes; errors if neither
-#'   tree has one or both differ.
 #' @return Concatenated tree.
 #' @export
-concat_trees <- function(x, y, monoid = NULL) {
-  r <- resolve_concat_monoid(x, y, monoid)
-  t <- concat(x, y, r)
-  if(!is.null(r)) {
-    attr(t, "monoids") <- context_monoids(r)
+concat_trees <- function(x, y) {
+  assert_structural_attrs(x)
+  assert_structural_attrs(y)
+
+  mx <- resolve_tree_monoids(x, required = TRUE)
+  my <- resolve_tree_monoids(y, required = TRUE)
+
+  shared <- intersect(names(mx), names(my))
+  shared <- setdiff(shared, ".size")
+  if(length(shared) > 0) {
+    emit_concat_assumption_warning(shared)
   }
+
+  left_only <- setdiff(names(mx), names(my))
+  left_only <- setdiff(left_only, ".size")
+  right_only <- setdiff(names(my), names(mx))
+  right_only <- setdiff(right_only, ".size")
+
+  x2 <- if(length(right_only) > 0) add_monoids(x, my[right_only], overwrite = FALSE) else x
+  y2 <- if(length(left_only) > 0) add_monoids(y, mx[left_only], overwrite = FALSE) else y
+
+  merged <- c(mx, my[setdiff(names(my), names(mx))])
+  merged <- ensure_size_monoids(merged)
+
+  t <- concat(x2, y2, merged)
+  assert_structural_attrs(t)
   t
 }
 
 #' Reduce from the left
 #'
 #' @param t FingerTree.
-#' @param monoid Optional `MeasureMonoid` or named list of `MeasureMonoid`
-#'   objects; falls back to tree attributes.
+#' @param monoid A `MeasureMonoid` object.
 #' @return Reduced value.
 #' @export
-reduce_left <- function(t, monoid = NULL) {
-  r <- resolve_reduce_monoid(t, monoid)
-  reduce_left_impl(t, r)
+reduce_left <- function(t, monoid) {
+  if(!is_measure_monoid(monoid)) {
+    stop("`monoid` must be a MeasureMonoid object.")
+  }
+  reduce_left_impl(t, monoid)
 }
 
 #' Reduce from the right
 #'
 #' @param t FingerTree.
-#' @param monoid Optional `MeasureMonoid` or named list of `MeasureMonoid`
-#'   objects; falls back to tree attributes.
+#' @param monoid A `MeasureMonoid` object.
 #' @return Reduced value.
 #' @export
-reduce_right <- function(t, monoid = NULL) {
-  r <- resolve_reduce_monoid(t, monoid)
-  reduce_right_impl(t, r)
+reduce_right <- function(t, monoid) {
+  if(!is_measure_monoid(monoid)) {
+    stop("`monoid` must be a MeasureMonoid object.")
+  }
+  reduce_right_impl(t, monoid)
 }
 
 #' Split tree around first predicate flip
 #'
 #' @param t FingerTree.
 #' @param predicate Function on measure values.
-#' @param monoid Optional `MeasureMonoid` or named list of `MeasureMonoid`
-#'   objects; falls back to tree attributes.
+#' @param monoid_name Name of monoid from `attr(t, "monoids")`.
 #' @param accumulator Optional starting measure (defaults to monoid identity).
 #' @return A list with `left`, `elem`, and `right`.
 #' @export
-split_tree <- function(t, predicate, monoid = NULL, accumulator = NULL) {
-  r <- resolve_tree_monoid(t, monoid, required = TRUE)
+split_tree <- function(t, predicate, monoid_name, accumulator = NULL) {
+  assert_structural_attrs(t)
+  ctx <- resolve_named_monoid(t, monoid_name)
+  ms <- ctx$monoids
+  mr <- ctx$monoid
+
   if(t %isa% Empty) {
     stop("split_tree requires a non-empty tree.")
   }
-  i <- if(is.null(accumulator)) r$i else accumulator
-  res <- split_tree_impl(predicate, i, t, r)
-  attr(res$left, "monoids") <- context_monoids(r)
-  attr(res$right, "monoids") <- context_monoids(r)
+
+  i <- if(is.null(accumulator)) mr$i else accumulator
+  res <- split_tree_impl(predicate, i, t, ms, monoid_name)
+  assert_structural_attrs(res$left)
+  assert_structural_attrs(res$right)
   res
 }
 
@@ -207,30 +260,33 @@ split_tree <- function(t, predicate, monoid = NULL, accumulator = NULL) {
 #'
 #' @param t FingerTree.
 #' @param predicate Function on measure values.
-#' @param monoid Optional `MeasureMonoid` or named list of `MeasureMonoid`
-#'   objects; falls back to tree attributes.
+#' @param monoid_name Name of monoid from `attr(t, "monoids")`.
 #' @return A list with `left` and `right`.
 #' @export
-split <- function(t, predicate, monoid = NULL) {
-  r <- resolve_tree_monoid(t, monoid, required = TRUE)
+split <- function(t, predicate, monoid_name) {
+  assert_structural_attrs(t)
+  ctx <- resolve_named_monoid(t, monoid_name)
+  ms <- ctx$monoids
+  mr <- ctx$monoid
 
   if(t %isa% Empty) {
-    out <- list(left = measured_empty(r), right = measured_empty(r))
-    attr(out$left, "monoids") <- context_monoids(r)
-    attr(out$right, "monoids") <- context_monoids(r)
+    out <- list(left = measured_empty(ms), right = measured_empty(ms))
+    assert_structural_attrs(out$left)
+    assert_structural_attrs(out$right)
     return(out)
   }
 
-  if(predicate(measure_child(t, r))) {
-    s <- split_tree_impl(predicate, r$i, t, r)
-    right <- prepend(s$right, s$elem, r)
-    attr(s$left, "monoids") <- context_monoids(r)
-    attr(right, "monoids") <- context_monoids(r)
-    return(list(left = s$left, right = right))
+  if(predicate(node_measure(t, monoid_name))) {
+    s <- split_tree_impl(predicate, mr$i, t, ms, monoid_name)
+    right <- prepend(s$right, s$elem)
+    out <- list(left = s$left, right = right)
+    assert_structural_attrs(out$left)
+    assert_structural_attrs(out$right)
+    return(out)
   }
 
-  out <- list(left = t, right = measured_empty(r))
-  attr(out$left, "monoids") <- context_monoids(r)
-  attr(out$right, "monoids") <- context_monoids(r)
+  out <- list(left = t, right = measured_empty(ms))
+  assert_structural_attrs(out$left)
+  assert_structural_attrs(out$right)
   out
 }

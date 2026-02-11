@@ -16,7 +16,7 @@ if (requireNamespace("devtools", quietly = TRUE)) {
 ##############################
 
 # baseline monoid for building trees; keeps a cheap size measure
-#size_monoid <- MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
+size_monoids <- list(.size = size_measure_monoid())
 
 # ## just for figure development
 # t1 <- empty_tree()
@@ -32,7 +32,7 @@ if (requireNamespace("devtools", quietly = TRUE)) {
 
 
 abcs <- tree_from(as.list(letters[1:12]))
-xyzs <- tree_from(as.list(letters[16:26]), monoid = size_monoid)
+xyzs <- tree_from(as.list(letters[16:26]), monoids = size_monoids)
 
 plot_tree(abcs)
 warnings()
@@ -40,13 +40,13 @@ warnings()
 plot_tree(xyzs)
 
 all <- concat_trees(abcs, xyzs)
-rand_tree <- tree_from(as.list(sample(letters, size = 37, replace = TRUE)), monoid = size_monoid)
+rand_tree <- tree_from(as.list(sample(letters, size = 37, replace = TRUE)), monoids = size_monoids)
 plot_tree(rand_tree,
           vertex.size = 9, title = "all!", node_label = "both")
 
 
 indices <- sample(1:26)
-mix26 <- tree_from(letters, indices, monoid = size_monoid)
+mix26 <- tree_from(letters, indices, monoids = size_monoids)
 plot_tree(mix26, vertex.size = 9, title = "valueed")
 
 
@@ -69,7 +69,7 @@ valueSummer <- MeasureMonoid(function(a, b) {
   )
 }, structure("", value = 0), function(el) attr(el, "value"))
 
-test <- tree_from(1:10, monoid = size_monoid)
+test <- tree_from(1:10, monoids = size_monoids)
 um <- reduce_left(test, valueSummer)
 #str(test)
 um2 <- reduce_left(test, valueSummer)
@@ -87,14 +87,14 @@ consonants <- MeasureMonoid(function(a, b) {
 print(reduce_left(mix26, consonants) %>% unlist())
 
 # indexing examples (read + replacement)
-idx_tree <- tree_from(1:8, monoid = size_monoid)
+idx_tree <- tree_from(1:8, monoids = size_monoids)
 print(idx_tree[[4]])           # 4
-print(reduce_left(idx_tree[c(2, 4, 6)]))
+print(reduce_left(idx_tree[c(2, 4, 6)], MeasureMonoid(`+`, 0, function(el) 0)))
 
 idx_tree2 <- idx_tree
 idx_tree2[[3]] <- 99
 idx_tree2[c(1, 8)] <- list(111, 888)
-print(reduce_left(idx_tree2))
+print(reduce_left(idx_tree2, size_measure_monoid()))
 
 
 #### this doesn't work...

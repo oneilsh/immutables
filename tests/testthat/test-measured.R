@@ -1,54 +1,49 @@
-testthat::test_that("Measured monoid caches size measures", {
-  mr <- MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
-  t <- tree_from(1:5, monoid = mr)
+testthat::test_that("monoid caches are stored in measures attr", {
+  m_count <- MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
+  t <- tree_from(letters[1:5], monoids = list(count = m_count))
 
-  testthat::expect_identical(attr(t, "measure"), 5)
-  testthat::expect_identical(reduce_left(t), 15)
+  ms <- attr(t, "measures")
+  testthat::expect_identical(ms$count, 5)
+  testthat::expect_identical(ms$.size, 5)
 })
 
-testthat::test_that("Measured monoid propagates through prepend/append", {
-  mr <- MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
-  t <- empty_tree(monoid = mr)
+testthat::test_that("measures propagate through prepend/append", {
+  m_count <- MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
+  t <- empty_tree(monoids = list(count = m_count))
   t <- append(t, "a")
   t <- append(t, "b")
   t <- prepend(t, "z")
 
-  testthat::expect_identical(attr(t, "measure"), 3)
+  ms <- attr(t, "measures")
+  testthat::expect_identical(ms$count, 3)
+  testthat::expect_identical(ms$.size, 3)
 })
 
-testthat::test_that("Measured monoid works with list elements", {
-  mr <- MeasureMonoid(function(a, b) a + b, 0, function(el) length(el))
-  t <- empty_tree(monoid = mr)
+testthat::test_that("custom measure works with list elements", {
+  m_len <- MeasureMonoid(function(a, b) a + b, 0, function(el) length(el))
+  t <- empty_tree(monoids = list(len = m_len))
   t <- append(t, list(1, 2, 3))
   t <- append(t, list("a"))
   t <- append(t, list(TRUE, FALSE))
 
-  testthat::expect_identical(attr(t, "measure"), 6)
+  testthat::expect_identical(attr(t, "measures")$len, 6)
 })
 
-testthat::test_that("Multiple measures are cached on structural nodes", {
+testthat::test_that("multiple measures propagate through concat", {
   m_sum <- MeasureMonoid(function(a, b) a + b, 0, function(el) el)
-  m_size <- MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
-  t <- tree_from(1:5, monoid = list(sum = m_sum, .size = m_size))
+  m_count <- MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
+  ms <- list(sum = m_sum, count = m_count)
 
-  ms <- attr(t, "measures")
-  testthat::expect_identical(ms$sum, 15)
-  testthat::expect_identical(ms$.size, 5)
-  testthat::expect_identical(attr(t, "measure"), 15)
-  testthat::expect_identical(reduce_left(t), 15)
-})
-
-testthat::test_that("Multiple measures propagate through updates and concat", {
-  m_sum <- MeasureMonoid(function(a, b) a + b, 0, function(el) el)
-  m_size <- MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
-  ms <- list(sum = m_sum, .size = m_size)
-
-  t1 <- tree_from(1:3, monoid = ms)
+  t1 <- tree_from(1:3, monoids = ms)
   t1 <- append(t1, 4)
-  t2 <- tree_from(10:11, monoid = ms)
-  t <- concat_trees(t1, t2)
+  t2 <- tree_from(10:11, monoids = ms)
+  testthat::expect_warning(
+    t <- concat_trees(t1, t2),
+    class = "fingertree_monoid_assumption_warning"
+  )
 
-  root_measures <- attr(t, "measures")
-  testthat::expect_identical(root_measures$sum, 31)
-  testthat::expect_identical(root_measures$.size, 6)
+  root <- attr(t, "measures")
+  testthat::expect_identical(root$sum, 31)
+  testthat::expect_identical(root$count, 6)
+  testthat::expect_identical(root$.size, 6)
 })

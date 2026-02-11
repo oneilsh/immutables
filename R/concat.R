@@ -8,32 +8,32 @@
 ## concatenation, depending on what kinds of finger trees we want to concatenate we do different things
 # each concat function also takes a list of elements to smush between the two trees, useful for later functionality
 # generalized concatenation helper; inserts list ts between two trees
-app3(e, ts, xs, r) %::% Empty : list : FingerTree : MeasureMonoid : FingerTree
-app3(e, ts, xs, r) %as% add_all_left(xs, ts, r)
+app3(e, ts, xs, monoids) %::% Empty : list : FingerTree : list : FingerTree
+app3(e, ts, xs, monoids) %as% add_all_left(xs, ts, monoids)
 
-app3(xs, ts, e, r) %::% FingerTree : list : Empty : MeasureMonoid : FingerTree
-app3(xs, ts, e, r) %as% add_all_right(xs, ts, r)
+app3(xs, ts, e, monoids) %::% FingerTree : list : Empty : list : FingerTree
+app3(xs, ts, e, monoids) %as% add_all_right(xs, ts, monoids)
 
-app3(x, ts, xs, r) %::% Single : list : FingerTree : MeasureMonoid : FingerTree
-app3(x, ts, xs, r) %as% add_left(add_all_left(xs, ts, r), x, r)
+app3(x, ts, xs, monoids) %::% Single : list : FingerTree : list : FingerTree
+app3(x, ts, xs, monoids) %as% add_left(add_all_left(xs, ts, monoids), x, monoids)
 
-app3(xs, ts, x, r) %::% FingerTree : list : Single : MeasureMonoid : FingerTree
-app3(xs, ts, x, r) %as% add_right(add_all_right(xs, ts, r), x, r)
+app3(xs, ts, x, monoids) %::% FingerTree : list : Single : list : FingerTree
+app3(xs, ts, x, monoids) %as% add_right(add_all_right(xs, ts, monoids), x, monoids)
 
-app3(xs, ts, ys, r) %::% Deep : list : Deep : MeasureMonoid : FingerTree
-app3(xs, ts, ys, r) %as% {
+app3(xs, ts, ys, monoids) %::% Deep : list : Deep : list : FingerTree
+app3(xs, ts, ys, monoids) %as% {
   measured_deep(
     xs$prefix,
     app3(xs$middle,
-         measured_nodes(c(xs$suffix, ts, ys$prefix), r),
+         measured_nodes(c(xs$suffix, ts, ys$prefix), monoids),
          ys$middle,
-         r),
+         monoids),
     ys$suffix,
-    r
+    monoids
   )
 }
 
-concat(xs, ys, r) %::% FingerTree : FingerTree : MeasureMonoid : FingerTree
-concat(xs, ys, r) %as% {
-  app3(xs, list(), ys, r)
+concat(xs, ys, monoids) %::% FingerTree : FingerTree : list : FingerTree
+concat(xs, ys, monoids) %as% {
+  app3(xs, list(), ys, monoids)
 }

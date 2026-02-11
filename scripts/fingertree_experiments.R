@@ -17,6 +17,7 @@ if (requireNamespace("devtools", quietly = TRUE)) {
 
 # baseline monoid for building trees; keeps a cheap size measure
 size_monoid <- MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
+size_monoids <- list(.size = size_monoid)
 
 # ## just for figure development
 # t1 <- empty_tree()
@@ -31,8 +32,8 @@ size_monoid <- MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
 # plot_tree(t1, vertex.size = 8, edge.width = 1.5)
 
 
-abcs <- tree_from(as.list(letters[1:12]), monoid = size_monoid)
-xyzs <- tree_from(as.list(letters[16:26]), monoid = size_monoid)
+abcs <- tree_from(as.list(letters[1:12]), monoids = size_monoids)
+xyzs <- tree_from(as.list(letters[16:26]), monoids = size_monoids)
 
 #plot_tree(abcs)
 #plot_tree(xyzs)
@@ -42,7 +43,7 @@ plot_tree(all, vertex.size = 9, title = "all!")
 
 
 indices <- sample(1:26)
-mix26 <- tree_from(letters, indices, monoid = size_monoid)
+mix26 <- tree_from(letters, indices, monoids = size_monoids)
 plot_tree(mix26, vertex.size = 9, title = "valueed")
 
 
@@ -65,7 +66,7 @@ valueSummer <- MeasureMonoid(function(a, b) {
   )
 }, structure("", value = 0), function(el) attr(el, "value"))
 
-test <- tree_from(1:10, monoid = size_monoid)
+test <- tree_from(1:10, monoids = size_monoids)
 um <- reduce_left(test, valueSummer)
 #str(test)
 um2 <- reduce_left(test, valueSummer)

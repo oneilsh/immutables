@@ -2,74 +2,38 @@
 is_measure_monoid(r) %::% . : logical
 is_measure_monoid(r) %as% inherits(r, "MeasureMonoid")
 
-# a list (named or unnamed) of MeasureMonoid specs
+# a non-empty named list of MeasureMonoid specs
 is_measure_monoid_list(x) %::% . : logical
 is_measure_monoid_list(x) %as% {
   is.list(x) && length(x) > 0 && all(vapply(x, is_measure_monoid, logical(1)))
 }
 
-# default size measure used for indexing semantics
+# default size measure used for indexing and structural operations
 size_measure_monoid() %::% MeasureMonoid
 size_measure_monoid() %as% {
   MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
 }
 
-ensure_size_monoid(monoids) %::% list : list
-ensure_size_monoid(monoids) %as% {
+# validate and normalize monoid set; `.size` is always present.
+ensure_size_monoids(monoids) %::% list : list
+ensure_size_monoids(monoids) %as% {
   out <- monoids
-  if(is.null(names(out)) || any(names(out) == "")) {
-    names(out) <- paste0("m", seq_along(out))
+  if(!is_measure_monoid_list(out)) {
+    stop("`monoids` must be a non-empty named list of MeasureMonoid objects.")
+  }
+  if(is.null(names(out))) {
+    stop("Monoid lists must be named.")
+  }
+  if(any(is.na(names(out))) || any(names(out) == "")) {
+    stop("Monoid list names must be non-empty and non-missing.")
+  }
+  if(any(duplicated(names(out)))) {
+    stop("Monoid list names must be unique.")
   }
   if(is.null(out[[".size"]])) {
     out <- c(out, list(.size = size_measure_monoid()))
   }
   out
-}
-
-# normalize a single MeasureMonoid OR a list of MeasureMonoids into a context
-# object that still dispatches as MeasureMonoid (primary monoid in f/i/measure)
-as_measure_context(r) %::% . : MeasureMonoid
-as_measure_context(r) %as% {
-  if(inherits(r, "MeasureMonoidSet")) {
-    return(r)
-  }
-
-  if(is_measure_monoid(r)) {
-    monoids <- ensure_size_monoid(list(.reduce = r))
-    ctx <- list(f = r$f, i = r$i, measure = r$measure, monoids = monoids, primary = ".reduce")
-    class(ctx) <- c("MeasureMonoidSet", "MeasureMonoid", "list")
-    return(ctx)
-  }
-
-  if(is_measure_monoid_list(r)) {
-    monoids <- ensure_size_monoid(r)
-    primary_candidates <- setdiff(names(monoids), ".size")
-    primary <- if(length(primary_candidates) > 0) primary_candidates[[1]] else ".size"
-    base <- monoids[[1]]
-    ctx <- list(f = base$f, i = base$i, measure = base$measure, monoids = monoids, primary = primary)
-    class(ctx) <- c("MeasureMonoidSet", "MeasureMonoid", "list")
-    return(ctx)
-  }
-
-  stop("Expected a MeasureMonoid or a non-empty list of MeasureMonoid objects.")
-}
-
-# all monoids from a context
-context_monoids(ctx) %::% MeasureMonoid : list
-context_monoids(ctx) %as% {
-  if(inherits(ctx, "MeasureMonoidSet")) {
-    return(ctx$monoids)
-  }
-  ensure_size_monoid(list(.reduce = ctx))
-}
-
-# name of primary monoid in the context
-context_primary_name(ctx) %::% MeasureMonoid : character
-context_primary_name(ctx) %as% {
-  if(inherits(ctx, "MeasureMonoidSet")) {
-    return(ctx$primary)
-  }
-  ".reduce"
 }
 
 # combine a list of measure values with the monoid's associative function
@@ -82,140 +46,249 @@ combine_measures(measures, r) %as% {
   acc
 }
 
-# compute measure for a child with respect to a single named monoid in a context
-measure_child_named(x, ctx, name) %::% . : MeasureMonoid : character : .
-measure_child_named(x, ctx, name) %as% {
-  monoids <- context_monoids(ctx)
-  r <- monoids[[name]]
-  if(is.null(r)) {
-    stop(paste0("Unknown measure monoid '", name, "'."))
-  }
-
+# recursive helper assuming `ms` has already been validated
+measure_child_named_impl(x, ms, name, rr) %::% . : list : character : MeasureMonoid : .
+measure_child_named_impl(x, ms, name, rr) %as% {
   if(is_structural_node(x)) {
-    cached_all <- attr(x, "measures")
-    if(!is.null(cached_all) && !is.null(cached_all[[name]])) {
-      return(cached_all[[name]])
-    }
-
-    primary <- context_primary_name(ctx)
-    if(identical(name, primary)) {
-      cached_primary <- attr(x, "measure")
-      if(!is.null(cached_primary)) {
-        return(cached_primary)
-      }
+    cached <- attr(x, "measures", exact = TRUE)
+    if(!is.null(cached) && !is.null(cached[[name]])) {
+      return(cached[[name]])
     }
 
     if(x %isa% Empty) {
-      return(r$i)
+      return(rr$i)
     }
     if(x %isa% Single) {
-      return(measure_child_named(.subset2(x, 1), ctx, name))
+      return(measure_child_named_impl(.subset2(x, 1), ms, name, rr))
     }
     if(x %isa% Deep) {
       return(combine_measures(
         list(
-          measure_child_named(x$prefix, ctx, name),
-          measure_child_named(x$middle, ctx, name),
-          measure_child_named(x$suffix, ctx, name)
+          measure_child_named_impl(x$prefix, ms, name, rr),
+          measure_child_named_impl(x$middle, ms, name, rr),
+          measure_child_named_impl(x$suffix, ms, name, rr)
         ),
-        r
+        rr
       ))
     }
-
-    return(combine_measures(lapply(x, measure_child_named, ctx = ctx, name = name), r))
+    return(combine_measures(lapply(x, measure_child_named_impl, ms = ms, name = name, rr = rr), rr))
   }
 
-  r$measure(x)
+  rr$measure(x)
 }
 
-# compute measure for a child node or raw element, using cached values when present
-measure_child(x, r) %::% . : MeasureMonoid : .
-measure_child(x, r) %as% {
-  ctx <- as_measure_context(r)
-  measure_child_named(x, ctx, context_primary_name(ctx))
+# compute measure for a child with respect to one named monoid in the set
+measure_child_named(x, monoids, name) %::% . : list : character : .
+measure_child_named(x, monoids, name) %as% {
+  ms <- ensure_size_monoids(monoids)
+  rr <- ms[[name]]
+  if(is.null(rr)) {
+    stop(paste0("Unknown measure monoid '", name, "'."))
+  }
+  measure_child_named_impl(x, ms, name, rr)
 }
 
-# compute all cached measures for a child across all monoids in context
-measure_children(x, r) %::% . : MeasureMonoid : list
-measure_children(x, r) %as% {
-  ctx <- as_measure_context(r)
-  monoids <- context_monoids(ctx)
-  out <- lapply(names(monoids), function(nm) measure_child_named(x, ctx, nm))
-  names(out) <- names(monoids)
+# compute all cached measures for a structural node across all monoids
+measure_children(x, monoids) %::% . : list : list
+measure_children(x, monoids) %as% {
+  ms <- ensure_size_monoids(monoids)
+  out <- lapply(names(ms), function(nm) measure_child_named_impl(x, ms, nm, ms[[nm]]))
+  names(out) <- names(ms)
   out
 }
 
-# attach cached measure attributes to a structural node:
-# - "measures": named list of all measure values
-# - "measure": primary measure value for backwards compatibility
-set_measure(x, r) %::% . : MeasureMonoid : .
-set_measure(x, r) %as% {
+# read a structural-node measure by monoid name
+node_measure(x, monoid_name) %::% . : character : .
+node_measure(x, monoid_name) %as% {
+  if(!is_structural_node(x)) {
+    stop("node_measure expects a structural node.")
+  }
+  ms <- attr(x, "measures", exact = TRUE)
+  if(is.null(ms) || is.null(ms[[monoid_name]])) {
+    stop(paste0("Missing cached measure '", monoid_name, "' on node."))
+  }
+  ms[[monoid_name]]
+}
+
+# attach canonical monoids + cached measures to a structural node
+set_measure(x, monoids) %::% . : list : .
+set_measure(x, monoids) %as% {
   if(!is_structural_node(x)) {
     return(x)
   }
-  ctx <- as_measure_context(r)
-  all_measures <- measure_children(x, ctx)
-  attr(x, "measures") <- all_measures
-  attr(x, "measure") <- all_measures[[context_primary_name(ctx)]]
+  ms <- ensure_size_monoids(monoids)
+  attr(x, "monoids") <- ms
+  attr(x, "measures") <- measure_children(x, ms)
   x
 }
 
-# construct an Empty with cached measure
-measured_empty(r) %::% MeasureMonoid : Empty
-measured_empty(r) %as% {
+# attach monoids + measures, reusing unchanged cached entries from `previous`.
+# only `recompute_names` are recomputed from children.
+set_measure_with_reuse(x, previous, monoids, recompute_names) %::% . : . : list : character : .
+set_measure_with_reuse(x, previous, monoids, recompute_names) %as% {
+  if(!is_structural_node(x)) {
+    return(x)
+  }
+
+  ms <- ensure_size_monoids(monoids)
+  rec <- unique(intersect(recompute_names, names(ms)))
+  old <- if(is_structural_node(previous)) attr(previous, "measures", exact = TRUE) else NULL
+
+  out <- vector("list", length(ms))
+  names(out) <- names(ms)
+  for(nm in names(ms)) {
+    can_reuse <- !(nm %in% rec) && !is.null(old) && !is.null(old[[nm]])
+    if(can_reuse) {
+      out[[nm]] <- old[[nm]]
+    } else {
+      out[[nm]] <- measure_child_named_impl(x, ms, nm, ms[[nm]])
+    }
+  }
+
+  attr(x, "monoids") <- ms
+  attr(x, "measures") <- out
+  x
+}
+
+# persistent structural copy that updates monoid attrs.
+# tree shape is preserved; only requested monoid caches are recomputed.
+rebind_tree_monoids(x, monoids, recompute_names) %::% . : list : character : .
+rebind_tree_monoids(x, monoids, recompute_names) %as% {
+  if(!is_structural_node(x)) {
+    return(x)
+  }
+
+  if(x %isa% Empty) {
+    return(set_measure_with_reuse(Empty(), x, monoids, recompute_names))
+  }
+
+  if(x %isa% Single) {
+    child <- rebind_tree_monoids(.subset2(x, 1), monoids, recompute_names)
+    return(set_measure_with_reuse(Single(child), x, monoids, recompute_names))
+  }
+
+  if(x %isa% Deep) {
+    pr <- rebind_tree_monoids(x$prefix, monoids, recompute_names)
+    m <- rebind_tree_monoids(x$middle, monoids, recompute_names)
+    sf <- rebind_tree_monoids(x$suffix, monoids, recompute_names)
+    return(set_measure_with_reuse(Deep(pr, m, sf), x, monoids, recompute_names))
+  }
+
+  # Digit / Node2 / Node3
+  out <- lapply(x, rebind_tree_monoids, monoids = monoids, recompute_names = recompute_names)
+  class(out) <- class(x)
+  set_measure_with_reuse(out, x, monoids, recompute_names)
+}
+
+assert_has_monoids(node) %::% . : .
+assert_has_monoids(node) %as% {
+  if(!is_structural_node(node)) {
+    return(invisible(TRUE))
+  }
+  ms <- attr(node, "monoids", exact = TRUE)
+  if(is.null(ms)) {
+    stop("Structural node missing `monoids` attribute.")
+  }
+  ensure_size_monoids(ms)
+  invisible(TRUE)
+}
+
+assert_measures_match_monoids(node) %::% . : .
+assert_measures_match_monoids(node) %as% {
+  if(!is_structural_node(node)) {
+    return(invisible(TRUE))
+  }
+  ms <- ensure_size_monoids(attr(node, "monoids", exact = TRUE))
+  cached <- attr(node, "measures", exact = TRUE)
+  if(is.null(cached)) {
+    stop("Structural node missing `measures` attribute.")
+  }
+  if(is.null(names(cached)) || !setequal(names(cached), names(ms))) {
+    stop("Structural node `measures` names must match `monoids` names.")
+  }
+  invisible(TRUE)
+}
+
+assert_structural_attrs(node) %::% . : .
+assert_structural_attrs(node) %as% {
+  if(!is_structural_node(node)) {
+    return(invisible(TRUE))
+  }
+
+  assert_has_monoids(node)
+  assert_measures_match_monoids(node)
+
+  if(node %isa% Single) {
+    assert_structural_attrs(.subset2(node, 1))
+  } else if(node %isa% Deep) {
+    assert_structural_attrs(node$prefix)
+    assert_structural_attrs(node$middle)
+    assert_structural_attrs(node$suffix)
+  } else {
+    for(el in node) {
+      assert_structural_attrs(el)
+    }
+  }
+
+  invisible(TRUE)
+}
+
+# construct an Empty with cached measures
+measured_empty(monoids) %::% list : Empty
+measured_empty(monoids) %as% {
   e <- Empty()
-  set_measure(e, r)
+  set_measure(e, monoids)
 }
 
-# construct a Single with cached measure
-measured_single(el, r) %::% . : MeasureMonoid : Single
-measured_single(el, r) %as% {
+# construct a Single with cached measures
+measured_single(el, monoids) %::% . : list : Single
+measured_single(el, monoids) %as% {
   s <- Single(el)
-  set_measure(s, r)
+  set_measure(s, monoids)
 }
 
-# construct a Digit with cached measure (size 1..4)
-measured_digit(a, r) %::% . : MeasureMonoid : Digit
-measured_digit(a, r) %as% {
+# construct a Digit with cached measures (size 1..4)
+measured_digit(a, monoids) %::% . : list : Digit
+measured_digit(a, monoids) %as% {
   d <- Digit(a)
-  set_measure(d, r)
+  set_measure(d, monoids)
 }
 
-measured_digit(a, b, r) %::% . : . : MeasureMonoid : Digit
-measured_digit(a, b, r) %as% {
+measured_digit(a, b, monoids) %::% . : . : list : Digit
+measured_digit(a, b, monoids) %as% {
   d <- Digit(a, b)
-  set_measure(d, r)
+  set_measure(d, monoids)
 }
 
-measured_digit(a, b, c, r) %::% . : . : . : MeasureMonoid : Digit
-measured_digit(a, b, c, r) %as% {
+measured_digit(a, b, c, monoids) %::% . : . : . : list : Digit
+measured_digit(a, b, c, monoids) %as% {
   d <- Digit(a, b, c)
-  set_measure(d, r)
+  set_measure(d, monoids)
 }
 
-measured_digit(a, b, c, d1, r) %::% . : . : . : . : MeasureMonoid : Digit
-measured_digit(a, b, c, d1, r) %as% {
+measured_digit(a, b, c, d1, monoids) %::% . : . : . : . : list : Digit
+measured_digit(a, b, c, d1, monoids) %as% {
   d <- Digit(a, b, c, d1)
-  set_measure(d, r)
+  set_measure(d, monoids)
 }
 
-# construct a Node2 with cached measure
-measured_node2(x, y, r) %::% . : . : MeasureMonoid : Node
-measured_node2(x, y, r) %as% {
+# construct a Node2 with cached measures
+measured_node2(x, y, monoids) %::% . : . : list : Node
+measured_node2(x, y, monoids) %as% {
   n <- Node2(x, y)
-  set_measure(n, r)
+  set_measure(n, monoids)
 }
 
-# construct a Node3 with cached measure
-measured_node3(x, y, z, r) %::% . : . : . : MeasureMonoid : Node
-measured_node3(x, y, z, r) %as% {
+# construct a Node3 with cached measures
+measured_node3(x, y, z, monoids) %::% . : . : . : list : Node
+measured_node3(x, y, z, monoids) %as% {
   n <- Node3(x, y, z)
-  set_measure(n, r)
+  set_measure(n, monoids)
 }
 
-# construct a Deep with cached measure (uses child measures)
-measured_deep(prefix, middle, suffix, r) %::% Digit : FingerTree : Digit : MeasureMonoid : Deep
-measured_deep(prefix, middle, suffix, r) %as% {
+# construct a Deep with cached measures
+measured_deep(prefix, middle, suffix, monoids) %::% Digit : FingerTree : Digit : list : Deep
+measured_deep(prefix, middle, suffix, monoids) %as% {
   t <- Deep(prefix, middle, suffix)
-  set_measure(t, r)
+  set_measure(t, monoids)
 }

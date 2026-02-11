@@ -50,17 +50,11 @@
   if(missing(i)) {
     return(x)
   }
-  r <- resolve_tree_monoid(x, required = FALSE)
-  if(is.null(r)) {
-    y <- unclass(x)
-    out <- y[i]
-    class(out) <- class(x)
-    return(out)
-  }
+  ms <- resolve_tree_monoids(x, required = TRUE)
   xs <- .ft_to_list(x)
   idx <- .ft_assert_int_indices(i, length(xs))
   out <- if(length(idx) == 0L) list() else xs[idx]
-  tree_from(out, monoid = r)
+  tree_from(out, monoids = ms)
 }
 
 #' Extract a single element from a finger tree by 1-based index
@@ -74,10 +68,7 @@
   if(is.character(i) && length(i) == 1L && !is.na(i)) {
     return(.subset2(x, i))
   }
-  r <- resolve_tree_monoid(x, required = FALSE)
-  if(is.null(r)) {
-    return(.subset2(unclass(x), i))
-  }
+  resolve_tree_monoids(x, required = TRUE)
   xs <- .ft_to_list(x)
   idx <- .ft_assert_int_indices(i, length(xs))
   if(length(idx) != 1L) {
@@ -94,14 +85,7 @@
 #' @return A new FingerTree with selected elements replaced.
 #' @export
 `[<-.FingerTree` <- function(x, i, value) {
-  r <- resolve_tree_monoid(x, required = FALSE)
-  if(is.null(r)) {
-    attrs <- attributes(x)
-    y <- unclass(x)
-    y[i] <- value
-    attributes(y) <- attrs
-    return(y)
-  }
+  ms <- resolve_tree_monoids(x, required = TRUE)
   xs <- .ft_to_list(x)
   idx <- .ft_assert_int_indices(i, length(xs))
   vals <- as.list(value)
@@ -111,7 +95,7 @@
   for(k in seq_along(idx)) {
     xs[[idx[[k]]]] <- vals[[k]]
   }
-  tree_from(xs, monoid = r)
+  tree_from(xs, monoids = ms)
 }
 
 #' Replace a single element by 1-based index
@@ -129,19 +113,12 @@
     attributes(y) <- attrs
     return(y)
   }
-  r <- resolve_tree_monoid(x, required = FALSE)
-  if(is.null(r)) {
-    attrs <- attributes(x)
-    y <- unclass(x)
-    y[[i]] <- value
-    attributes(y) <- attrs
-    return(y)
-  }
+  ms <- resolve_tree_monoids(x, required = TRUE)
   xs <- .ft_to_list(x)
   idx <- .ft_assert_int_indices(i, length(xs))
   if(length(idx) != 1L) {
     stop("[[<- expects exactly one index.")
   }
   xs[[idx]] <- value
-  tree_from(xs, monoid = r)
+  tree_from(xs, monoids = ms)
 }

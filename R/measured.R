@@ -77,17 +77,6 @@ measure_child_named_impl(x, ms, name, rr) %as% {
   rr$measure(x)
 }
 
-# compute measure for a child with respect to one named monoid in the set
-measure_child_named(x, monoids, name) %::% . : list : character : .
-measure_child_named(x, monoids, name) %as% {
-  ms <- ensure_size_monoids(monoids)
-  rr <- ms[[name]]
-  if(is.null(rr)) {
-    stop(paste0("Unknown measure monoid '", name, "'."))
-  }
-  measure_child_named_impl(x, ms, name, rr)
-}
-
 # compute all cached measures for a structural node across all monoids
 measure_children(x, monoids) %::% . : list : list
 measure_children(x, monoids) %as% {

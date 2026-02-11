@@ -1,94 +1,55 @@
-# This script explores 2-3 finger trees.
+# Extra playground script for current fingertree API.
 library(igraph)
-## using base anonymous functions (avoid lambdass/igraph conflicts)
 library(magrittr)
 library(pryr)
 library(rstackdeque)
 
-if (requireNamespace("devtools", quietly = TRUE)) {
+if(requireNamespace("devtools", quietly = TRUE)) {
   devtools::load_all()
 } else {
   library(fingertree)
 }
 
-##############################
-## Splitting and concatenating - work in progress
-##############################
+set.seed(7)
+size_monoids <- list(.size = size_measure_monoid())
 
-# baseline monoid for building trees; keeps a cheap size measure
-size_monoid <- MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
-size_monoids <- list(.size = size_monoid)
+left <- tree_from(as.list(letters[1:12]), monoids = size_monoids)
+right <- tree_from(as.list(letters[16:26]), monoids = size_monoids)
 
-# ## just for figure development
-# t1 <- empty_tree()
-# for(i in sample(toupper(c(letters[1:12], "L")))) {
-#   t1 <- prepend(t1, i)
-# }
-#
-# # manually exchange a 3-node with a 2-node for illustration;
-# # normally 2-nodes are only created during merge operations
-# t1$middle$prefix[[1]] <- Node2("B", "F")
-#
-# plot_tree(t1, vertex.size = 8, edge.width = 1.5)
+# Shared monoid names warn during concat by design.
+both <- suppressWarnings(concat_trees(left, right))
+plot_tree(both, vertex.size = 9, title = "concat")
 
+valued <- tree_from(letters, values = sample(1:26), monoids = size_monoids)
+plot_tree(valued, vertex.size = 9, title = "valued")
 
-abcs <- tree_from(as.list(letters[1:12]), monoids = size_monoids)
-xyzs <- tree_from(as.list(letters[16:26]), monoids = size_monoids)
+char_concat <- MeasureMonoid(
+  function(a, b) paste0(a, b),
+  "",
+  function(el) as.character(el)
+)
+print(reduce_right(valued, char_concat))
 
-#plot_tree(abcs)
-#plot_tree(xyzs)
+value_min <- MeasureMonoid(
+  min,
+  Inf,
+  function(el) as.numeric(attr(el, "value"))
+)
+value_sum <- MeasureMonoid(
+  `+`,
+  0,
+  function(el) as.numeric(attr(el, "value"))
+)
+print(reduce_left(valued, value_min))
+print(reduce_left(valued, value_sum))
 
-all <- concat_trees(abcs, xyzs)
-plot_tree(all, vertex.size = 9, title = "all!")
+# Split by size monoid name.
+s <- split(both, function(v) v >= 7, ".size")
+print(reduce_left(s$left, size_measure_monoid()))
+print(reduce_left(s$right, size_measure_monoid()))
 
-
-indices <- sample(1:26)
-mix26 <- tree_from(letters, indices, monoids = size_monoids)
-plot_tree(mix26, vertex.size = 9, title = "valueed")
-
-
-catter <- MeasureMonoid(function(a, b) paste0(a, b), "", function(el) "")
-print(reduce_right(mix26, catter))
-
-
-valueMinner <- MeasureMonoid(function(a, b) {
-  if(attr(a, "value") < attr(b, "value")) {a} else {b}
-}, structure(Inf, value = Inf), function(el) attr(el, "value"))
-
-test <- reduce_left(mix26, valueMinner)
-print(test)
-
-
-valueSummer <- MeasureMonoid(function(a, b) {
-  structure(
-    paste0(a, b),
-    value = attr(a, "value") + attr(b, "value")
-  )
-}, structure("", value = 0), function(el) attr(el, "value"))
-
-test <- tree_from(1:10, monoids = size_monoids)
-um <- reduce_left(test, valueSummer)
-#str(test)
-um2 <- reduce_left(test, valueSummer)
-
-
-#### this doesn't work...
-
-# fs <- tree_from(list(
-#   abs,
-#   log,
-#   sqrt
-# ))
-#
-# applyer <- Monoid(function(f1, f2) {
-#   function(...) {
-#       f1(f2(...))
-#     }
-#   },
-# I)
-# f_all <- reduce_left(fs, applyer)
-#
-# x <- c(3, -5, 2, -4, 1)
-# abs(log(sqrt(x)))
-# sqrt(log(abs(x)))
-# f_all(x)
+# Add a custom monoid to an existing tree.
+numeric_tree <- tree_from(1:10, monoids = size_monoids)
+sum_numeric <- MeasureMonoid(`+`, 0, as.numeric)
+numeric_tree2 <- add_monoids(numeric_tree, list(sum = sum_numeric))
+print(attr(numeric_tree2, "measures"))

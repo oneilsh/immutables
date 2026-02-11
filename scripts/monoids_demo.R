@@ -1,4 +1,7 @@
-# This script explores monoid-annotated binary trees with elements stored in leaves. 
+# Legacy standalone exploration script.
+# It builds custom monoid/binary-tree types and does NOT use the fingertree
+# package API (`MeasureMonoid`, `tree_from`, `append`, etc.).
+# Kept for historical notes.
 
 
 ### First up, a monoid is a data type containing a function

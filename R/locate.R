@@ -20,8 +20,8 @@
 #' t2 <- tree_from(1:6, monoids = list(sum = sum_m))
 #' locate(t2, function(v) v >= 10, "sum", include_metadata = TRUE)
 #' @export
+# Runtime: O(log n) near locate point depth.
 locate <- function(t, predicate, monoid_name, accumulator = NULL, include_metadata = FALSE) {
-  assert_structural_attrs(t)
   ctx <- resolve_named_monoid(t, monoid_name)
   ms <- ctx$monoids
   mr <- ctx$monoid

@@ -18,6 +18,7 @@
 #' tn <- tree_from(setNames(as.list(letters[1:3]), c("k1", "k2", "k3")))
 #' tn[["k2"]]
 #' @export
+# Runtime: O(n log n) by repeated right-add without full-tree validation scans.
 tree_from <- function(x, values = NULL, monoids = NULL) {
   ms <- if(is.null(monoids)) {
     list(.size = size_measure_monoid())
@@ -55,8 +56,10 @@ tree_from <- function(x, values = NULL, monoids = NULL) {
       el <- x_list[[i]]
       if(!is.null(in_names)) {
         el <- .ft_set_name(el, in_names[[i]])
+      } else {
+        el <- .ft_set_name(el, .ft_effective_name(el))
       }
-      t <- append(t, el)
+      t <- add_right(t, el, ms)
     }
   } else {
     v_list <- as.list(values)
@@ -68,12 +71,11 @@ tree_from <- function(x, values = NULL, monoids = NULL) {
       attr(el, "value") <- v_list[[i]]
       if(!is.null(in_names)) {
         el <- .ft_set_name(el, in_names[[i]])
+      } else {
+        el <- .ft_set_name(el, .ft_effective_name(el))
       }
-      t <- append(t, el)
+      t <- add_right(t, el, ms)
     }
   }
-
-  .ft_assert_name_state(t)
-  assert_structural_attrs(t)
   t
 }

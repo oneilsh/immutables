@@ -1,4 +1,5 @@
 # split a digit at the first point where predicate flips from FALSE to TRUE
+# Runtime: O(n) worst-case in relevant input/subtree size.
 split_digit(p, i, digit, monoids, monoid_name) %::% Function : . : list : list : character : list
 split_digit(p, i, digit, monoids, monoid_name) %as% {
   if(length(digit) == 0) {

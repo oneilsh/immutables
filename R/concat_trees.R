@@ -20,12 +20,9 @@
 #' t2 <- suppressWarnings(concat_trees(a, b))
 #' attr(t2, "measures")$sum
 #' @export
+# Runtime: O(nx + ny) when monoid harmonization requires add_monoids passes;
+# otherwise concat spine work is near-logarithmic in boundary distance.
 concat_trees <- function(x, y) {
-  assert_structural_attrs(x)
-  assert_structural_attrs(y)
-  .ft_assert_name_state(x)
-  .ft_assert_name_state(y)
-
   mx <- resolve_tree_monoids(x, required = TRUE)
   my <- resolve_tree_monoids(y, required = TRUE)
 
@@ -46,8 +43,5 @@ concat_trees <- function(x, y) {
   merged <- c(mx, my[setdiff(names(my), names(mx))])
   merged <- ensure_size_monoids(merged)
 
-  t <- concat(x2, y2, merged)
-  .ft_assert_name_state(t)
-  assert_structural_attrs(t)
-  t
+  concat(x2, y2, merged)
 }

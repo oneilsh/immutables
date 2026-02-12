@@ -18,13 +18,24 @@
 #' tn2 <- append(tn, stats::setNames(3, "c"))
 #' tn2[["c"]]
 #' @export
+# Runtime: O(log n) tree update, with O(1) local name-state checks.
 append <- function(t, x) {
-  assert_structural_attrs(t)
-  .ft_assert_name_state(t)
   ms <- resolve_tree_monoids(t, required = TRUE)
   x2 <- .ft_set_name(x, .ft_effective_name(x))
-  t2 <- add_right(t, x2, ms)
-  .ft_assert_name_state(t2)
-  assert_structural_attrs(t2)
-  t2
+  n <- as.integer(node_measure(t, ".size"))
+  nn <- as.integer(node_measure(t, ".named_count"))
+  x_named <- !is.null(.ft_get_name(x2))
+  # Runtime: O(1). Enforce non-mixed naming invariant without full traversal.
+  if(n > 0L) {
+    if(nn != 0L && nn != n) {
+      stop("Invalid tree name state: mixed named/unnamed elements.")
+    }
+    if(nn == 0L && x_named) {
+      stop("Cannot mix named and unnamed elements (append would create mixed named and unnamed tree).")
+    }
+    if(nn == n && !x_named) {
+      stop("Cannot mix named and unnamed elements (append would create mixed named and unnamed tree).")
+    }
+  }
+  add_right(t, x2, ms)
 }

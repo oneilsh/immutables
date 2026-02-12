@@ -14,8 +14,8 @@
 #' reduce_left(s$left, cat_m)
 #' reduce_left(s$right, cat_m)
 #' @export
+# Runtime: O(log n) near split point depth.
 split_tree <- function(t, predicate, monoid_name, accumulator = NULL) {
-  assert_structural_attrs(t)
   ctx <- resolve_named_monoid(t, monoid_name)
   ms <- ctx$monoids
   mr <- ctx$monoid
@@ -25,8 +25,5 @@ split_tree <- function(t, predicate, monoid_name, accumulator = NULL) {
   }
 
   i <- if(is.null(accumulator)) mr$i else accumulator
-  res <- split_tree_impl(predicate, i, t, ms, monoid_name)
-  assert_structural_attrs(res$left)
-  assert_structural_attrs(res$right)
-  res
+  split_tree_impl(predicate, i, t, ms, monoid_name)
 }

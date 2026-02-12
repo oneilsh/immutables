@@ -14,6 +14,7 @@
 #' value_sum <- MeasureMonoid(`+`, 0, function(el) as.numeric(attr(el, "value")))
 #' reduce_right(t2, value_sum)
 #' @export
+# Runtime: O(1).
 MeasureMonoid <- function(f, i, measure) {
   res <- list(f = f, i = i, measure = measure)
   class(res) <- c("MeasureMonoid", class(res))

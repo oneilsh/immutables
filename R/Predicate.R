@@ -10,6 +10,7 @@
 #' t <- tree_from(letters[1:5])
 #' locate(t, p, ".size")
 #' @export
+# Runtime: O(1).
 Predicate <- function(f) {
   Function(f)
 }

@@ -1,5 +1,6 @@
 # read-only locate helpers: no reconstruction, only traversal + metadata.
 
+# Runtime: O(n) worst-case in relevant input/subtree size.
 locate_child_measure(x, ms, monoid_name, mr) %::% . : list : character : MeasureMonoid : .
 locate_child_measure(x, ms, monoid_name, mr) %as% {
   if(is_structural_node(x)) {
@@ -12,6 +13,7 @@ locate_child_measure(x, ms, monoid_name, mr) %as% {
   mr$measure(x)
 }
 
+# Runtime: O(n) worst-case in relevant input/subtree size.
 locate_child_size(x, ms) %::% . : list : integer
 locate_child_size(x, ms) %as% {
   sr <- ms[[".size"]]
@@ -29,6 +31,7 @@ locate_child_size(x, ms) %as% {
   out
 }
 
+# Runtime: O(n) worst-case in relevant input/subtree size.
 locate_sequence_measure(xs, ms, monoid_name, mr) %::% list : list : character : MeasureMonoid : .
 locate_sequence_measure(xs, ms, monoid_name, mr) %as% {
   if(length(xs) == 0L) {
@@ -41,6 +44,7 @@ locate_sequence_measure(xs, ms, monoid_name, mr) %as% {
   acc
 }
 
+# Runtime: O(n) worst-case in relevant input/subtree size.
 locate_digit(p, i, digit, monoids, monoid_name, i_size) %::% Function : . : list : list : character : integer : list
 locate_digit(p, i, digit, monoids, monoid_name, i_size = 0L) %as% {
   if(length(digit) == 0) {
@@ -86,6 +90,7 @@ locate_digit(p, i, digit, monoids, monoid_name, i_size = 0L) %as% {
   list(found = FALSE, elem = NULL, left_measure = acc, hit_measure = NULL, right_measure = NULL, index = NULL)
 }
 
+# Runtime: O(n) worst-case in relevant input/subtree size.
 locate_tree_impl(p, i, t, monoids, monoid_name, i_size) %::% Function : . : . : list : character : integer : list
 locate_tree_impl(p, i, t, monoids, monoid_name, i_size = 0L) %as% {
   ms <- ensure_size_monoids(monoids)

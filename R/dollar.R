@@ -1,4 +1,5 @@
 # parse `$` name argument into a scalar character key.
+# Runtime: O(1).
 .ft_dollar_name(name_expr) %::% . : character
 .ft_dollar_name(name_expr) %as% {
   nm <- as.character(name_expr)
@@ -20,6 +21,8 @@
 #' t <- tree_from(setNames(as.list(1:3), c("a", "b", "c")))
 #' t$b
 #' @export
+# Runtime: O(1) for structural-field fallback on unnamed trees; O(n) for
+# name lookup due name-position materialization.
 `$.FingerTree` <- function(x, name) {
   nm <- .ft_dollar_name(substitute(name))
   # Preserve structural-field `$` access on unnamed trees for internal traversal
@@ -47,6 +50,7 @@
 #' t$b <- 20
 #' t$b
 #' @export
+# Runtime: O(n), delegated to `[[<-.FingerTree`.
 `$<-.FingerTree` <- function(x, name, value) {
   nm <- .ft_dollar_name(substitute(name))
   `[[<-.FingerTree`(x, nm, value)

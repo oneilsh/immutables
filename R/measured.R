@@ -1,20 +1,24 @@
 # check for MeasureMonoid type
+# Runtime: O(n) worst-case in relevant input/subtree size.
 is_measure_monoid(r) %::% . : logical
 is_measure_monoid(r) %as% inherits(r, "MeasureMonoid")
 
 # a non-empty named list of MeasureMonoid specs
+# Runtime: O(n) worst-case in relevant input/subtree size.
 is_measure_monoid_list(x) %::% . : logical
 is_measure_monoid_list(x) %as% {
   is.list(x) && length(x) > 0 && all(vapply(x, is_measure_monoid, logical(1)))
 }
 
 # default size measure used for indexing and structural operations
+# Runtime: O(n) worst-case in relevant input/subtree size.
 size_measure_monoid() %::% MeasureMonoid
 size_measure_monoid() %as% {
   MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
 }
 
 # default name-count measure used to enforce named/unnamed tree invariants
+# Runtime: O(n) worst-case in relevant input/subtree size.
 named_count_measure_monoid() %::% MeasureMonoid
 named_count_measure_monoid() %as% {
   MeasureMonoid(function(a, b) a + b, 0L, function(el) {
@@ -23,6 +27,7 @@ named_count_measure_monoid() %as% {
 }
 
 # normalize a candidate element name; NULL/NA/"" are treated as missing
+# Runtime: O(n) worst-case in relevant input/subtree size.
 .ft_normalize_name(x) %::% . : .
 .ft_normalize_name(x) %as% {
   if(is.null(x) || length(x) == 0L) {
@@ -39,18 +44,21 @@ named_count_measure_monoid() %as% {
 }
 
 # read the internal element name payload
+# Runtime: O(n) worst-case in relevant input/subtree size.
 .ft_get_name(el) %::% . : .
 .ft_get_name(el) %as% {
   .ft_normalize_name(attr(el, "ft_name", exact = TRUE))
 }
 
 # check whether an element carries an internal name
+# Runtime: O(n) worst-case in relevant input/subtree size.
 .ft_has_name(el) %::% . : logical
 .ft_has_name(el) %as% {
   !is.null(.ft_get_name(el))
 }
 
 # attach/remove internal element name payload
+# Runtime: O(n) worst-case in relevant input/subtree size.
 .ft_set_name(el, name) %::% . : . : .
 .ft_set_name(el, name) %as% {
   nm <- .ft_normalize_name(name)
@@ -66,6 +74,7 @@ named_count_measure_monoid() %as% {
 }
 
 # validate and normalize monoid set; `.size` and `.named_count` are always present.
+# Runtime: O(n) worst-case in relevant input/subtree size.
 ensure_size_monoids(monoids) %::% list : list
 ensure_size_monoids(monoids) %as% {
   out <- monoids
@@ -88,6 +97,7 @@ ensure_size_monoids(monoids) %as% {
 }
 
 # combine a list of measure values with the monoid's associative function
+# Runtime: O(n) worst-case in relevant input/subtree size.
 combine_measures(measures, r) %::% list : MeasureMonoid : .
 combine_measures(measures, r) %as% {
   acc <- r$i
@@ -98,6 +108,7 @@ combine_measures(measures, r) %as% {
 }
 
 # recursive helper assuming `ms` has already been validated
+# Runtime: O(n) worst-case in relevant input/subtree size.
 measure_child_named_impl(x, ms, name, rr) %::% . : list : character : MeasureMonoid : .
 measure_child_named_impl(x, ms, name, rr) %as% {
   if(is_structural_node(x)) {
@@ -129,6 +140,7 @@ measure_child_named_impl(x, ms, name, rr) %as% {
 }
 
 # compute all cached measures for a structural node across all monoids
+# Runtime: O(n) worst-case in relevant input/subtree size.
 measure_children(x, monoids) %::% . : list : list
 measure_children(x, monoids) %as% {
   ms <- ensure_size_monoids(monoids)
@@ -138,6 +150,7 @@ measure_children(x, monoids) %as% {
 }
 
 # read a structural-node measure by monoid name
+# Runtime: O(n) worst-case in relevant input/subtree size.
 node_measure(x, monoid_name) %::% . : character : .
 node_measure(x, monoid_name) %as% {
   if(!is_structural_node(x)) {
@@ -151,6 +164,7 @@ node_measure(x, monoid_name) %as% {
 }
 
 # attach canonical monoids + cached measures to a structural node
+# Runtime: O(n) worst-case in relevant input/subtree size.
 set_measure(x, monoids) %::% . : list : .
 set_measure(x, monoids) %as% {
   if(!is_structural_node(x)) {
@@ -164,6 +178,7 @@ set_measure(x, monoids) %as% {
 
 # attach monoids + measures, reusing unchanged cached entries from `previous`.
 # only `recompute_names` are recomputed from children.
+# Runtime: O(n) worst-case in relevant input/subtree size.
 set_measure_with_reuse(x, previous, monoids, recompute_names) %::% . : . : list : character : .
 set_measure_with_reuse(x, previous, monoids, recompute_names) %as% {
   if(!is_structural_node(x)) {
@@ -192,6 +207,7 @@ set_measure_with_reuse(x, previous, monoids, recompute_names) %as% {
 
 # persistent structural copy that updates monoid attrs.
 # tree shape is preserved; only requested monoid caches are recomputed.
+# Runtime: O(n) worst-case in relevant input/subtree size.
 rebind_tree_monoids(x, monoids, recompute_names) %::% . : list : character : .
 rebind_tree_monoids(x, monoids, recompute_names) %as% {
   if(!is_structural_node(x)) {
@@ -220,7 +236,9 @@ rebind_tree_monoids(x, monoids, recompute_names) %as% {
   set_measure_with_reuse(out, x, monoids, recompute_names)
 }
 
+# Runtime: O(n) worst-case in relevant input/subtree size.
 assert_has_monoids(node) %::% . : .
+# Runtime: O(1).
 assert_has_monoids(node) %as% {
   if(!is_structural_node(node)) {
     return(invisible(TRUE))
@@ -233,7 +251,9 @@ assert_has_monoids(node) %as% {
   invisible(TRUE)
 }
 
+# Runtime: O(n) worst-case in relevant input/subtree size.
 assert_measures_match_monoids(node) %::% . : .
+# Runtime: O(m), where m is number of monoids on node.
 assert_measures_match_monoids(node) %as% {
   if(!is_structural_node(node)) {
     return(invisible(TRUE))
@@ -249,7 +269,10 @@ assert_measures_match_monoids(node) %as% {
   invisible(TRUE)
 }
 
+# Runtime: O(n) worst-case in relevant input/subtree size.
 assert_structural_attrs(node) %::% . : .
+# Runtime: O(n) in subtree size (recursive full walk).
+# Intended use: correctness auditing in tests/debugging, not hot paths.
 assert_structural_attrs(node) %as% {
   if(!is_structural_node(node)) {
     return(invisible(TRUE))
@@ -274,6 +297,7 @@ assert_structural_attrs(node) %as% {
 }
 
 # construct an Empty with cached measures
+# Runtime: O(n) worst-case in relevant input/subtree size.
 measured_empty(monoids) %::% list : Empty
 measured_empty(monoids) %as% {
   e <- Empty()
@@ -281,6 +305,7 @@ measured_empty(monoids) %as% {
 }
 
 # construct a Single with cached measures
+# Runtime: O(n) worst-case in relevant input/subtree size.
 measured_single(el, monoids) %::% . : list : Single
 measured_single(el, monoids) %as% {
   s <- Single(el)
@@ -288,24 +313,28 @@ measured_single(el, monoids) %as% {
 }
 
 # construct a Digit with cached measures (size 1..4)
+# Runtime: O(n) worst-case in relevant input/subtree size.
 measured_digit(a, monoids) %::% . : list : Digit
 measured_digit(a, monoids) %as% {
   d <- Digit(a)
   set_measure(d, monoids)
 }
 
+# Runtime: O(n) worst-case in relevant input/subtree size.
 measured_digit(a, b, monoids) %::% . : . : list : Digit
 measured_digit(a, b, monoids) %as% {
   d <- Digit(a, b)
   set_measure(d, monoids)
 }
 
+# Runtime: O(n) worst-case in relevant input/subtree size.
 measured_digit(a, b, c, monoids) %::% . : . : . : list : Digit
 measured_digit(a, b, c, monoids) %as% {
   d <- Digit(a, b, c)
   set_measure(d, monoids)
 }
 
+# Runtime: O(n) worst-case in relevant input/subtree size.
 measured_digit(a, b, c, d1, monoids) %::% . : . : . : . : list : Digit
 measured_digit(a, b, c, d1, monoids) %as% {
   d <- Digit(a, b, c, d1)
@@ -313,6 +342,7 @@ measured_digit(a, b, c, d1, monoids) %as% {
 }
 
 # construct a Node2 with cached measures
+# Runtime: O(n) worst-case in relevant input/subtree size.
 measured_node2(x, y, monoids) %::% . : . : list : Node
 measured_node2(x, y, monoids) %as% {
   n <- Node2(x, y)
@@ -320,6 +350,7 @@ measured_node2(x, y, monoids) %as% {
 }
 
 # construct a Node3 with cached measures
+# Runtime: O(n) worst-case in relevant input/subtree size.
 measured_node3(x, y, z, monoids) %::% . : . : . : list : Node
 measured_node3(x, y, z, monoids) %as% {
   n <- Node3(x, y, z)
@@ -327,6 +358,7 @@ measured_node3(x, y, z, monoids) %as% {
 }
 
 # construct a Deep with cached measures
+# Runtime: O(n) worst-case in relevant input/subtree size.
 measured_deep(prefix, middle, suffix, monoids) %::% Digit : FingerTree : Digit : list : Deep
 measured_deep(prefix, middle, suffix, monoids) %as% {
   t <- Deep(prefix, middle, suffix)

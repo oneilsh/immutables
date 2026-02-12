@@ -15,6 +15,7 @@
 #' tn <- tree_from(setNames(as.list(1:5), paste0("k", 1:5)))
 #' tn
 #' @export
+# Runtime: O(min(n, max_elements)) for preview extraction.
 print.FingerTree <- function(x, max_elements = 6L, show_internal_monoids = FALSE, ...) {
   n <- as.integer(node_measure(x, ".size"))
   nn <- as.integer(node_measure(x, ".named_count"))
@@ -57,6 +58,7 @@ print.FingerTree <- function(x, max_elements = 6L, show_internal_monoids = FALSE
 #' @rdname print.FingerTree
 #' @method print Deep
 #' @export
+# Runtime: Delegates to `print.FingerTree`.
 print.Deep <- function(x, ...) {
   print.FingerTree(x, ...)
 }
@@ -64,6 +66,7 @@ print.Deep <- function(x, ...) {
 #' @rdname print.FingerTree
 #' @method print Single
 #' @export
+# Runtime: Delegates to `print.FingerTree`.
 print.Single <- function(x, ...) {
   print.FingerTree(x, ...)
 }
@@ -71,6 +74,7 @@ print.Single <- function(x, ...) {
 #' @rdname print.FingerTree
 #' @method print Empty
 #' @export
+# Runtime: Delegates to `print.FingerTree`.
 print.Empty <- function(x, ...) {
   print.FingerTree(x, ...)
 }

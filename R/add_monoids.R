@@ -15,9 +15,8 @@
 #' t3 <- add_monoids(t2, list(sum = sum2), overwrite = TRUE)
 #' attr(t3, "measures")$sum
 #' @export
+# Runtime: O(n) over tree size for any non-trivial update (rebind/recompute pass).
 add_monoids <- function(t, monoids, overwrite = FALSE) {
-  assert_structural_attrs(t)
-  .ft_assert_name_state(t)
   add <- ensure_size_monoids(monoids)
   cur <- resolve_tree_monoids(t, required = TRUE)
   merged <- merge_monoid_sets(cur, add, overwrite = overwrite)
@@ -34,8 +33,5 @@ add_monoids <- function(t, monoids, overwrite = FALSE) {
     return(t)
   }
 
-  t2 <- rebind_tree_monoids(t, merged, recompute_names)
-  .ft_assert_name_state(t2)
-  assert_structural_attrs(t2)
-  t2
+  rebind_tree_monoids(t, merged, recompute_names)
 }

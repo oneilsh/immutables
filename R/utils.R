@@ -14,11 +14,13 @@
 #' gdf2 <- get_graph_df(t2)
 #' nrow(gdf2[[2]])
 #' @export
+# Runtime: O(n) over tree nodes/elements.
 get_graph_df <- function(t) {
   
   EDGE_STACK <- rstack()
   NODE_STACK <- rstack()
   
+# Runtime: O(n) worst-case in relevant input/subtree size.
   add_edges <- function(t, path) {
     
     if(is_structural_node(t) && t %isa% Empty) {
@@ -96,6 +98,7 @@ get_graph_df <- function(t) {
 #' plot_tree(t2, node_label = "both", vertex.size = 8)
 #' }
 #' @export
+# Runtime: O(n) to build graph structures prior to plotting.
 plot_tree <- function(t1, vertex.size = 4, edge.width = 1, label_edges = FALSE, title = NULL,
                       node_label = c("value", "type", "both", "none"), ...) {
   t1_edge_df <- get_graph_df(t1)[[1]]
@@ -144,6 +147,7 @@ plot_tree <- function(t1, vertex.size = 4, edge.width = 1, label_edges = FALSE, 
 
 
 # convert a flat list into measured Node2/Node3 list for concatenation.
+# Runtime: O(k), where k = length(l).
 measured_nodes(l, monoids) %::% list : list : list
 measured_nodes(l, monoids) %as% {
   if(length(l) == 2) { return(list(

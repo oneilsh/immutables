@@ -1,8 +1,10 @@
+# Runtime: O(n) worst-case in relevant input/subtree size.
 add_left(e, el, monoids) %::% Empty : . : list : Single
 add_left(e, el, monoids) %as% {
   measured_single(el, monoids)
 }
 
+# Runtime: O(n) worst-case in relevant input/subtree size.
 add_left(s, el, monoids) %::% Single : . : list : Deep
 add_left(s, el, monoids) %as% {
   measured_deep(
@@ -17,6 +19,7 @@ add_left(s, el, monoids) %as% {
 # we can't just c() the element to the list, as we'd get a list(el, old_list), rather than list(el, old_list[[1]], old_list[[2]]), etc.
 # list.prepend from the rlist package takes care of that.
 # BUT, it strips off the class attributes, so we restore them.
+# Runtime: O(n) worst-case in relevant input/subtree size.
 add_left(d, el, monoids) %::% Digit : . : list : Digit
 add_left(d, el, monoids) %as% {
   oldclasses <- class(d)
@@ -31,6 +34,7 @@ add_left(d, el, monoids) %as% {
 # if the prefix digit has 4 elements: then we push off the last to 
 # be stored deeper along inside a Node3, and just store the new el and the remaining 1 from the digit in the prefix as a digit.
 # otherwise: it's a simple add to the prefix digit.
+# Runtime: O(n) worst-case in relevant input/subtree size.
 add_left(d, el, monoids) %::% Deep : . : list : Deep
 add_left(d, el, monoids) %as% {
   if(length(.subset2(d,"prefix")) == 4) {
@@ -45,6 +49,7 @@ add_left(d, el, monoids) %as% {
 }
 
 
+# Runtime: O(n) worst-case in relevant input/subtree size.
 add_all_left(t, els, monoids) %::% FingerTree : . : list : FingerTree
 add_all_left(t, els, monoids) %as% {
   for(el in rev(els)) {

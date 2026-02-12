@@ -1,6 +1,7 @@
 
 
 # monoid fold helper; folds right over a tree or node structure
+# Runtime: O(n) worst-case in relevant input/subtree size.
 reduce_right_acc(t, r, acc) %::% . : . : . : .
 reduce_right_acc(t, r, acc) %as% {
   if(is_structural_node(t) && t %isa% Empty) {
@@ -25,17 +26,20 @@ reduce_right_acc(t, r, acc) %as% {
 }
 
 # reduce_right_impl methods for different node types; uses identity once at top
+# Runtime: O(n) worst-case in relevant input/subtree size.
 reduce_right_impl(e, r) %::% Empty : MeasureMonoid : .
 reduce_right_impl(e, r) %as% r$i
 
 
 
+# Runtime: O(n) worst-case in relevant input/subtree size.
 reduce_right_impl(s, r) %::% Single : MeasureMonoid : .
 reduce_right_impl(s, r) %as% {
   reduce_right_acc(s, r, r$i)
 }
 
 # legacy Element wrapper (elements now can be any type)
+# Runtime: O(n) worst-case in relevant input/subtree size.
 reduce_right_impl(n, r) %::% Node : MeasureMonoid : .
 reduce_right_impl(n, r) %as% {
   reduce_right_acc(n, r, r$i)
@@ -43,6 +47,7 @@ reduce_right_impl(n, r) %as% {
 
 
 # reduce_right_impl for digits, which can have 1 to 4 elements; again we just call the monoid function with the right grouping
+# Runtime: O(n) worst-case in relevant input/subtree size.
 reduce_right_impl(d, r) %::% Digit : MeasureMonoid : .
 reduce_right_impl(d, r) %as% {
   reduce_right_acc(d, r, r$i)
@@ -50,6 +55,7 @@ reduce_right_impl(d, r) %as% {
 
 # reduce_right_impl for deep nodes: recursively reduce, then reduce the reductions (I'm cheating by putting them into a digit and then 
 # reducing that)
+# Runtime: O(n) worst-case in relevant input/subtree size.
 reduce_right_impl(t, r) %::% Deep : MeasureMonoid : .
 reduce_right_impl(t, r) %as% {
   reduce_right_acc(t, r, r$i)
@@ -68,6 +74,7 @@ reduce_right_impl(t, r) %as% {
 #' cat_m <- MeasureMonoid(paste0, "", as.character)
 #' reduce_right(tree_from(letters[1:4]), cat_m)
 #' @export
+# Runtime: O(n) over number of elements.
 reduce_right <- function(t, monoid) {
   if(!is_measure_monoid(monoid)) {
     stop("`monoid` must be a MeasureMonoid object.")

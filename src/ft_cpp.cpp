@@ -94,6 +94,96 @@ int find_name_position_impl(SEXP x, const std::string& target, int offset) {
   return -1;
 }
 
+SEXP get_by_index_impl(SEXP x, int idx) {
+  if(idx <= 0) {
+    stop("Only positive integer indices are supported.");
+  }
+
+  if(!is_structural_node_cpp(x)) {
+    if(idx == 1) {
+      return x;
+    }
+    stop("Index out of bounds.");
+  }
+
+  if(has_class(x, "Empty")) {
+    stop("Index out of bounds.");
+  }
+
+  if(has_class(x, "Single")) {
+    List s(x);
+    return get_by_index_impl(s[0], idx);
+  }
+
+  if(has_class(x, "Deep")) {
+    List d(x);
+    SEXP prefix = d["prefix"];
+    SEXP middle = d["middle"];
+    SEXP suffix = d["suffix"];
+
+    const int npr = static_cast<int>(child_size(prefix));
+    if(idx <= npr) {
+      return get_by_index_impl(prefix, idx);
+    }
+    idx -= npr;
+
+    const int nm = static_cast<int>(child_size(middle));
+    if(idx <= nm) {
+      return get_by_index_impl(middle, idx);
+    }
+    idx -= nm;
+
+    return get_by_index_impl(suffix, idx);
+  }
+
+  List xs(x);
+  for(int i = 0; i < xs.size(); ++i) {
+    SEXP el = xs[i];
+    const int n = static_cast<int>(child_size(el));
+    if(idx <= n) {
+      return get_by_index_impl(el, idx);
+    }
+    idx -= n;
+  }
+
+  stop("Index out of bounds.");
+}
+
+void collect_names_impl(SEXP x, CharacterVector& out, int& pos) {
+  if(!is_structural_node_cpp(x)) {
+    SEXP nm = Rf_getAttrib(x, ft_name_sym);
+    if(Rf_isNull(nm) || XLENGTH(nm) == 0) {
+      out[pos++] = NA_STRING;
+      return;
+    }
+    out[pos++] = STRING_ELT(nm, 0);
+    return;
+  }
+
+  if(has_class(x, "Empty")) {
+    return;
+  }
+
+  if(has_class(x, "Single")) {
+    List s(x);
+    collect_names_impl(s[0], out, pos);
+    return;
+  }
+
+  if(has_class(x, "Deep")) {
+    List d(x);
+    collect_names_impl(d["prefix"], out, pos);
+    collect_names_impl(d["middle"], out, pos);
+    collect_names_impl(d["suffix"], out, pos);
+    return;
+  }
+
+  List xs(x);
+  for(int i = 0; i < xs.size(); ++i) {
+    collect_names_impl(xs[i], out, pos);
+  }
+}
+
 List measures_from_children(const List& children, const List& monoids) {
   CharacterVector nms = monoids.names();
   List out(nms.size());
@@ -970,5 +1060,61 @@ extern "C" SEXP ft_cpp_find_name_position(SEXP t, SEXP name_) {
     return IntegerVector::create(NA_INTEGER);
   }
   return IntegerVector::create(p);
+  END_RCPP
+}
+
+extern "C" SEXP ft_cpp_get_by_index(SEXP t, SEXP idx_) {
+  BEGIN_RCPP
+  IntegerVector idx(idx_);
+  if(idx.size() != 1 || IntegerVector::is_na(idx[0])) {
+    stop("`idx` must be a single non-missing integer index.");
+  }
+  return get_by_index_impl(t, idx[0]);
+  END_RCPP
+}
+
+extern "C" SEXP ft_cpp_get_many_by_index(SEXP t, SEXP idx_) {
+  BEGIN_RCPP
+  IntegerVector idx(idx_);
+  List out(idx.size());
+  for(int i = 0; i < idx.size(); ++i) {
+    if(IntegerVector::is_na(idx[i])) {
+      stop("Only non-missing integer indices are supported.");
+    }
+    out[i] = get_by_index_impl(t, idx[i]);
+  }
+  return out;
+  END_RCPP
+}
+
+extern "C" SEXP ft_cpp_name_positions(SEXP t) {
+  BEGIN_RCPP
+  SEXP m = Rf_getAttrib(t, measures_sym);
+  if(Rf_isNull(m)) {
+    stop("Tree has no measures attribute.");
+  }
+  List ms(m);
+  const int n = as<int>(ms[".size"]);
+  const int nn = as<int>(ms[".named_count"]);
+  if(n == 0 || nn == 0) {
+    stop("Tree has no element names.");
+  }
+  if(nn != n) {
+    stop("Invalid name state: mixed named and unnamed elements are not allowed.");
+  }
+
+  CharacterVector nms(n);
+  int pos = 0;
+  collect_names_impl(t, nms, pos);
+  if(pos != n) {
+    stop("Name collection mismatch with .size measure.");
+  }
+
+  IntegerVector out(n);
+  for(int i = 0; i < n; ++i) {
+    out[i] = i + 1;
+  }
+  out.attr("names") = nms;
+  return out;
   END_RCPP
 }

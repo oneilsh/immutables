@@ -27,4 +27,10 @@ reduce_left(t, cat_m)
 
 tn <- tree_from(setNames(as.list(1:3), c("x", "y", "z")))
 tn[["y"]] <- 99
+
+# Assigning NULL removes an element (by index or name)
+t <- tree_from(letters[1:4])
+t[[2]] <- NULL
+tn <- tree_from(setNames(as.list(1:3), c("a", "b", "c")))
+tn[["b"]] <- NULL
 }

@@ -1,3 +1,56 @@
+# collect first k elements in tree order without flattening full tree.
+# Runtime: O(k + h), where h is traversed structural overhead until k elements.
+.ft_preview_fill(x, st) %::% . : environment : .
+.ft_preview_fill(x, st) %as% {
+  if(st$pos > st$k) {
+    return(invisible(NULL))
+  }
+  if(!is_structural_node(x)) {
+    st$out[[st$pos]] <- x
+    st$pos <- st$pos + 1L
+    return(invisible(NULL))
+  }
+  if(x %isa% Empty) {
+    return(invisible(NULL))
+  }
+  if(x %isa% Single) {
+    .ft_preview_fill(.subset2(x, 1), st)
+    return(invisible(NULL))
+  }
+  if(x %isa% Deep) {
+    .ft_preview_fill(.subset2(x, "prefix"), st)
+    .ft_preview_fill(.subset2(x, "middle"), st)
+    .ft_preview_fill(.subset2(x, "suffix"), st)
+    return(invisible(NULL))
+  }
+  for(el in x) {
+    .ft_preview_fill(el, st)
+    if(st$pos > st$k) {
+      break
+    }
+  }
+  invisible(NULL)
+}
+
+# take first k elements from a tree without materializing all elements.
+# Runtime: O(k + h), where h is traversed structural overhead until k elements.
+.ft_preview_first_k(x, k) %::% . : integer : list
+.ft_preview_first_k(x, k) %as% {
+  if(k <= 0L) {
+    return(list())
+  }
+  st <- new.env(parent = emptyenv())
+  st$k <- k
+  st$pos <- 1L
+  st$out <- vector("list", k)
+  .ft_preview_fill(x, st)
+  used <- st$pos - 1L
+  if(used <= 0L) {
+    return(list())
+  }
+  st$out[seq_len(used)]
+}
+
 #' Print a compact summary of a finger tree
 #'
 #' @method print FingerTree
@@ -15,7 +68,8 @@
 #' tn <- tree_from(setNames(as.list(1:5), paste0("k", 1:5)))
 #' tn
 #' @export
-# Runtime: O(min(n, max_elements)) for preview extraction.
+# Runtime: O(min(n, max_elements) + h) for preview extraction where h is
+# traversed structural overhead; avoids full-tree flattening.
 print.FingerTree <- function(x, max_elements = 6L, show_internal_monoids = FALSE, ...) {
   n <- as.integer(node_measure(x, ".size"))
   nn <- as.integer(node_measure(x, ".named_count"))
@@ -32,7 +86,7 @@ print.FingerTree <- function(x, max_elements = 6L, show_internal_monoids = FALSE
     stop("`max_elements` must be a single non-negative integer.")
   }
 
-  vals_raw <- .ft_to_list(x)
+  vals_raw <- .ft_preview_first_k(x, min(n, max_elements))
   vals <- lapply(vals_raw, .ft_strip_name)
   if(named == "yes" && n > 0L) {
     names(vals) <- vapply(vals_raw, .ft_get_name, character(1))

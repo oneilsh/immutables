@@ -153,6 +153,24 @@ testthat::test_that("character read indexing returns ordered results and NULL pl
   testthat::expect_identical(s[[3]], 1L)
 })
 
+testthat::test_that("character lookup paths are equivalent for short and wide queries", {
+  vals <- as.list(1:20)
+  names(vals) <- paste0("k", seq_len(20))
+  t <- tree_from(vals)
+
+  q_short <- c("k3", "missing", "k1")
+  s_short <- t[q_short]
+  exp_short <- lapply(q_short, function(nm) if(nm %in% names(vals)) vals[[nm]] else NULL)
+  got_short <- lapply(seq_along(q_short), function(i) s_short[[i]])
+  testthat::expect_identical(got_short, exp_short)
+
+  q_wide <- c("k3", "missing", "k1", "k10", "k10", "k20", "missing", "k2", "k19", "k4")
+  s_wide <- t[q_wide]
+  exp_wide <- lapply(q_wide, function(nm) if(nm %in% names(vals)) vals[[nm]] else NULL)
+  got_wide <- lapply(seq_along(q_wide), function(i) s_wide[[i]])
+  testthat::expect_identical(got_wide, exp_wide)
+})
+
 testthat::test_that("character [[ is strict single-name lookup", {
   t <- tree_from(setNames(as.list(letters[1:3]), c("x", "y", "z")))
   testthat::expect_identical(t[["y"]], "b")
@@ -186,6 +204,20 @@ testthat::test_that("replacement names win and must remain unique", {
     t2 <- tree_from(setNames(as.list(1:3), c("u", "v", "w")))
     t2[c("u", "v")] <- bad
   }, "must be unique")
+})
+
+testthat::test_that("single-name replacement enforces uniqueness without map rebuild semantics change", {
+  t <- tree_from(setNames(as.list(1:3), c("a", "b", "c")))
+
+  testthat::expect_error({
+    t2 <- t
+    t2[[1]] <- stats::setNames(9, "b")
+  }, "must be unique")
+
+  t3 <- t
+  t3[[1]] <- stats::setNames(9, "a")
+  testthat::expect_identical(unname(t3[["a"]]), 9)
+  testthat::expect_identical(attr(t3, "measures")$.named_count, 3L)
 })
 
 testthat::test_that("append and prepend preserve global name-state invariant", {

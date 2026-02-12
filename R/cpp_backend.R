@@ -65,3 +65,18 @@
 .ft_cpp_find_name_position <- function(t, name) {
   .Call("ft_cpp_find_name_position", t, name, PACKAGE = "fingertree")
 }
+
+# Runtime: O(log n) near queried index depth.
+.ft_cpp_get_by_index <- function(t, idx) {
+  .Call("ft_cpp_get_by_index", t, as.integer(idx), PACKAGE = "fingertree")
+}
+
+# Runtime: O(m log n), where m is length(idx_vec).
+.ft_cpp_get_many_by_index <- function(t, idx_vec) {
+  .Call("ft_cpp_get_many_by_index", t, as.integer(idx_vec), PACKAGE = "fingertree")
+}
+
+# Runtime: O(n) in tree size.
+.ft_cpp_name_positions <- function(t) {
+  .Call("ft_cpp_name_positions", t, PACKAGE = "fingertree")
+}

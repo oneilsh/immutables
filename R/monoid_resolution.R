@@ -1,4 +1,5 @@
-# Runtime: O(n) worst-case in relevant input/subtree size.
+# Runtime: O(1) fast-path; optional O(m) validation when
+# `options(fingertree.validate_monoids = TRUE)`.
 resolve_tree_monoids(t, required) %::% . : logical : .
 resolve_tree_monoids(t, required = FALSE) %as% {
   ms <- attr(t, "monoids", exact = TRUE)
@@ -8,7 +9,10 @@ resolve_tree_monoids(t, required = FALSE) %as% {
   if(is.null(ms)) {
     return(NULL)
   }
-  ensure_size_monoids(ms)
+  if(isTRUE(getOption("fingertree.validate_monoids", FALSE))) {
+    return(ensure_size_monoids(ms))
+  }
+  ms
 }
 
 # Runtime: O(n) worst-case in relevant input/subtree size.

@@ -29,7 +29,7 @@ merge_monoid_sets(base, add, overwrite = FALSE) %as% {
   a <- ensure_size_monoids(add)
 
   overlap <- intersect(names(b), names(a))
-  overlap <- setdiff(overlap, ".size")
+  overlap <- setdiff(overlap, c(".size", ".named_count"))
   if(length(overlap) > 0 && !isTRUE(overwrite)) {
     stop("Monoid names already exist: ", paste(overlap, collapse = ", "), ". Use overwrite = TRUE to replace.")
   }

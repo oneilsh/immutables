@@ -2,14 +2,14 @@
 % Please edit documentation in R/indexing.R
 \name{[<-.FingerTree}
 \alias{[<-.FingerTree}
-\title{Replace selected elements by positive integer indices}
+\title{Replace selected elements by position or name}
 \usage{
 \method{[}{FingerTree}(x, i) <- value
 }
 \arguments{
 \item{x}{FingerTree.}
 
-\item{i}{Positive integer index vector.}
+\item{i}{Positive integer indices, or character name vector.}
 
 \item{value}{Replacement values; must have exactly same length as `i`.}
 }
@@ -17,7 +17,7 @@
 A new FingerTree with selected elements replaced.
 }
 \description{
-Replace selected elements by positive integer indices
+Replace selected elements by position or name
 }
 \examples{
 t <- tree_from(1:6)
@@ -27,4 +27,8 @@ reduce_left(t, sum_m)
 
 # Replacement length must match
 try(t[c(1, 2)] <- list(999))
+
+# Character replacement by element names (missing names error)
+tn <- tree_from(setNames(as.list(1:4), c("a", "b", "c", "d")))
+tn[c("d", "a")] <- list(40, 10)
 }

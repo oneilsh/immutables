@@ -13,6 +13,7 @@ append(t, x)
 }
 \value{
 Updated tree.
+  If `t` is name-indexed, appending unnamed elements is invalid.
 }
 \description{
 Append an element
@@ -25,4 +26,9 @@ t2[[4]]
 # Compose with prepend and reduce
 cat_m <- MeasureMonoid(paste0, "", as.character)
 reduce_right(prepend(t2, "z"), cat_m)
+
+# Append to a named tree with an explicit element name
+tn <- tree_from(setNames(as.list(1:2), c("a", "b")))
+tn2 <- append(tn, stats::setNames(3, "c"))
+tn2[["c"]]
 }

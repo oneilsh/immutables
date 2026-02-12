@@ -14,7 +14,58 @@ size_measure_monoid() %as% {
   MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
 }
 
-# validate and normalize monoid set; `.size` is always present.
+# default name-count measure used to enforce named/unnamed tree invariants
+named_count_measure_monoid() %::% MeasureMonoid
+named_count_measure_monoid() %as% {
+  MeasureMonoid(function(a, b) a + b, 0L, function(el) {
+    if(isTRUE(.ft_has_name(el))) 1L else 0L
+  })
+}
+
+# normalize a candidate element name; NULL/NA/"" are treated as missing
+.ft_normalize_name(x) %::% . : .
+.ft_normalize_name(x) %as% {
+  if(is.null(x) || length(x) == 0L) {
+    return(NULL)
+  }
+  if(length(x) != 1L) {
+    stop("Element names must be scalar.")
+  }
+  nm <- as.character(x)
+  if(is.na(nm) || nm == "") {
+    return(NULL)
+  }
+  nm
+}
+
+# read the internal element name payload
+.ft_get_name(el) %::% . : .
+.ft_get_name(el) %as% {
+  .ft_normalize_name(attr(el, "ft_name", exact = TRUE))
+}
+
+# check whether an element carries an internal name
+.ft_has_name(el) %::% . : logical
+.ft_has_name(el) %as% {
+  !is.null(.ft_get_name(el))
+}
+
+# attach/remove internal element name payload
+.ft_set_name(el, name) %::% . : . : .
+.ft_set_name(el, name) %as% {
+  nm <- .ft_normalize_name(name)
+  if(is.null(nm)) {
+    attr(el, "ft_name") <- NULL
+    return(el)
+  }
+  if(is.null(el)) {
+    stop("Cannot attach a name to NULL element.")
+  }
+  attr(el, "ft_name") <- nm
+  el
+}
+
+# validate and normalize monoid set; `.size` and `.named_count` are always present.
 ensure_size_monoids(monoids) %::% list : list
 ensure_size_monoids(monoids) %as% {
   out <- monoids
@@ -30,9 +81,9 @@ ensure_size_monoids(monoids) %as% {
   if(any(duplicated(names(out)))) {
     stop("Monoid list names must be unique.")
   }
-  if(is.null(out[[".size"]])) {
-    out <- c(out, list(.size = size_measure_monoid()))
-  }
+  # reserved monoids are canonicalized so all trees share the same invariants.
+  out[[".size"]] <- size_measure_monoid()
+  out[[".named_count"]] <- named_count_measure_monoid()
   out
 }
 

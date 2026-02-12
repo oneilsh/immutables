@@ -23,20 +23,22 @@
 concat_trees <- function(x, y) {
   assert_structural_attrs(x)
   assert_structural_attrs(y)
+  .ft_assert_name_state(x)
+  .ft_assert_name_state(y)
 
   mx <- resolve_tree_monoids(x, required = TRUE)
   my <- resolve_tree_monoids(y, required = TRUE)
 
   shared <- intersect(names(mx), names(my))
-  shared <- setdiff(shared, ".size")
+  shared <- setdiff(shared, c(".size", ".named_count"))
   if(length(shared) > 0) {
     emit_concat_assumption_warning(shared)
   }
 
   left_only <- setdiff(names(mx), names(my))
-  left_only <- setdiff(left_only, ".size")
+  left_only <- setdiff(left_only, c(".size", ".named_count"))
   right_only <- setdiff(names(my), names(mx))
-  right_only <- setdiff(right_only, ".size")
+  right_only <- setdiff(right_only, c(".size", ".named_count"))
 
   x2 <- if(length(right_only) > 0) add_monoids(x, my[right_only], overwrite = FALSE) else x
   y2 <- if(length(left_only) > 0) add_monoids(y, mx[left_only], overwrite = FALSE) else y
@@ -45,6 +47,7 @@ concat_trees <- function(x, y) {
   merged <- ensure_size_monoids(merged)
 
   t <- concat(x2, y2, merged)
+  .ft_assert_name_state(t)
   assert_structural_attrs(t)
   t
 }

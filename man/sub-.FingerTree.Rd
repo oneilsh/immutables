@@ -2,22 +2,23 @@
 % Please edit documentation in R/indexing.R
 \name{[.FingerTree}
 \alias{[.FingerTree}
-\title{Subset a finger tree by positive integer indices}
+\title{Subset a finger tree by position or element name}
 \usage{
 \method{[}{FingerTree}(x, i, ...)
 }
 \arguments{
 \item{x}{FingerTree.}
 
-\item{i}{Positive integer index vector.}
+\item{i}{Positive integer indices or character element names.}
 
 \item{...}{Unused.}
 }
 \value{
-A new FingerTree containing selected elements in index order.
+A new FingerTree containing selected elements in query order.
+  For character indexing, missing names are represented as `NULL` elements.
 }
 \description{
-Subset a finger tree by positive integer indices
+Subset a finger tree by position or element name
 }
 \examples{
 t <- tree_from(letters[1:6])
@@ -27,4 +28,9 @@ reduce_left(s, cat_m)
 
 # Empty index returns empty tree
 attr(t[integer(0)], "measures")$.size
+
+# Character indexing by element names
+tn <- tree_from(setNames(as.list(letters[1:4]), c("w", "x", "y", "z")))
+out <- tn[c("y", "missing", "w")]
+reduce_left(out, MeasureMonoid(paste0, "", function(el) if(is.null(el)) "_" else el))
 }

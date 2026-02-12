@@ -15,6 +15,8 @@ tree_from(x, values = NULL, monoids = NULL)
 }
 \value{
 A finger tree with cached measures for all monoids.
+  If `x` has names, they are used for name-based indexing and must be
+  complete (no missing/empty names) and unique.
 }
 \description{
 Build a tree from a vector or list
@@ -26,4 +28,8 @@ t[[2]]
 sum_m <- MeasureMonoid(`+`, 0, as.numeric)
 t2 <- tree_from(1:5, monoids = list(sum = sum_m))
 attr(t2, "measures")
+
+# Named elements support character indexing
+tn <- tree_from(setNames(as.list(letters[1:3]), c("k1", "k2", "k3")))
+tn[["k2"]]
 }

@@ -17,23 +17,25 @@
 #' @export
 add_monoids <- function(t, monoids, overwrite = FALSE) {
   assert_structural_attrs(t)
+  .ft_assert_name_state(t)
   add <- ensure_size_monoids(monoids)
   cur <- resolve_tree_monoids(t, required = TRUE)
   merged <- merge_monoid_sets(cur, add, overwrite = overwrite)
 
   add_only <- setdiff(names(add), names(cur))
-  overlap <- setdiff(intersect(names(add), names(cur)), ".size")
+  overlap <- setdiff(intersect(names(add), names(cur)), c(".size", ".named_count"))
   recompute_names <- add_only
   if(isTRUE(overwrite) && length(overlap) > 0) {
     recompute_names <- union(recompute_names, overlap)
   }
-  recompute_names <- setdiff(recompute_names, ".size")
+  recompute_names <- setdiff(recompute_names, c(".size", ".named_count"))
 
   if(length(recompute_names) == 0) {
     return(t)
   }
 
   t2 <- rebind_tree_monoids(t, merged, recompute_names)
+  .ft_assert_name_state(t2)
   assert_structural_attrs(t2)
   t2
 }

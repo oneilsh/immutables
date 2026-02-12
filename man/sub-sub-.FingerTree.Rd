@@ -2,28 +2,27 @@
 % Please edit documentation in R/indexing.R
 \name{[[.FingerTree}
 \alias{[[.FingerTree}
-\title{Extract a single element from a finger tree by 1-based index}
+\title{Extract one element by position or unique name}
 \usage{
 \method{[[}{FingerTree}(x, i, ...)
 }
 \arguments{
 \item{x}{FingerTree.}
 
-\item{i}{Positive scalar integer index.}
+\item{i}{Positive scalar integer index, or scalar character element name.}
 
 \item{...}{Unused.}
 }
 \value{
-The extracted element.
+The extracted element (internal name metadata is removed).
 }
 \description{
-Extract a single element from a finger tree by 1-based index
+Extract one element by position or unique name
 }
 \examples{
 t <- tree_from(letters[1:5])
 t[[3]]
 
-# Named extraction for structural fields (internal/debug usage)
-d <- tree_from(letters[1:3])
-d[["prefix"]]
+tn <- tree_from(setNames(as.list(letters[1:3]), c("a1", "a2", "a3")))
+tn[["a2"]]
 }

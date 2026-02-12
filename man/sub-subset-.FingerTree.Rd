@@ -2,14 +2,14 @@
 % Please edit documentation in R/indexing.R
 \name{[[<-.FingerTree}
 \alias{[[<-.FingerTree}
-\title{Replace a single element by 1-based index}
+\title{Replace one element by position or unique name}
 \usage{
 \method{[[}{FingerTree}(x, i) <- value
 }
 \arguments{
 \item{x}{FingerTree.}
 
-\item{i}{Positive scalar integer index.}
+\item{i}{Positive scalar integer index, or scalar character element name.}
 
 \item{value}{Replacement element.}
 }
@@ -17,7 +17,7 @@
 A new FingerTree with one element replaced.
 }
 \description{
-Replace a single element by 1-based index
+Replace one element by position or unique name
 }
 \examples{
 t <- tree_from(letters[1:4])
@@ -25,7 +25,6 @@ t[[2]] <- "ZZ"
 cat_m <- MeasureMonoid(paste0, "", as.character)
 reduce_left(t, cat_m)
 
-# Character index updates internal field (advanced/debug usage)
-u <- tree_from(letters[1:3])
-u[["prefix"]] <- u$prefix
+tn <- tree_from(setNames(as.list(1:3), c("x", "y", "z")))
+tn[["y"]] <- 99
 }

@@ -17,6 +17,7 @@ empty_tree <- function(monoids = NULL) {
     ensure_size_monoids(monoids)
   }
   t <- measured_empty(ms)
+  .ft_assert_name_state(t)
   assert_structural_attrs(t)
   t
 }

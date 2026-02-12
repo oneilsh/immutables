@@ -112,3 +112,73 @@ testthat::test_that("single-element read indexing follows locate(.size) semantic
     testthat::expect_identical(t[[i]], hit$elem)
   }
 })
+
+testthat::test_that("name invariants enforce complete unique naming when names are present", {
+  t <- tree_from(setNames(as.list(1:4), c("a", "b", "c", "d")))
+  testthat::expect_identical(attr(t, "measures")$.size, 4)
+  testthat::expect_identical(attr(t, "measures")$.named_count, 4L)
+
+  mixed <- as.list(1:3)
+  names(mixed) <- c("x", "", "z")
+  testthat::expect_error(tree_from(mixed), "Mixed named and unnamed")
+
+  dup <- as.list(1:3)
+  names(dup) <- c("x", "x", "z")
+  testthat::expect_error(tree_from(dup), "must be unique")
+})
+
+testthat::test_that("character read indexing returns ordered results and NULL placeholders", {
+  t <- tree_from(setNames(as.list(1:3), c("a", "b", "c")))
+  s <- t[c("c", "missing", "a")]
+
+  testthat::expect_identical(attr(s, "measures")$.size, 3)
+  testthat::expect_identical(s[[1]], 3L)
+  testthat::expect_null(s[[2]])
+  testthat::expect_identical(s[[3]], 1L)
+})
+
+testthat::test_that("character [[ is strict single-name lookup", {
+  t <- tree_from(setNames(as.list(letters[1:3]), c("x", "y", "z")))
+  testthat::expect_identical(t[["y"]], "b")
+  testthat::expect_error(t[["missing"]], "Unknown element name")
+})
+
+testthat::test_that("character replacement indexing updates by existing names only", {
+  t <- tree_from(setNames(as.list(1:4), c("a", "b", "c", "d")))
+  t[c("b", "b")] <- list(20, 30)
+  testthat::expect_identical(t[["b"]], 30)
+  testthat::expect_identical(attr(t, "measures")$.named_count, 4L)
+  testthat::expect_error({
+    t2 <- t
+    t2[c("a", "missing")] <- list(1, 2)
+  }, "Unknown element name")
+})
+
+testthat::test_that("replacement names win and must remain unique", {
+  t <- tree_from(setNames(as.list(1:3), c("a", "b", "c")))
+  repl <- list(10, 30)
+  names(repl) <- c("z", "y")
+  t[c("a", "c")] <- repl
+
+  testthat::expect_identical(t[["z"]], 10)
+  testthat::expect_identical(t[["y"]], 30)
+  testthat::expect_error(t[["a"]], "Unknown element name")
+
+  bad <- list(100, 200)
+  names(bad) <- c("k", "k")
+  testthat::expect_error({
+    t2 <- tree_from(setNames(as.list(1:3), c("u", "v", "w")))
+    t2[c("u", "v")] <- bad
+  }, "must be unique")
+})
+
+testthat::test_that("append and prepend preserve global name-state invariant", {
+  unnamed <- tree_from(1:3)
+  testthat::expect_error(
+    append(unnamed, stats::setNames(4, "x")),
+    "mixed named and unnamed"
+  )
+
+  named <- tree_from(setNames(as.list(1:3), c("a", "b", "c")))
+  testthat::expect_error(prepend(named, 0), "mixed named and unnamed")
+})

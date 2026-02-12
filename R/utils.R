@@ -37,7 +37,7 @@ get_graph_df <- function(t) {
         # rev() here and below determines the order of addition to the data and thus (apparently)
         # the node ordering 
         for(subthing_name in rev(names(t))) {
-          subthing <- t[[subthing_name]]
+          subthing <- .subset2(t, subthing_name)
           parentid <- path
           childid <- paste(path, subthing_name, sep = ":")
           EDGE_STACK <<- insert_top(EDGE_STACK, list(parent = parentid, child = childid, label = subthing_name))

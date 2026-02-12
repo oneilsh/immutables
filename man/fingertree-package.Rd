@@ -12,3 +12,4 @@ Monoid-annotated 2-3 finger trees.
 \strong{Maintainer}: Shawn T. O'Neil \email{shawn@tislab.org}
 
 }
+\keyword{internal}

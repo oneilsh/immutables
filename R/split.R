@@ -4,6 +4,15 @@
 #' @param predicate Function on measure values.
 #' @param monoid_name Name of monoid from `attr(t, "monoids")`.
 #' @return A list with `left` and `right`.
+#' @examples
+#' t <- tree_from(letters[1:6])
+#' s <- split(t, function(v) v >= 4, ".size")
+#' attr(s$left, "measures")$.size
+#' attr(s$right, "measures")$.size
+#'
+#' cat_m <- MeasureMonoid(paste0, "", as.character)
+#' reduce_left(s$left, cat_m)
+#' reduce_left(s$right, cat_m)
 #' @export
 split <- function(t, predicate, monoid_name) {
   assert_structural_attrs(t)

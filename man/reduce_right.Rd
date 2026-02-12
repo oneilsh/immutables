@@ -17,3 +17,11 @@ Reduced value.
 \description{
 Reduce from the right
 }
+\examples{
+t <- tree_from(1:5)
+sum_m <- MeasureMonoid(`+`, 0, as.numeric)
+reduce_right(t, sum_m)
+
+cat_m <- MeasureMonoid(paste0, "", as.character)
+reduce_right(tree_from(letters[1:4]), cat_m)
+}

@@ -19,3 +19,13 @@ A new FingerTree with one element replaced.
 \description{
 Replace a single element by 1-based index
 }
+\examples{
+t <- tree_from(letters[1:4])
+t[[2]] <- "ZZ"
+cat_m <- MeasureMonoid(paste0, "", as.character)
+reduce_left(t, cat_m)
+
+# Character index updates internal field (advanced/debug usage)
+u <- tree_from(letters[1:3])
+u[["prefix"]] <- u$prefix
+}

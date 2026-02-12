@@ -19,3 +19,11 @@ A finger tree with cached measures for all monoids.
 \description{
 Build a tree from a vector or list
 }
+\examples{
+t <- tree_from(letters[1:4])
+t[[2]]
+
+sum_m <- MeasureMonoid(`+`, 0, as.numeric)
+t2 <- tree_from(1:5, monoids = list(sum = sum_m))
+attr(t2, "measures")
+}

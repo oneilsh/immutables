@@ -6,6 +6,19 @@
 #' @param x Left tree.
 #' @param y Right tree.
 #' @return Concatenated tree.
+#' @examples
+#' left <- tree_from(letters[1:3])
+#' right <- tree_from(letters[4:6])
+#' t <- concat_trees(left, right)
+#' cat_m <- MeasureMonoid(paste0, "", as.character)
+#' reduce_left(t, cat_m)
+#'
+#' # Concatenate trees carrying a custom monoid
+#' sum_m <- MeasureMonoid(`+`, 0, as.numeric)
+#' a <- tree_from(1:3, monoids = list(sum = sum_m))
+#' b <- tree_from(4:5, monoids = list(sum = sum_m))
+#' t2 <- suppressWarnings(concat_trees(a, b))
+#' attr(t2, "measures")$sum
 #' @export
 concat_trees <- function(x, y) {
   assert_structural_attrs(x)

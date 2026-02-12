@@ -19,3 +19,12 @@ A new FingerTree containing selected elements in index order.
 \description{
 Subset a finger tree by positive integer indices
 }
+\examples{
+t <- tree_from(letters[1:6])
+s <- t[c(2, 4, 6)]
+cat_m <- MeasureMonoid(paste0, "", as.character)
+reduce_left(s, cat_m)
+
+# Empty index returns empty tree
+attr(t[integer(0)], "measures")$.size
+}

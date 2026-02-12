@@ -47,6 +47,14 @@
 #' @param i Positive integer index vector.
 #' @param ... Unused.
 #' @return A new FingerTree containing selected elements in index order.
+#' @examples
+#' t <- tree_from(letters[1:6])
+#' s <- t[c(2, 4, 6)]
+#' cat_m <- MeasureMonoid(paste0, "", as.character)
+#' reduce_left(s, cat_m)
+#'
+#' # Empty index returns empty tree
+#' attr(t[integer(0)], "measures")$.size
 #' @export
 `[.FingerTree` <- function(x, i, ...) {
   if(missing(i)) {
@@ -65,6 +73,13 @@
 #' @param i Positive scalar integer index.
 #' @param ... Unused.
 #' @return The extracted element.
+#' @examples
+#' t <- tree_from(letters[1:5])
+#' t[[3]]
+#'
+#' # Named extraction for structural fields (internal/debug usage)
+#' d <- tree_from(letters[1:3])
+#' d[["prefix"]]
 #' @export
 `[[.FingerTree` <- function(x, i, ...) {
   if(is.character(i) && length(i) == 1L && !is.na(i)) {
@@ -85,6 +100,14 @@
 #' @param i Positive integer index vector.
 #' @param value Replacement values; must have exactly same length as `i`.
 #' @return A new FingerTree with selected elements replaced.
+#' @examples
+#' t <- tree_from(1:6)
+#' t[c(2, 5)] <- list(20, 50)
+#' sum_m <- MeasureMonoid(`+`, 0, as.numeric)
+#' reduce_left(t, sum_m)
+#'
+#' # Replacement length must match
+#' try(t[c(1, 2)] <- list(999))
 #' @export
 `[<-.FingerTree` <- function(x, i, value) {
   ms <- resolve_tree_monoids(x, required = TRUE)
@@ -106,6 +129,15 @@
 #' @param i Positive scalar integer index.
 #' @param value Replacement element.
 #' @return A new FingerTree with one element replaced.
+#' @examples
+#' t <- tree_from(letters[1:4])
+#' t[[2]] <- "ZZ"
+#' cat_m <- MeasureMonoid(paste0, "", as.character)
+#' reduce_left(t, cat_m)
+#'
+#' # Character index updates internal field (advanced/debug usage)
+#' u <- tree_from(letters[1:3])
+#' u[["prefix"]] <- u$prefix
 #' @export
 `[[<-.FingerTree` <- function(x, i, value) {
   if(is.character(i) && length(i) == 1L && !is.na(i)) {

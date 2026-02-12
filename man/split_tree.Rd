@@ -21,3 +21,12 @@ A list with `left`, `elem`, and `right`.
 \description{
 Split tree around first predicate flip
 }
+\examples{
+t <- tree_from(letters[1:6])
+s <- split_tree(t, function(v) v >= 4, ".size")
+s$elem
+
+cat_m <- MeasureMonoid(paste0, "", as.character)
+reduce_left(s$left, cat_m)
+reduce_left(s$right, cat_m)
+}

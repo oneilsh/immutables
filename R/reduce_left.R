@@ -61,6 +61,13 @@ reduce_left_impl(t, r) %as% {
 #' @param t FingerTree.
 #' @param monoid A `MeasureMonoid` object.
 #' @return Reduced value.
+#' @examples
+#' t <- tree_from(1:5)
+#' sum_m <- MeasureMonoid(`+`, 0, as.numeric)
+#' reduce_left(t, sum_m)
+#'
+#' cat_m <- MeasureMonoid(paste0, "", as.character)
+#' reduce_left(tree_from(letters[1:4]), cat_m)
 #' @export
 reduce_left <- function(t, monoid) {
   if(!is_measure_monoid(monoid)) {

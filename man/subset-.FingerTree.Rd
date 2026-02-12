@@ -19,3 +19,12 @@ A new FingerTree with selected elements replaced.
 \description{
 Replace selected elements by positive integer indices
 }
+\examples{
+t <- tree_from(1:6)
+t[c(2, 5)] <- list(20, 50)
+sum_m <- MeasureMonoid(`+`, 0, as.numeric)
+reduce_left(t, sum_m)
+
+# Replacement length must match
+try(t[c(1, 2)] <- list(999))
+}

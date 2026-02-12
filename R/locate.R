@@ -11,6 +11,14 @@
 #' @return If `include_metadata = FALSE`: `list(found, elem)`.
 #'   If `TRUE`: `list(found, elem, metadata = list(left_measure, hit_measure,
 #'   right_measure, index))`.
+#' @examples
+#' t <- tree_from(letters[1:6])
+#' locate(t, function(v) v >= 4, ".size")
+#'
+#' # Metadata-rich locate for custom monoid
+#' sum_m <- MeasureMonoid(`+`, 0, as.numeric)
+#' t2 <- tree_from(1:6, monoids = list(sum = sum_m))
+#' locate(t2, function(v) v >= 10, "sum", include_metadata = TRUE)
 #' @export
 locate <- function(t, predicate, monoid_name, accumulator = NULL, include_metadata = FALSE) {
   assert_structural_attrs(t)

@@ -15,3 +15,11 @@ An empty finger tree with structural `monoids` and `measures` attrs.
 \description{
 Create an empty finger tree
 }
+\examples{
+t <- empty_tree()
+t
+
+count_m <- MeasureMonoid(`+`, 0, function(el) 1)
+t2 <- empty_tree(monoids = list(count = count_m))
+attr(t2, "measures")
+}

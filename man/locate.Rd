@@ -26,3 +26,12 @@ If `include_metadata = FALSE`: `list(found, elem)`.
 Read-only analogue of `split_tree()`: finds the distinguished element where
 the scan predicate flips, but does not rebuild left/right trees.
 }
+\examples{
+t <- tree_from(letters[1:6])
+locate(t, function(v) v >= 4, ".size")
+
+# Metadata-rich locate for custom monoid
+sum_m <- MeasureMonoid(`+`, 0, as.numeric)
+t2 <- tree_from(1:6, monoids = list(sum = sum_m))
+locate(t2, function(v) v >= 10, "sum", include_metadata = TRUE)
+}

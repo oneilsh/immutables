@@ -3,6 +3,16 @@
 #'
 #' @param t FingerTree.
 #' @return A list with edge and node data frames for igraph plotting.
+#' @examples
+#' t <- tree_from(letters[1:4])
+#' gdf <- get_graph_df(t)
+#' names(gdf)
+#' nrow(gdf[[1]])
+#'
+#' # Works for deeper trees too
+#' t2 <- tree_from(letters[1:10])
+#' gdf2 <- get_graph_df(t2)
+#' nrow(gdf2[[2]])
 #' @export
 get_graph_df <- function(t) {
   
@@ -77,6 +87,14 @@ get_graph_df <- function(t) {
 #' @param title Optional plot title.
 #' @param node_label Node label mode: value, type, both, or none.
 #' @param ... Additional arguments passed to `igraph::plot.igraph`.
+#' @examples
+#' \dontrun{
+#' t <- tree_from(letters[1:8])
+#' plot_tree(t, title = "Finger tree")
+#'
+#' t2 <- tree_from(letters[1:12])
+#' plot_tree(t2, node_label = "both", vertex.size = 8)
+#' }
 #' @export
 plot_tree <- function(t1, vertex.size = 4, edge.width = 1, label_edges = FALSE, title = NULL,
                       node_label = c("value", "type", "both", "none"), ...) {

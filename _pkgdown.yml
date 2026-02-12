@@ -1,0 +1,45 @@
+template:
+  bootstrap: 5
+
+home:
+  title: fingertree
+  description: Monoid-annotated 2-3 finger trees for R
+
+reference:
+  - title: "Core API"
+    desc: "User-facing tree construction and updates"
+    contents:
+      - empty_tree
+      - tree_from
+      - prepend
+      - append
+      - concat_trees
+      - add_monoids
+
+  - title: "Query API"
+    desc: "Folds and locate/split queries"
+    contents:
+      - reduce_left
+      - reduce_right
+      - locate
+      - split_tree
+      - split
+
+  - title: "Types"
+    desc: "Monoid and predicate constructors"
+    contents:
+      - MeasureMonoid
+      - Predicate
+
+  - title: "Indexing"
+    desc: "Vector-like extraction and replacement"
+    contents:
+      - "[.FingerTree"
+      - "[[.FingerTree"
+      - "[<-.FingerTree"
+      - "[[<-.FingerTree"
+
+  - title: "Visualization"
+    contents:
+      - get_graph_df
+      - plot_tree

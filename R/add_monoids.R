@@ -4,6 +4,16 @@
 #' @param monoids Named list of `MeasureMonoid` objects to add.
 #' @param overwrite Logical; whether overlapping names replace existing monoids.
 #' @return A persistent copy with recomputed cached measures.
+#' @examples
+#' t <- tree_from(1:5)
+#' sum_m <- MeasureMonoid(`+`, 0, as.numeric)
+#' t2 <- add_monoids(t, list(sum = sum_m))
+#' attr(t2, "measures")$sum
+#'
+#' # Replace an existing monoid definition
+#' sum2 <- MeasureMonoid(function(a, b) a + 2 * b, 0, as.numeric)
+#' t3 <- add_monoids(t2, list(sum = sum2), overwrite = TRUE)
+#' attr(t3, "measures")$sum
 #' @export
 add_monoids <- function(t, monoids, overwrite = FALSE) {
   assert_structural_attrs(t)

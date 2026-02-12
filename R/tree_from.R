@@ -4,6 +4,13 @@
 #' @param values Optional parallel values (same length as `x`).
 #' @param monoids Optional named list of `MeasureMonoid` objects.
 #' @return A finger tree with cached measures for all monoids.
+#' @examples
+#' t <- tree_from(letters[1:4])
+#' t[[2]]
+#'
+#' sum_m <- MeasureMonoid(`+`, 0, as.numeric)
+#' t2 <- tree_from(1:5, monoids = list(sum = sum_m))
+#' attr(t2, "measures")
 #' @export
 tree_from <- function(x, values = NULL, monoids = NULL) {
   ms <- if(is.null(monoids)) {

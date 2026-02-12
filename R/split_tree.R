@@ -5,6 +5,14 @@
 #' @param monoid_name Name of monoid from `attr(t, "monoids")`.
 #' @param accumulator Optional starting measure (defaults to monoid identity).
 #' @return A list with `left`, `elem`, and `right`.
+#' @examples
+#' t <- tree_from(letters[1:6])
+#' s <- split_tree(t, function(v) v >= 4, ".size")
+#' s$elem
+#'
+#' cat_m <- MeasureMonoid(paste0, "", as.character)
+#' reduce_left(s$left, cat_m)
+#' reduce_left(s$right, cat_m)
 #' @export
 split_tree <- function(t, predicate, monoid_name, accumulator = NULL) {
   assert_structural_attrs(t)

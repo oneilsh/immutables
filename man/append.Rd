@@ -17,3 +17,12 @@ Updated tree.
 \description{
 Append an element
 }
+\examples{
+t <- tree_from(letters[1:3])
+t2 <- append(t, "d")
+t2[[4]]
+
+# Compose with prepend and reduce
+cat_m <- MeasureMonoid(paste0, "", as.character)
+reduce_right(prepend(t2, "z"), cat_m)
+}

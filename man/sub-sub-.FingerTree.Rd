@@ -19,3 +19,11 @@ The extracted element.
 \description{
 Extract a single element from a finger tree by 1-based index
 }
+\examples{
+t <- tree_from(letters[1:5])
+t[[3]]
+
+# Named extraction for structural fields (internal/debug usage)
+d <- tree_from(letters[1:3])
+d[["prefix"]]
+}

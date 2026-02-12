@@ -15,3 +15,11 @@ The predicate function.
 \description{
 Construct a split predicate wrapper
 }
+\examples{
+p <- Predicate(function(v) v >= 3)
+p(2)
+p(3)
+
+t <- tree_from(letters[1:5])
+locate(t, p, ".size")
+}

@@ -15,3 +15,14 @@ A list with edge and node data frames for igraph plotting.
 \description{
 Build graph data frames for a finger tree
 }
+\examples{
+t <- tree_from(letters[1:4])
+gdf <- get_graph_df(t)
+names(gdf)
+nrow(gdf[[1]])
+
+# Works for deeper trees too
+t2 <- tree_from(letters[1:10])
+gdf2 <- get_graph_df(t2)
+nrow(gdf2[[2]])
+}

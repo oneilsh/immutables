@@ -21,9 +21,19 @@
   .Call("ft_cpp_append_right", t, el, monoids, PACKAGE = "fingertree")
 }
 
+# Runtime: O(log n) near right edge.
+.ft_cpp_add_right_named <- function(t, el, name, monoids) {
+  .Call("ft_cpp_append_right_named", t, el, name, monoids, PACKAGE = "fingertree")
+}
+
 # Runtime: O(log n) near left edge.
 .ft_cpp_add_left <- function(t, el, monoids) {
   .Call("ft_cpp_prepend_left", t, el, monoids, PACKAGE = "fingertree")
+}
+
+# Runtime: O(log n) near left edge.
+.ft_cpp_add_left_named <- function(t, el, name, monoids) {
+  .Call("ft_cpp_prepend_left_named", t, el, name, monoids, PACKAGE = "fingertree")
 }
 
 # Runtime: O(n log n), n = number of elements.

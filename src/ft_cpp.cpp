@@ -176,6 +176,23 @@ SEXP add_left_cpp(SEXP t, SEXP el, const List& monoids) {
   stop("Unsupported node type in ft_cpp_prepend_left.");
 }
 
+SEXP clone_with_name(SEXP el, SEXP name_) {
+  SEXP out = PROTECT(Rf_duplicate(el));
+  CharacterVector nm(name_);
+  if(nm.size() != 1 || CharacterVector::is_na(nm[0])) {
+    UNPROTECT(1);
+    stop("`name` must be a single non-empty string.");
+  }
+  std::string s = as<std::string>(nm[0]);
+  if(s.empty()) {
+    UNPROTECT(1);
+    stop("`name` must be a single non-empty string.");
+  }
+  Rf_setAttrib(out, ft_name_sym, Rf_mkString(s.c_str()));
+  UNPROTECT(1);
+  return out;
+}
+
 } // namespace
 
 extern "C" SEXP ft_cpp_append_right(SEXP t, SEXP el, SEXP monoids_) {
@@ -189,6 +206,22 @@ extern "C" SEXP ft_cpp_prepend_left(SEXP t, SEXP el, SEXP monoids_) {
   BEGIN_RCPP
   List monoids(monoids_);
   return add_left_cpp(t, el, monoids);
+  END_RCPP
+}
+
+extern "C" SEXP ft_cpp_append_right_named(SEXP t, SEXP el, SEXP name_, SEXP monoids_) {
+  BEGIN_RCPP
+  List monoids(monoids_);
+  SEXP named_el = clone_with_name(el, name_);
+  return add_right_cpp(t, named_el, monoids);
+  END_RCPP
+}
+
+extern "C" SEXP ft_cpp_prepend_left_named(SEXP t, SEXP el, SEXP name_, SEXP monoids_) {
+  BEGIN_RCPP
+  List monoids(monoids_);
+  SEXP named_el = clone_with_name(el, name_);
+  return add_left_cpp(t, named_el, monoids);
   END_RCPP
 }
 

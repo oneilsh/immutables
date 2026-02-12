@@ -51,11 +51,17 @@ append <- function(t, x) {
     if(n > 0L) {
       stop("Cannot mix named and unnamed elements (append would create mixed named and unnamed tree).")
     }
+    if(.ft_cpp_can_use(ms)) {
+      return(.ft_cpp_add_right_named(t, x, nm, ms))
+    }
     x2 <- .ft_set_name(x2, nm)
   } else {
     nm <- .ft_effective_name(x)
     if(is.null(nm)) {
       stop("Cannot mix named and unnamed elements (append would create mixed named and unnamed tree).")
+    }
+    if(.ft_cpp_can_use(ms)) {
+      return(.ft_cpp_add_right_named(t, x, nm, ms))
     }
     x2 <- .ft_set_name(x2, nm)
   }

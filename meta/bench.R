@@ -9,58 +9,68 @@ if(requireNamespace("devtools", quietly = TRUE)) {
 
 bench_default <- function(n = 2000, use_cpp = TRUE) {
   message("== default monoids, unnamed elements ==")
-  print(system.time({
+  timing <- system.time({
     options(fingertree.use_cpp = use_cpp)
     t <- empty_tree()
     for(i in seq_len(n)) {
       t <- append(t, i)
       if(i %% 100 == 0) print(i)
     }
-  }))
+  })
+  print(timing)
+  timing
 }
 
 bench_custom_monoid <- function(n = 2000, use_cpp = TRUE) {
   message("== custom monoid, unnamed elements ==")
   sum_m <- MeasureMonoid(function(a, b) a + b, 0, function(el) as.numeric(el))
-  print(system.time({
+  timing <- system.time({
     options(fingertree.use_cpp = use_cpp)
     t <- empty_tree(monoids = list(sum = sum_m))
     for(i in seq_len(n)) {
       t <- append(t, i)
       if(i %% 100 == 0) print(i)
     }
-  }))
+  })
+  print(timing)
+  timing
 }
 
 bench_named <- function(n = 2000, use_cpp = TRUE) {
   message("== default monoids, named elements ==")
-  print(system.time({
+  timing <- system.time({
     options(fingertree.use_cpp = use_cpp)
     t <- empty_tree()
     for(i in seq_len(n)) {
       t <- append(t, stats::setNames(i, paste0("k", i)))
       if(i %% 100 == 0) print(i)
     }
-  }))
+  })
+  print(timing)
+  timing
 }
 
 bench_named_custom_monoid <- function(n = 2000, use_cpp = TRUE) {
   message("== custom monoid, named elements ==")
   sum_m <- MeasureMonoid(function(a, b) a + b, 0, function(el) as.numeric(el))
-  print(system.time({
+  timing <- system.time({
     options(fingertree.use_cpp = use_cpp)
     t <- empty_tree(monoids = list(sum = sum_m))
     for(i in seq_len(n)) {
       t <- append(t, stats::setNames(i, paste0("k", i)))
       if(i %% 100 == 0) print(i)
     }
-  }))
+  })
+  print(timing)
+  timing
 }
 
 run_all_benches <- function(n = 2000, use_cpp = TRUE) {
-  bench_default(n = n, use_cpp = use_cpp)
-  bench_custom_monoid(n = n, use_cpp = use_cpp)
-  bench_named(n = n, use_cpp = use_cpp)
-  bench_named_custom_monoid(n = n, use_cpp = use_cpp)
+  out <- list(
+    default = bench_default(n = n, use_cpp = use_cpp),
+    custom_monoid = bench_custom_monoid(n = n, use_cpp = use_cpp),
+    named = bench_named(n = n, use_cpp = use_cpp),
+    named_custom_monoid = bench_named_custom_monoid(n = n, use_cpp = use_cpp)
+  )
+  out
 }
-

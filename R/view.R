@@ -64,23 +64,23 @@ viewL(t, monoids) %as% {
   if(t %isa% Single) {
     return(list(elem = .subset2(t, 1), rest = with_tree_monoids(measured_empty(monoids), monoids)))
   }
-  pr <- t$prefix
+  pr <- .subset2(t,"prefix")
   if(length(pr) > 1) {
     head <- pr[[1]]
     tail <- pr[2:length(pr)]
     new_pr <- build_digit(tail, monoids)
-    return(list(elem = head, rest = build_deep(new_pr, t$middle, t$suffix, monoids)))
+    return(list(elem = head, rest = build_deep(new_pr, .subset2(t,"middle"), .subset2(t,"suffix"), monoids)))
   }
   head <- pr[[1]]
-  m <- t$middle
+  m <- .subset2(t,"middle")
   if(m %isa% Empty) {
-    return(list(elem = head, rest = digit_to_tree(t$suffix, monoids)))
+    return(list(elem = head, rest = digit_to_tree(.subset2(t,"suffix"), monoids)))
   }
   res <- viewL(m, monoids)
   node <- res$elem
   m_rest <- res$rest
   new_pr <- node_to_digit(node, monoids)
-  list(elem = head, rest = build_deep(new_pr, m_rest, t$suffix, monoids))
+  list(elem = head, rest = build_deep(new_pr, m_rest, .subset2(t,"suffix"), monoids))
 }
 
 # viewR: return rightmost element and the remaining tree
@@ -94,23 +94,23 @@ viewR(t, monoids) %as% {
   if(t %isa% Single) {
     return(list(elem = .subset2(t, 1), rest = with_tree_monoids(measured_empty(monoids), monoids)))
   }
-  sf <- t$suffix
+  sf <- .subset2(t,"suffix")
   if(length(sf) > 1) {
     head <- sf[[length(sf)]]
     tail <- sf[1:(length(sf) - 1)]
     new_sf <- build_digit(tail, monoids)
-    return(list(elem = head, rest = build_deep(t$prefix, t$middle, new_sf, monoids)))
+    return(list(elem = head, rest = build_deep(.subset2(t,"prefix"), .subset2(t,"middle"), new_sf, monoids)))
   }
   head <- sf[[1]]
-  m <- t$middle
+  m <- .subset2(t,"middle")
   if(m %isa% Empty) {
-    return(list(elem = head, rest = digit_to_tree(t$prefix, monoids)))
+    return(list(elem = head, rest = digit_to_tree(.subset2(t,"prefix"), monoids)))
   }
   res <- viewR(m, monoids)
   node <- res$elem
   m_rest <- res$rest
   new_sf <- node_to_digit(node, monoids)
-  list(elem = head, rest = build_deep(t$prefix, m_rest, new_sf, monoids))
+  list(elem = head, rest = build_deep(.subset2(t,"prefix"), m_rest, new_sf, monoids))
 }
 
 # deepL: rebuild Deep, possibly pulling from middle if prefix is empty

@@ -11,7 +11,7 @@
     return(.ft_to_list(.subset2(x, 1)))
   }
   if(x %isa% Deep) {
-    return(c(.ft_to_list(x$prefix), .ft_to_list(x$middle), .ft_to_list(x$suffix)))
+    return(c(.ft_to_list(.subset2(x,"prefix")), .ft_to_list(.subset2(x,"middle")), .ft_to_list(.subset2(x,"suffix"))))
   }
   out <- list()
   for(el in x) {
@@ -50,6 +50,42 @@
     stop("Only non-missing character indices are supported.")
   }
   idx
+}
+
+.ft_assert_lgl_indices(idx, n) %::% . : integer : logical
+.ft_assert_lgl_indices(idx, n) %as% {
+  if(is.null(idx)) {
+    stop("Index is required.")
+  }
+  if(!is.logical(idx)) {
+    stop("Only logical indices are supported.")
+  }
+  if(any(is.na(idx))) {
+    stop("Logical indices cannot contain NA.")
+  }
+  if(length(idx) == 0L) {
+    return(logical(0))
+  }
+  rep_len(idx, n)
+}
+
+.ft_true_positions(mask) %::% logical : integer
+.ft_true_positions(mask) %as% {
+  as.integer(which(mask))
+}
+
+.ft_recycle_values(values, target_len) %::% list : integer : list
+.ft_recycle_values(values, target_len) %as% {
+  if(target_len == 0L) {
+    return(list())
+  }
+  if(length(values) == 0L) {
+    stop("Replacement has length 0 but selected positions are non-empty.")
+  }
+  if(length(values) == target_len) {
+    return(values)
+  }
+  rep(values, length.out = target_len)
 }
 
 # remove internal naming metadata from user-visible element returns.
@@ -169,7 +205,7 @@
 #' Subset a finger tree by position or element name
 #'
 #' @param x FingerTree.
-#' @param i Positive integer indices or character element names.
+#' @param i Positive integer indices, character element names, or logical mask.
 #' @param ... Unused.
 #' @return A new FingerTree containing selected elements in query order.
 #'   For character indexing, missing names are represented as `NULL` elements.
@@ -186,6 +222,9 @@
 #' tn <- tree_from(setNames(as.list(letters[1:4]), c("w", "x", "y", "z")))
 #' out <- tn[c("y", "missing", "w")]
 #' reduce_left(out, MeasureMonoid(paste0, "", function(el) if(is.null(el)) "_" else el))
+#'
+#' # Logical indexing with recycling
+#' t[c(TRUE, FALSE)]
 #' @export
 `[.FingerTree` <- function(x, i, ...) {
   if(missing(i)) {
@@ -193,6 +232,19 @@
   }
   ms <- resolve_tree_monoids(x, required = TRUE)
   .ft_assert_name_state(x)
+  n <- as.integer(node_measure(x, ".size"))
+
+  if(is.logical(i)) {
+    mask <- .ft_assert_lgl_indices(i, n)
+    idx <- .ft_true_positions(mask)
+    if(length(idx) == 0L) {
+      return(empty_tree(monoids = ms))
+    }
+    out <- lapply(idx, function(j) {
+      .ft_strip_name(.ft_get_elem_at(x, j))
+    })
+    return(tree_from(out, monoids = ms))
+  }
 
   if(is.character(i)) {
     idx <- .ft_assert_chr_indices(i)
@@ -213,7 +265,6 @@
     return(tree_from(out, monoids = ms))
   }
 
-  n <- as.integer(node_measure(x, ".size"))
   idx <- .ft_assert_int_indices(i, n)
   if(length(idx) == 0L) {
     return(empty_tree(monoids = ms))
@@ -256,7 +307,7 @@
 #' Replace selected elements by position or name
 #'
 #' @param x FingerTree.
-#' @param i Positive integer indices, or character name vector.
+#' @param i Positive integer indices, character names, or logical mask.
 #' @param value Replacement values; must have exactly same length as `i`.
 #' @return A new FingerTree with selected elements replaced.
 #' @examples
@@ -271,10 +322,21 @@
 #' # Character replacement by element names (missing names error)
 #' tn <- tree_from(setNames(as.list(1:4), c("a", "b", "c", "d")))
 #' tn[c("d", "a")] <- list(40, 10)
+#'
+#' # Logical replacement with recycling
+#' t[c(TRUE, FALSE, TRUE, FALSE, TRUE, FALSE)] <- list(1)
 #' @export
 `[<-.FingerTree` <- function(x, i, value) {
   resolve_tree_monoids(x, required = TRUE)
   vals <- as.list(value)
+  n <- as.integer(node_measure(x, ".size"))
+
+  if(is.logical(i)) {
+    mask <- .ft_assert_lgl_indices(i, n)
+    idx <- .ft_true_positions(mask)
+    vals2 <- .ft_recycle_values(vals, length(idx))
+    return(`[<-.FingerTree`(x, idx, vals2))
+  }
 
   if(is.character(i)) {
     .ft_assert_name_state(x)
@@ -302,7 +364,6 @@
     return(out)
   }
 
-  n <- as.integer(node_measure(x, ".size"))
   idx <- .ft_assert_int_indices(i, n)
   if(length(vals) != length(idx)) {
     stop("Replacement length must match index length exactly.")

@@ -28,14 +28,14 @@ add_right(d, el, monoids) %as% {
 # symmetric case for add_right. Only new nodes get measures.
 add_right(d, el, monoids) %::% Deep : . : list : Deep
 add_right(d, el, monoids) %as% {
-  if(length(d$suffix) == 4) {
-    new_suffix <- measured_digit(d$suffix[[4]], el, monoids = monoids)
-    new_middle_node <- measured_node3(d$suffix[[1]], d$suffix[[2]], d$suffix[[3]], monoids)
-    new_middle <- add_right(d$middle, new_middle_node, monoids)
-    measured_deep(prefix = d$prefix, middle = new_middle, suffix = new_suffix, monoids)
+  if(length(.subset2(d,"suffix")) == 4) {
+    new_suffix <- measured_digit(.subset2(d,"suffix")[[4]], el, monoids = monoids)
+    new_middle_node <- measured_node3(.subset2(d,"suffix")[[1]], .subset2(d,"suffix")[[2]], .subset2(d,"suffix")[[3]], monoids)
+    new_middle <- add_right(.subset2(d,"middle"), new_middle_node, monoids)
+    measured_deep(prefix = .subset2(d,"prefix"), middle = new_middle, suffix = new_suffix, monoids)
   } else {
-    new_suffix <- add_right(d$suffix, el, monoids)
-    measured_deep(prefix = d$prefix, middle = d$middle, suffix = new_suffix, monoids)
+    new_suffix <- add_right(.subset2(d,"suffix"), el, monoids)
+    measured_deep(prefix = .subset2(d,"prefix"), middle = .subset2(d,"middle"), suffix = new_suffix, monoids)
   }
 }
 

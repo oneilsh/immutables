@@ -9,7 +9,7 @@
 \arguments{
 \item{x}{FingerTree.}
 
-\item{i}{Positive integer indices, or character name vector.}
+\item{i}{Positive integer indices, character names, or logical mask.}
 
 \item{value}{Replacement values; must have exactly same length as `i`.}
 }
@@ -31,4 +31,7 @@ try(t[c(1, 2)] <- list(999))
 # Character replacement by element names (missing names error)
 tn <- tree_from(setNames(as.list(1:4), c("a", "b", "c", "d")))
 tn[c("d", "a")] <- list(40, 10)
+
+# Logical replacement with recycling
+t[c(TRUE, FALSE, TRUE, FALSE, TRUE, FALSE)] <- list(1)
 }

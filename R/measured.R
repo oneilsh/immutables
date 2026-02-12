@@ -115,9 +115,9 @@ measure_child_named_impl(x, ms, name, rr) %as% {
     if(x %isa% Deep) {
       return(combine_measures(
         list(
-          measure_child_named_impl(x$prefix, ms, name, rr),
-          measure_child_named_impl(x$middle, ms, name, rr),
-          measure_child_named_impl(x$suffix, ms, name, rr)
+          measure_child_named_impl(.subset2(x,"prefix"), ms, name, rr),
+          measure_child_named_impl(.subset2(x,"middle"), ms, name, rr),
+          measure_child_named_impl(.subset2(x,"suffix"), ms, name, rr)
         ),
         rr
       ))
@@ -208,9 +208,9 @@ rebind_tree_monoids(x, monoids, recompute_names) %as% {
   }
 
   if(x %isa% Deep) {
-    pr <- rebind_tree_monoids(x$prefix, monoids, recompute_names)
-    m <- rebind_tree_monoids(x$middle, monoids, recompute_names)
-    sf <- rebind_tree_monoids(x$suffix, monoids, recompute_names)
+    pr <- rebind_tree_monoids(.subset2(x,"prefix"), monoids, recompute_names)
+    m <- rebind_tree_monoids(.subset2(x,"middle"), monoids, recompute_names)
+    sf <- rebind_tree_monoids(.subset2(x,"suffix"), monoids, recompute_names)
     return(set_measure_with_reuse(Deep(pr, m, sf), x, monoids, recompute_names))
   }
 
@@ -261,9 +261,9 @@ assert_structural_attrs(node) %as% {
   if(node %isa% Single) {
     assert_structural_attrs(.subset2(node, 1))
   } else if(node %isa% Deep) {
-    assert_structural_attrs(node$prefix)
-    assert_structural_attrs(node$middle)
-    assert_structural_attrs(node$suffix)
+    assert_structural_attrs(.subset2(node,"prefix"))
+    assert_structural_attrs(.subset2(node,"middle"))
+    assert_structural_attrs(.subset2(node,"suffix"))
   } else {
     for(el in node) {
       assert_structural_attrs(el)

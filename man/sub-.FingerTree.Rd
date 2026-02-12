@@ -9,7 +9,7 @@
 \arguments{
 \item{x}{FingerTree.}
 
-\item{i}{Positive integer indices or character element names.}
+\item{i}{Positive integer indices, character element names, or logical mask.}
 
 \item{...}{Unused.}
 }
@@ -33,4 +33,7 @@ attr(t[integer(0)], "measures")$.size
 tn <- tree_from(setNames(as.list(letters[1:4]), c("w", "x", "y", "z")))
 out <- tn[c("y", "missing", "w")]
 reduce_left(out, MeasureMonoid(paste0, "", function(el) if(is.null(el)) "_" else el))
+
+# Logical indexing with recycling
+t[c(TRUE, FALSE)]
 }

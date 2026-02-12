@@ -182,3 +182,42 @@ testthat::test_that("append and prepend preserve global name-state invariant", {
   named <- tree_from(setNames(as.list(1:3), c("a", "b", "c")))
   testthat::expect_error(prepend(named, 0), "mixed named and unnamed")
 })
+
+testthat::test_that("$ provides strict exact-name access and replacement", {
+  t <- tree_from(setNames(as.list(1:4), c("a", "b", "c", "d")))
+  testthat::expect_identical(t$b, 2L)
+  testthat::expect_identical(t$b, t[["b"]])
+  testthat::expect_error(t$missing, "Unknown element name")
+
+  t$b <- 99
+  testthat::expect_identical(t$b, 99)
+  testthat::expect_identical(attr(t, "measures")$.named_count, 4L)
+})
+
+testthat::test_that("logical read indexing supports recycling and rejects NA", {
+  t <- tree_from(1:5)
+  s <- t[c(TRUE, FALSE)]
+  testthat::expect_identical(attr(s, "measures")$.size, 3)
+  testthat::expect_identical(s[[1]], 1L)
+  testthat::expect_identical(s[[2]], 3L)
+  testthat::expect_identical(s[[3]], 5L)
+
+  z <- t[logical(0)]
+  testthat::expect_identical(attr(z, "measures")$.size, 0)
+  testthat::expect_error(t[c(TRUE, NA)], "cannot contain NA")
+})
+
+testthat::test_that("logical replacement supports recycling and preserves size", {
+  t <- tree_from(1:6)
+  t[c(TRUE, FALSE, TRUE)] <- list(99)
+  testthat::expect_identical(attr(t, "measures")$.size, 6)
+  testthat::expect_identical(t[[1]], 99)
+  testthat::expect_identical(t[[3]], 99)
+  testthat::expect_identical(t[[4]], 99)
+  testthat::expect_identical(t[[6]], 99)
+
+  testthat::expect_error({
+    t2 <- tree_from(1:4)
+    t2[c(TRUE, FALSE)] <- list()
+  }, "length 0")
+})

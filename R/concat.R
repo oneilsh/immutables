@@ -23,12 +23,12 @@ app3(xs, ts, x, monoids) %as% add_right(add_all_right(xs, ts, monoids), x, monoi
 app3(xs, ts, ys, monoids) %::% Deep : list : Deep : list : FingerTree
 app3(xs, ts, ys, monoids) %as% {
   measured_deep(
-    xs$prefix,
-    app3(xs$middle,
-         measured_nodes(c(xs$suffix, ts, ys$prefix), monoids),
-         ys$middle,
+    .subset2(xs,"prefix"),
+    app3(.subset2(xs,"middle"),
+         measured_nodes(c(.subset2(xs,"suffix"), ts, .subset2(ys,"prefix")), monoids),
+         .subset2(ys,"middle"),
          monoids),
-    ys$suffix,
+    .subset2(ys,"suffix"),
     monoids
   )
 }

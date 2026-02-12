@@ -13,9 +13,9 @@ reduce_left_acc(t, r, acc) %as% {
     return(reduce_left_acc(.subset2(t, 1), r, acc))
   }
   if(is_structural_node(t) && t %isa% Deep) {
-    acc <- reduce_left_acc(t$prefix, r, acc)
-    acc <- reduce_left_acc(t$middle, r, acc)
-    acc <- reduce_left_acc(t$suffix, r, acc)
+    acc <- reduce_left_acc(.subset2(t,"prefix"), r, acc)
+    acc <- reduce_left_acc(.subset2(t,"middle"), r, acc)
+    acc <- reduce_left_acc(.subset2(t,"suffix"), r, acc)
     return(acc)
   }
   for(el in t) {

@@ -61,9 +61,18 @@
     return(x)
   }
   ms <- resolve_tree_monoids(x, required = TRUE)
-  xs <- .ft_to_list(x)
-  idx <- .ft_assert_int_indices(i, length(xs))
-  out <- if(length(idx) == 0L) list() else xs[idx]
+  n <- as.integer(node_measure(x, ".size"))
+  idx <- .ft_assert_int_indices(i, n)
+  if(length(idx) == 0L) {
+    return(empty_tree(monoids = ms))
+  }
+  out <- lapply(idx, function(j) {
+    hit <- locate(x, function(v) v >= j, ".size")
+    if(!isTRUE(hit$found)) {
+      stop("Index out of bounds.")
+    }
+    hit$elem
+  })
   tree_from(out, monoids = ms)
 }
 
@@ -85,13 +94,18 @@
   if(is.character(i) && length(i) == 1L && !is.na(i)) {
     return(.subset2(x, i))
   }
-  resolve_tree_monoids(x, required = TRUE)
-  xs <- .ft_to_list(x)
-  idx <- .ft_assert_int_indices(i, length(xs))
+  ms <- resolve_tree_monoids(x, required = TRUE)
+  n <- as.integer(node_measure(x, ".size"))
+  idx <- .ft_assert_int_indices(i, n)
   if(length(idx) != 1L) {
     stop("[[ expects exactly one index.")
   }
-  xs[[idx]]
+
+  hit <- locate(x, function(v) v >= idx, ".size")
+  if(!isTRUE(hit$found)) {
+    stop("Index out of bounds.")
+  }
+  hit$elem
 }
 
 #' Replace selected elements by positive integer indices
@@ -148,11 +162,15 @@
     return(y)
   }
   ms <- resolve_tree_monoids(x, required = TRUE)
-  xs <- .ft_to_list(x)
-  idx <- .ft_assert_int_indices(i, length(xs))
+  n <- as.integer(node_measure(x, ".size"))
+  idx <- .ft_assert_int_indices(i, n)
   if(length(idx) != 1L) {
     stop("[[<- expects exactly one index.")
   }
-  xs[[idx]] <- value
-  tree_from(xs, monoids = ms)
+
+  s <- split_tree(x, function(v) v >= idx, ".size")
+  left_plus <- append(s$left, value)
+  out <- concat(left_plus, s$right, ms)
+  assert_structural_attrs(out)
+  out
 }

@@ -124,17 +124,20 @@
 #' try(t[c(1, 2)] <- list(999))
 #' @export
 `[<-.FingerTree` <- function(x, i, value) {
-  ms <- resolve_tree_monoids(x, required = TRUE)
-  xs <- .ft_to_list(x)
-  idx <- .ft_assert_int_indices(i, length(xs))
+  resolve_tree_monoids(x, required = TRUE)
+  n <- as.integer(node_measure(x, ".size"))
+  idx <- .ft_assert_int_indices(i, n)
   vals <- as.list(value)
   if(length(vals) != length(idx)) {
     stop("Replacement length must match index length exactly.")
   }
+
+  out <- x
   for(k in seq_along(idx)) {
-    xs[[idx[[k]]]] <- vals[[k]]
+    out[[idx[[k]]]] <- vals[[k]]
   }
-  tree_from(xs, monoids = ms)
+  assert_structural_attrs(out)
+  out
 }
 
 #' Replace a single element by 1-based index

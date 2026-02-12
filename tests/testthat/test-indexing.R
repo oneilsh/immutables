@@ -61,6 +61,41 @@ testthat::test_that("[[<- keeps monoid attrs and updates one element via split p
   testthat::expect_identical(t2[[4]], 99)
 })
 
+testthat::test_that("[<- applies duplicate indices sequentially (last write wins)", {
+  t <- tree_from(letters[1:5])
+  t[c(2, 2)] <- list("X", "Y")
+  testthat::expect_identical(t[[2]], "Y")
+})
+
+testthat::test_that("[<- supports arbitrary replacement order", {
+  t <- tree_from(letters[1:5])
+  t[c(5, 1, 4)] <- list("u", "v", "w")
+  testthat::expect_identical(t[[1]], "v")
+  testthat::expect_identical(t[[4]], "w")
+  testthat::expect_identical(t[[5]], "u")
+})
+
+testthat::test_that("[<- keeps structural attrs and custom monoid measures coherent", {
+  sum_m <- MeasureMonoid(`+`, 0, as.numeric)
+  t <- tree_from(1:5, monoids = list(sum = sum_m))
+  t[c(2, 4)] <- list(20, 40)
+
+  testthat::expect_identical(attr(t, "measures")$.size, 5)
+  testthat::expect_identical(attr(t, "measures")$sum, 69)
+  testthat::expect_identical(reduce_left(t, sum_m), 69)
+})
+
+testthat::test_that("[<- zero-length index is a no-op when replacement is empty", {
+  t <- tree_from(letters[1:5])
+  cat_m <- MeasureMonoid(paste0, "", as.character)
+  before <- reduce_left(t, cat_m)
+  t2 <- t
+  t2[integer(0)] <- list()
+
+  testthat::expect_identical(reduce_left(t2, cat_m), before)
+  testthat::expect_identical(attr(t2, "measures")$.size, attr(t, "measures")$.size)
+})
+
 testthat::test_that("size measure is available by default for indexing even if not provided", {
   sum_only <- MeasureMonoid(function(a, b) a + b, 0, function(el) el)
   t <- tree_from(1:3, monoids = list(sum = sum_only))

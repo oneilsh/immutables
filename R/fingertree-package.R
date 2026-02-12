@@ -5,7 +5,6 @@
 #' @keywords internal
 #' @import lambda.r
 #' @import rlist
-#' @import rstack
 #' @import igraph
 #' @importFrom Rcpp evalCpp
 #' @useDynLib fingertree, .registration = TRUE

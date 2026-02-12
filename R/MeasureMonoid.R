@@ -12,7 +12,8 @@
 #' # Measure from element metadata
 #' t2 <- tree_from(letters[1:3], values = c(10, 20, 30))
 #' value_sum <- MeasureMonoid(`+`, 0, function(el) as.numeric(attr(el, "value")))
-#' reduce_right(t2, value_sum)
+#' t2m <- add_monoids(t2, list(value_sum = value_sum))
+#' attr(t2m, "measures")$value_sum
 #' @export
 # Runtime: O(1).
 MeasureMonoid <- function(f, i, measure) {

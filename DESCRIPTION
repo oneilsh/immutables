@@ -6,14 +6,13 @@ Authors@R: c(
     person(given = "Shawn T.", family = "O'Neil", email = "shawn@tislab.org", role = c("aut", "cre"))
   )
 Description: Experimental implementation of monoid-annotated 2-3 finger trees in R.
-License: MIT
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Imports:
     Rcpp,
     lambda.r,
     rlist,
-    rstack,
     igraph
 LinkingTo:
     Rcpp

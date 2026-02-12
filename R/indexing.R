@@ -44,7 +44,7 @@
   st$out
 }
 
-# Runtime: O(n) worst-case in relevant input/subtree size.
+# Runtime: O(m), where m = length(idx).
 .ft_assert_int_indices(idx, n) %::% . : numeric : integer
 .ft_assert_int_indices(idx, n) %as% {
   if(is.null(idx)) {
@@ -66,7 +66,7 @@
   idx
 }
 
-# Runtime: O(n) worst-case in relevant input/subtree size.
+# Runtime: O(m), where m = length(idx).
 .ft_assert_chr_indices(idx) %::% . : character
 .ft_assert_chr_indices(idx) %as% {
   if(is.null(idx)) {
@@ -78,7 +78,7 @@
   idx
 }
 
-# Runtime: O(n) worst-case in relevant input/subtree size.
+# Runtime: O(n) due `rep_len(..., n)`.
 .ft_assert_lgl_indices(idx, n) %::% . : integer : logical
 .ft_assert_lgl_indices(idx, n) %as% {
   if(is.null(idx)) {
@@ -114,7 +114,7 @@
   th
 }
 
-# Runtime: O(n) worst-case in relevant input/subtree size.
+# Runtime: O(target_len) in recycled output size.
 .ft_recycle_values(values, target_len) %::% list : integer : list
 .ft_recycle_values(values, target_len) %as% {
   if(target_len == 0L) {
@@ -150,7 +150,7 @@
 }
 
 # remove internal naming metadata from user-visible element returns.
-# Runtime: O(n) worst-case in relevant input/subtree size.
+# Runtime: O(1).
 .ft_strip_name(el) %::% . : .
 .ft_strip_name(el) %as% {
   attr(el, "ft_name") <- NULL
@@ -333,7 +333,7 @@
 }
 
 # internal positional read that preserves ft_name metadata.
-# Runtime: O(n) worst-case in relevant input/subtree size.
+# Runtime: O(log n) via indexed locate path (C++ or R fallback).
 .ft_get_elem_at(x, idx) %::% . : integer : .
 .ft_get_elem_at(x, idx) %as% {
   if(.ft_cpp_enabled()) {
@@ -360,7 +360,7 @@
 }
 
 # extract a name carried directly by a scalar replacement value.
-# Runtime: O(n) worst-case in relevant input/subtree size.
+# Runtime: O(1).
 .ft_name_from_value(el) %::% . : .
 .ft_name_from_value(el) %as% {
   nms <- names(el)
@@ -372,7 +372,7 @@
 
 # effective replacement name: explicit outer list name first, then existing
 # internal name, then name carried by the replacement value itself.
-# Runtime: O(n) worst-case in relevant input/subtree size.
+# Runtime: O(1).
 .ft_effective_name(el, explicit_name) %::% . : . : .
 .ft_effective_name(el, explicit_name = NULL) %as% {
   nm <- .ft_normalize_name(explicit_name)
@@ -427,8 +427,9 @@
 #' # Logical indexing with recycling
 #' t[c(TRUE, FALSE)]
 #' @export
-# Runtime: O(n) for logical/character paths; O(m log n) for integer path
-# where m = length(i) and n = tree size.
+# Runtime: integer/logical reads O(m log n), where m = selected positions;
+# character reads are adaptive: O(m * n_lookup) for short queries, O(n + m)
+# with name-map path for wider queries.
 `[.FingerTree` <- function(x, i, ...) {
   if(missing(i)) {
     return(x)
@@ -523,8 +524,8 @@
 #' # Logical replacement with recycling
 #' t[c(TRUE, FALSE, TRUE, FALSE, TRUE, FALSE)] <- list(1)
 #' @export
-# Runtime: O(n + k) for vector replacement paths via one flatten + one rebuild,
-# where n = tree size and k = number of replaced positions.
+# Runtime: sparse replacement path O(k log n); dense path O(n + k), where
+# n = tree size and k = number of replaced positions.
 `[<-.FingerTree` <- function(x, i, value) {
   ms <- resolve_tree_monoids(x, required = TRUE)
   vals <- as.list(value)

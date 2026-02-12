@@ -12,5 +12,8 @@
 #' @export
 # Runtime: O(1).
 Predicate <- function(f) {
-  Function(f)
+  if(!is.function(f)) {
+    stop("`f` must be a function.")
+  }
+  f
 }

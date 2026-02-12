@@ -16,9 +16,24 @@
 #' @export
 # Runtime: O(n) over tree nodes/elements.
 get_graph_df <- function(t) {
-  
-  EDGE_STACK <- rstack()
-  NODE_STACK <- rstack()
+  edge_rows <- list()
+  node_rows <- list()
+
+  add_edge_row <- function(parent, child, label) {
+    edge_rows[[length(edge_rows) + 1L]] <<- list(
+      parent = as.character(parent),
+      child = as.character(child),
+      label = as.character(label)
+    )
+  }
+
+  add_node_row <- function(node, type, label) {
+    node_rows[[length(node_rows) + 1L]] <<- list(
+      node = as.character(node),
+      type = as.character(type),
+      label = as.character(label)
+    )
+  }
   
 # Runtime: O(n) worst-case in relevant input/subtree size.
   add_edges <- function(t, path) {
@@ -27,13 +42,13 @@ get_graph_df <- function(t) {
       parentid <- path
       parenttype <- class(t)[1]
       parentlabel <- ""
-      NODE_STACK <<- insert_top(NODE_STACK, list(node = parentid, type = parenttype, label = parentlabel))
+      add_node_row(parentid, parenttype, parentlabel)
     }
     else if(!is_structural_node(t)) {
       parentid <- path
       parenttype <- "Element"
       parentlabel <- paste0(as.character(unlist(t)), collapse = ", ")
-      NODE_STACK <<- insert_top(NODE_STACK, list(node = parentid, type = parenttype, label = parentlabel))
+      add_node_row(parentid, parenttype, parentlabel)
     } else {
       if(!is.null(names(t))) {
         # rev() here and below determines the order of addition to the data and thus (apparently)
@@ -42,11 +57,11 @@ get_graph_df <- function(t) {
           subthing <- .subset2(t, subthing_name)
           parentid <- path
           childid <- paste(path, subthing_name, sep = ":")
-          EDGE_STACK <<- insert_top(EDGE_STACK, list(parent = parentid, child = childid, label = subthing_name))
+          add_edge_row(parentid, childid, subthing_name)
           
           parenttype <- class(t)[1]
           parentlabel <- ""
-          NODE_STACK <<- insert_top(NODE_STACK, list(node = parentid, type = parenttype, label = parentlabel))
+          add_node_row(parentid, parenttype, parentlabel)
           
           add_edges(subthing, childid)
         }
@@ -56,11 +71,11 @@ get_graph_df <- function(t) {
         for(subthing in rev(t)) {
           parentid <- path
           childid <- paste(path, index, sep = ":")
-          EDGE_STACK <<- insert_top(EDGE_STACK, list(parent = parentid, child = childid, label = index))
+          add_edge_row(parentid, childid, index)
           
           parenttype <- class(t)[1]
           parentlabel <- ""
-          NODE_STACK <<- insert_top(NODE_STACK, list(node = parentid, type = parenttype, label = parentlabel))
+          add_node_row(parentid, parenttype, parentlabel)
           
           add_edges(subthing, childid)
           index <- index + 1
@@ -71,11 +86,19 @@ get_graph_df <- function(t) {
   }
   
   add_edges(t, "root")
-  
-  return(list(
-    as.data.frame(EDGE_STACK, stringsAsFactors = FALSE),
-    as.data.frame(NODE_STACK, stringsAsFactors = FALSE)
-  ))
+
+  edge_df <- if(length(edge_rows) == 0L) {
+    data.frame(parent = character(0), child = character(0), label = character(0), stringsAsFactors = FALSE)
+  } else {
+    do.call(rbind.data.frame, c(lapply(edge_rows, as.data.frame, stringsAsFactors = FALSE), list(stringsAsFactors = FALSE)))
+  }
+  node_df <- if(length(node_rows) == 0L) {
+    data.frame(node = character(0), type = character(0), label = character(0), stringsAsFactors = FALSE)
+  } else {
+    do.call(rbind.data.frame, c(lapply(node_rows, as.data.frame, stringsAsFactors = FALSE), list(stringsAsFactors = FALSE)))
+  }
+
+  return(list(edge_df, node_df))
 }
 
 

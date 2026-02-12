@@ -15,7 +15,7 @@ resolve_tree_monoids(t, required = FALSE) %as% {
   ms
 }
 
-# Runtime: O(n) worst-case in relevant input/subtree size.
+# Runtime: O(1) expected (attribute read + list lookup).
 resolve_named_monoid(t, monoid_name) %::% . : character : list
 resolve_named_monoid(t, monoid_name) %as% {
   if(!is.character(monoid_name) || length(monoid_name) != 1L || is.na(monoid_name) || monoid_name == "") {
@@ -29,7 +29,7 @@ resolve_named_monoid(t, monoid_name) %as% {
   list(monoids = ms, monoid = mr)
 }
 
-# Runtime: O(n) worst-case in relevant input/subtree size.
+# Runtime: O(b + a), where b/a are base/add monoid counts.
 merge_monoid_sets(base, add, overwrite) %::% list : list : logical : list
 merge_monoid_sets(base, add, overwrite = FALSE) %as% {
   b <- ensure_size_monoids(base)
@@ -54,7 +54,7 @@ merge_monoid_sets(base, add, overwrite = FALSE) %as% {
   ensure_size_monoids(b)
 }
 
-# Runtime: O(n) worst-case in relevant input/subtree size.
+# Runtime: O(k), where k = number of shared names in warning text.
 emit_concat_assumption_warning(shared_names) %::% character : .
 emit_concat_assumption_warning(shared_names) %as% {
   msg <- paste0(

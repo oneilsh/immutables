@@ -8,7 +8,7 @@
   if(is.null(monoids) || !is.list(monoids) || is.null(names(monoids))) {
     return(FALSE)
   }
-  setequal(names(monoids), c(".size", ".named_count"))
+  TRUE
 }
 
 # Runtime: O(1).
@@ -39,4 +39,9 @@
 # Runtime: O(n log n), n = number of elements.
 .ft_cpp_tree_from <- function(elements, monoids) {
   .Call("ft_cpp_tree_from", elements, monoids, PACKAGE = "fingertree")
+}
+
+# Runtime: O(n log n), n = number of elements.
+.ft_cpp_tree_from_prepared <- function(elements, values, names, monoids) {
+  .Call("ft_cpp_tree_from_prepared", elements, values, names, monoids, PACKAGE = "fingertree")
 }

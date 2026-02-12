@@ -8,6 +8,7 @@ SEXP class_sym = Rf_install("class");
 SEXP monoids_sym = Rf_install("monoids");
 SEXP measures_sym = Rf_install("measures");
 SEXP ft_name_sym = Rf_install("ft_name");
+SEXP value_sym = Rf_install("value");
 
 bool has_class(SEXP x, const char* cls) {
   return Rf_inherits(x, cls);
@@ -38,17 +39,44 @@ List measures_from_children(const List& children, const List& monoids) {
   CharacterVector nms = monoids.names();
   List out(nms.size());
   out.attr("names") = nms;
-  double s = 0.0;
-  int c = 0;
-  for(int i = 0; i < children.size(); ++i) {
-    s += child_size(children[i]);
-    c += child_named_count(children[i]);
-  }
   for(int i = 0; i < nms.size(); ++i) {
     std::string nm = as<std::string>(nms[i]);
-    if(nm == ".size") out[i] = s;
-    else if(nm == ".named_count") out[i] = c;
-    else out[i] = R_NilValue;
+    if(nm == ".size") {
+      double s = 0.0;
+      for(int j = 0; j < children.size(); ++j) {
+        s += child_size(children[j]);
+      }
+      out[i] = s;
+      continue;
+    }
+    if(nm == ".named_count") {
+      int c = 0;
+      for(int j = 0; j < children.size(); ++j) {
+        c += child_named_count(children[j]);
+      }
+      out[i] = c;
+      continue;
+    }
+
+    List r = as<List>(monoids[i]);
+    Function f = as<Function>(r["f"]);
+    Function measure = as<Function>(r["measure"]);
+    SEXP acc = r["i"];
+    for(int j = 0; j < children.size(); ++j) {
+      SEXP ch = children[j];
+      SEXP mv = R_NilValue;
+      if(has_class(ch, "FingerTree") || has_class(ch, "Digit") || has_class(ch, "Node")) {
+        List cms = Rf_getAttrib(ch, measures_sym);
+        if(!Rf_isNull(cms) && i < cms.size() && !Rf_isNull(cms[i])) {
+          mv = cms[i];
+        }
+      }
+      if(Rf_isNull(mv)) {
+        mv = measure(ch);
+      }
+      acc = f(acc, mv);
+    }
+    out[i] = acc;
   }
   return out;
 }
@@ -61,7 +89,10 @@ List measures_empty(const List& monoids) {
     std::string nm = as<std::string>(nms[i]);
     if(nm == ".size") out[i] = 0.0;
     else if(nm == ".named_count") out[i] = 0;
-    else out[i] = R_NilValue;
+    else {
+      List r = as<List>(monoids[i]);
+      out[i] = r["i"];
+    }
   }
   return out;
 }
@@ -193,6 +224,39 @@ SEXP clone_with_name(SEXP el, SEXP name_) {
   return out;
 }
 
+SEXP clone_with_attrs(SEXP el, SEXP value_, SEXP name_) {
+  SEXP out = PROTECT(Rf_duplicate(el));
+
+  if(!Rf_isNull(value_)) {
+    if(Rf_isNull(out)) {
+      UNPROTECT(1);
+      stop("Cannot attach a value to NULL element.");
+    }
+    Rf_setAttrib(out, value_sym, value_);
+  }
+
+  if(!Rf_isNull(name_)) {
+    CharacterVector nm(name_);
+    if(nm.size() != 1 || CharacterVector::is_na(nm[0])) {
+      UNPROTECT(1);
+      stop("Element names must be scalar, non-missing, and non-empty.");
+    }
+    std::string s = as<std::string>(nm[0]);
+    if(s.empty()) {
+      UNPROTECT(1);
+      stop("Element names must be scalar, non-missing, and non-empty.");
+    }
+    if(Rf_isNull(out)) {
+      UNPROTECT(1);
+      stop("Cannot attach a name to NULL element.");
+    }
+    Rf_setAttrib(out, ft_name_sym, Rf_mkString(s.c_str()));
+  }
+
+  UNPROTECT(1);
+  return out;
+}
+
 } // namespace
 
 extern "C" SEXP ft_cpp_append_right(SEXP t, SEXP el, SEXP monoids_) {
@@ -232,6 +296,38 @@ extern "C" SEXP ft_cpp_tree_from(SEXP elements_, SEXP monoids_) {
   SEXP t = make_empty(monoids);
   for(int i = 0; i < elements.size(); ++i) {
     t = add_right_cpp(t, elements[i], monoids);
+  }
+  return t;
+  END_RCPP
+}
+
+extern "C" SEXP ft_cpp_tree_from_prepared(SEXP elements_, SEXP values_, SEXP names_, SEXP monoids_) {
+  BEGIN_RCPP
+  List elements(elements_);
+  List monoids(monoids_);
+  const bool has_values = !Rf_isNull(values_);
+  const bool has_names = !Rf_isNull(names_);
+  List values;
+  CharacterVector names;
+  if(has_values) {
+    values = as<List>(values_);
+    if(values.size() != elements.size()) {
+      stop("`values` length must match elements length.");
+    }
+  }
+  if(has_names) {
+    names = as<CharacterVector>(names_);
+    if(names.size() != elements.size()) {
+      stop("`names` length must match elements length.");
+    }
+  }
+
+  SEXP t = make_empty(monoids);
+  for(int i = 0; i < elements.size(); ++i) {
+    SEXP value = has_values ? static_cast<SEXP>(values[i]) : R_NilValue;
+    SEXP name = has_names ? static_cast<SEXP>(CharacterVector::create(names[i])) : R_NilValue;
+    SEXP el = clone_with_attrs(elements[i], value, name);
+    t = add_right_cpp(t, el, monoids);
   }
   return t;
   END_RCPP

@@ -45,3 +45,8 @@
 .ft_cpp_tree_from_prepared <- function(elements, values, names, monoids) {
   .Call("ft_cpp_tree_from_prepared", elements, values, names, monoids, PACKAGE = "fingertree")
 }
+
+# Runtime: O(log n + log m) typical spine depth for balanced trees.
+.ft_cpp_concat <- function(x, y, monoids) {
+  .Call("ft_cpp_concat", x, y, monoids, PACKAGE = "fingertree")
+}

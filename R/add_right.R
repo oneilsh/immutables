@@ -109,6 +109,14 @@ add_all_right(t, els, monoids) %as% {
 }
 
 # Runtime: O(m).
+.measured_node2_fast <- function(a, b, monoids) {
+  n <- Node2(a, b)
+  attr(n, "monoids") <- monoids
+  attr(n, "measures") <- .compute_measures_for_children_fast(list(a, b), monoids)
+  n
+}
+
+# Runtime: O(m).
 .measured_node3_fast <- function(a, b, c, monoids) {
   n <- Node3(a, b, c)
   attr(n, "monoids") <- monoids
@@ -167,4 +175,15 @@ add_all_right(t, els, monoids) %as% {
     return(.measured_deep_fast(prefix = .subset2(t, "prefix"), middle = .subset2(t, "middle"), suffix = new_suffix, monoids))
   }
   stop("Unsupported node type in .add_right_fast().")
+}
+
+# Runtime: O(k log n), where k = length(els).
+.add_all_right_fast <- function(t, els, monoids) {
+  if(length(els) == 0L) {
+    return(t)
+  }
+  for(el in els) {
+    t <- .add_right_fast(t, el, monoids)
+  }
+  t
 }

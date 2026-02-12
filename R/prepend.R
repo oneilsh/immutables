@@ -46,7 +46,7 @@ prepend <- function(t, x) {
       if(.ft_cpp_can_use(ms)) {
         return(.ft_cpp_add_left(t, x2, ms))
       }
-      return(add_left(t, x2, ms))
+      return(.add_left_fast(t, x2, ms))
     }
     if(n > 0L) {
       stop("Cannot mix named and unnamed elements (prepend would create mixed named and unnamed tree).")
@@ -69,5 +69,5 @@ prepend <- function(t, x) {
   if(.ft_cpp_can_use(ms)) {
     return(.ft_cpp_add_left(t, x2, ms))
   }
-  add_left(t, x2, ms)
+  .add_left_fast(t, x2, ms)
 }

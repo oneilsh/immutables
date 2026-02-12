@@ -43,5 +43,9 @@ concat_trees <- function(x, y) {
   merged <- c(mx, my[setdiff(names(my), names(mx))])
   merged <- ensure_size_monoids(merged)
 
+  if(.ft_cpp_can_use(merged)) {
+    return(.ft_cpp_concat(x2, y2, merged))
+  }
+
   concat(x2, y2, merged)
 }

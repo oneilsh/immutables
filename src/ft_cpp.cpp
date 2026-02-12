@@ -132,6 +132,15 @@ SEXP make_node3(SEXP a, SEXP b, SEXP c, const List& monoids) {
   return n;
 }
 
+SEXP make_node2(SEXP a, SEXP b, const List& monoids) {
+  List n = List::create(a, b);
+  n.attr("class") = CharacterVector::create("Node2", "Node", "list");
+  n.attr("monoids") = monoids;
+  List children = List::create(a, b);
+  n.attr("measures") = measures_from_children(children, monoids);
+  return n;
+}
+
 SEXP make_deep(SEXP prefix, SEXP middle, SEXP suffix, const List& monoids) {
   List d = List::create(_["prefix"] = prefix, _["middle"] = middle, _["suffix"] = suffix);
   d.attr("class") = CharacterVector::create("Deep", "FingerTree", "list");
@@ -257,6 +266,85 @@ SEXP clone_with_attrs(SEXP el, SEXP value_, SEXP name_) {
   return out;
 }
 
+SEXP add_all_right_cpp(SEXP t, const List& els, const List& monoids) {
+  for(int i = 0; i < els.size(); ++i) {
+    t = add_right_cpp(t, els[i], monoids);
+  }
+  return t;
+}
+
+SEXP add_all_left_cpp(SEXP t, const List& els, const List& monoids) {
+  for(int i = els.size() - 1; i >= 0; --i) {
+    t = add_left_cpp(t, els[i], monoids);
+  }
+  return t;
+}
+
+List measured_nodes_cpp(const List& xs, const List& monoids) {
+  const int n = xs.size();
+  if(n < 2) {
+    stop("measured_nodes_cpp requires at least two elements.");
+  }
+
+  List out;
+  int i = 0;
+  while(i < n) {
+    const int rem = n - i;
+    if(rem == 2) {
+      out.push_back(make_node2(xs[i], xs[i + 1], monoids));
+      break;
+    }
+    if(rem == 3) {
+      out.push_back(make_node3(xs[i], xs[i + 1], xs[i + 2], monoids));
+      break;
+    }
+    if(rem == 4) {
+      out.push_back(make_node2(xs[i], xs[i + 1], monoids));
+      out.push_back(make_node2(xs[i + 2], xs[i + 3], monoids));
+      break;
+    }
+
+    out.push_back(make_node3(xs[i], xs[i + 1], xs[i + 2], monoids));
+    i += 3;
+  }
+  return out;
+}
+
+SEXP app3_cpp(SEXP xs, const List& ts, SEXP ys, const List& monoids) {
+  if(has_class(xs, "Empty")) {
+    return add_all_left_cpp(ys, ts, monoids);
+  }
+  if(has_class(ys, "Empty")) {
+    return add_all_right_cpp(xs, ts, monoids);
+  }
+  if(has_class(xs, "Single")) {
+    List sx(xs);
+    return add_left_cpp(add_all_left_cpp(ys, ts, monoids), sx[0], monoids);
+  }
+  if(has_class(ys, "Single")) {
+    List sy(ys);
+    return add_right_cpp(add_all_right_cpp(xs, ts, monoids), sy[0], monoids);
+  }
+  if(has_class(xs, "Deep") && has_class(ys, "Deep")) {
+    List dx(xs);
+    List dy(ys);
+    List sfx = dx["suffix"];
+    List pry = dy["prefix"];
+
+    List bridge(sfx.size() + ts.size() + pry.size());
+    int j = 0;
+    for(int i = 0; i < sfx.size(); ++i) bridge[j++] = sfx[i];
+    for(int i = 0; i < ts.size(); ++i) bridge[j++] = ts[i];
+    for(int i = 0; i < pry.size(); ++i) bridge[j++] = pry[i];
+
+    List nts = measured_nodes_cpp(bridge, monoids);
+    SEXP m = app3_cpp(dx["middle"], nts, dy["middle"], monoids);
+    return make_deep(dx["prefix"], m, dy["suffix"], monoids);
+  }
+
+  stop("Unsupported node type in ft_cpp_concat.");
+}
+
 } // namespace
 
 extern "C" SEXP ft_cpp_append_right(SEXP t, SEXP el, SEXP monoids_) {
@@ -330,5 +418,13 @@ extern "C" SEXP ft_cpp_tree_from_prepared(SEXP elements_, SEXP values_, SEXP nam
     t = add_right_cpp(t, el, monoids);
   }
   return t;
+  END_RCPP
+}
+
+extern "C" SEXP ft_cpp_concat(SEXP x, SEXP y, SEXP monoids_) {
+  BEGIN_RCPP
+  List monoids(monoids_);
+  List ts(0);
+  return app3_cpp(x, ts, y, monoids);
   END_RCPP
 }

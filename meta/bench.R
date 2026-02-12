@@ -113,16 +113,90 @@ bench_tree_from_named_custom_monoid <- function(n = 2000, use_cpp = TRUE) {
   timing
 }
 
+bench_concat_default <- function(n = 2000, reps = 500, use_cpp = TRUE) {
+  message("== concat default monoids, unnamed elements ==")
+  left <- tree_from(as.list(seq_len(n)))
+  right <- tree_from(as.list(seq_len(n) + n))
+  timing <- system.time({
+    options(fingertree.use_cpp = use_cpp)
+    for(i in seq_len(reps)) {
+      t <- concat_trees(left, right)
+      if(i %% 100 == 0) print(i)
+    }
+  })
+  print(timing)
+  timing
+}
+
+bench_concat_custom_monoid <- function(n = 2000, reps = 500, use_cpp = TRUE) {
+  message("== concat custom monoid, unnamed elements ==")
+  sum_m <- MeasureMonoid(function(a, b) a + b, 0, function(el) as.numeric(el))
+  left <- tree_from(as.list(seq_len(n)), monoids = list(sum = sum_m))
+  right <- tree_from(as.list(seq_len(n) + n), monoids = list(sum = sum_m))
+  timing <- system.time({
+    options(fingertree.use_cpp = use_cpp)
+    for(i in seq_len(reps)) {
+      t <- suppressWarnings(concat_trees(left, right))
+      if(i %% 100 == 0) print(i)
+    }
+  })
+  print(timing)
+  timing
+}
+
+bench_concat_named <- function(n = 2000, reps = 500, use_cpp = TRUE) {
+  message("== concat default monoids, named elements ==")
+  left_vals <- as.list(seq_len(n))
+  names(left_vals) <- paste0("l", seq_len(n))
+  right_vals <- as.list(seq_len(n) + n)
+  names(right_vals) <- paste0("r", seq_len(n))
+  left <- tree_from(left_vals)
+  right <- tree_from(right_vals)
+  timing <- system.time({
+    options(fingertree.use_cpp = use_cpp)
+    for(i in seq_len(reps)) {
+      t <- concat_trees(left, right)
+      if(i %% 100 == 0) print(i)
+    }
+  })
+  print(timing)
+  timing
+}
+
+bench_concat_named_custom_monoid <- function(n = 2000, reps = 500, use_cpp = TRUE) {
+  message("== concat custom monoid, named elements ==")
+  sum_m <- MeasureMonoid(function(a, b) a + b, 0, function(el) as.numeric(el))
+  left_vals <- as.list(seq_len(n))
+  names(left_vals) <- paste0("l", seq_len(n))
+  right_vals <- as.list(seq_len(n) + n)
+  names(right_vals) <- paste0("r", seq_len(n))
+  left <- tree_from(left_vals, monoids = list(sum = sum_m))
+  right <- tree_from(right_vals, monoids = list(sum = sum_m))
+  timing <- system.time({
+    options(fingertree.use_cpp = use_cpp)
+    for(i in seq_len(reps)) {
+      t <- suppressWarnings(concat_trees(left, right))
+      if(i %% 100 == 0) print(i)
+    }
+  })
+  print(timing)
+  timing
+}
+
 run_all_benches <- function(n = 2000, use_cpp = TRUE) {
   out <- list(
     #append_default = bench_default(n = n, use_cpp = use_cpp),
     #append_custom = bench_custom_monoid(n = n, use_cpp = use_cpp),
     #append_named = bench_named(n = n, use_cpp = use_cpp),
     #append_named_custom = bench_named_custom_monoid(n = n, use_cpp = use_cpp),
-    from_default = bench_tree_from_default(n = n, use_cpp = use_cpp),
-    from_custom = bench_tree_from_custom_monoid(n = n, use_cpp = use_cpp),
-    from_named = bench_tree_from_named(n = n, use_cpp = use_cpp),
-    from_named_custom = bench_tree_from_named_custom_monoid(n = n, use_cpp = use_cpp)
+    #from_default = bench_tree_from_default(n = n, use_cpp = use_cpp),
+    #from_custom = bench_tree_from_custom_monoid(n = n, use_cpp = use_cpp),
+    #from_named = bench_tree_from_named(n = n, use_cpp = use_cpp),
+    #from_named_custom = bench_tree_from_named_custom_monoid(n = n, use_cpp = use_cpp),
+    concat_default = bench_concat_default(n = max(100L, as.integer(n / 2L)), reps = 500, use_cpp = use_cpp),
+    concat_custom = bench_concat_custom_monoid(n = max(100L, as.integer(n / 2L)), reps = 500, use_cpp = use_cpp),
+    concat_named = bench_concat_named(n = max(100L, as.integer(n / 2L)), reps = 500, use_cpp = use_cpp),
+    concat_named_custom = bench_concat_named_custom_monoid(n = max(100L, as.integer(n / 2L)), reps = 500, use_cpp = use_cpp)
   )
   out
 }

@@ -327,6 +327,130 @@ bench_split_custom_monoid_named <- function(n = 3000, queries = 200, use_cpp = T
   timing
 }
 
+# vector integer indexing with out-of-order/duplicate positions.
+bench_index_integer_vector_read <- function(n = 1000, queries = 20, width = 6, use_cpp = TRUE) {
+  message("== indexing integer vector read (out-of-order, duplicates) ==")
+  options(fingertree.use_cpp = TRUE) # setup only
+  t <- tree_from(as.list(seq_len(n)))
+  qv <- vector("list", queries)
+  for(k in seq_len(queries)) {
+    q <- sample.int(n, width, replace = TRUE)
+    qv[[k]] <- rev(q)
+  }
+  timing <- system.time({
+    options(fingertree.use_cpp = use_cpp)
+    for(q in qv) {
+      s <- t[q]
+    }
+  })
+  print(timing)
+  timing
+}
+
+# scalar integer indexing via [[.
+bench_index_integer_single_read <- function(n = 1000, queries = 100, use_cpp = TRUE) {
+  message("== indexing integer scalar read ([[) ==")
+  options(fingertree.use_cpp = TRUE) # setup only
+  t <- tree_from(as.list(seq_len(n)))
+  idx <- sample.int(n, queries, replace = TRUE)
+  timing <- system.time({
+    options(fingertree.use_cpp = use_cpp)
+    for(i in idx) {
+      x <- t[[i]]
+    }
+  })
+  print(timing)
+  timing
+}
+
+# vector name indexing with out-of-order/duplicate names and one missing placeholder.
+bench_index_name_vector_read <- function(n = 600, queries = 8, width = 5, use_cpp = TRUE) {
+  message("== indexing name vector read (out-of-order, duplicates, missing) ==")
+  options(fingertree.use_cpp = TRUE) # setup only
+  vals <- as.list(seq_len(n))
+  names(vals) <- paste0("k", seq_len(n))
+  t <- tree_from(vals)
+  nms <- names(vals)
+  qv <- vector("list", queries)
+  for(k in seq_len(queries)) {
+    q <- sample(nms, width - 1L, replace = TRUE)
+    qv[[k]] <- c(rev(q), "k__missing__")
+  }
+  timing <- system.time({
+    options(fingertree.use_cpp = use_cpp)
+    for(q in qv) {
+      s <- t[q]
+    }
+  })
+  print(timing)
+  timing
+}
+
+# scalar name indexing via [[.
+bench_index_name_single_read <- function(n = 600, queries = 50, use_cpp = TRUE) {
+  message("== indexing name scalar read ([[) ==")
+  options(fingertree.use_cpp = TRUE) # setup only
+  vals <- as.list(seq_len(n))
+  names(vals) <- paste0("k", seq_len(n))
+  t <- tree_from(vals)
+  idx <- sample(names(vals), queries, replace = TRUE)
+  timing <- system.time({
+    options(fingertree.use_cpp = use_cpp)
+    for(nm in idx) {
+      x <- t[[nm]]
+    }
+  })
+  print(timing)
+  timing
+}
+
+# vector integer replacement path.
+bench_index_integer_vector_replace <- function(n = 1000, queries = 20, width = 6, use_cpp = TRUE) {
+  message("== indexing integer vector replace ([<-) ==")
+  options(fingertree.use_cpp = TRUE) # setup only
+  t <- tree_from(as.list(seq_len(n)))
+  qv <- vector("list", queries)
+  vv <- vector("list", queries)
+  for(k in seq_len(queries)) {
+    q <- sample.int(n, width, replace = TRUE)
+    qv[[k]] <- rev(q)
+    vv[[k]] <- as.list(seq_len(width) + k)
+  }
+  timing <- system.time({
+    options(fingertree.use_cpp = use_cpp)
+    for(k in seq_len(queries)) {
+      t[qv[[k]]] <- vv[[k]]
+    }
+  })
+  print(timing)
+  timing
+}
+
+# vector name replacement path with out-of-order/duplicate names.
+bench_index_name_vector_replace <- function(n = 600, queries = 8, width = 5, use_cpp = TRUE) {
+  message("== indexing name vector replace ([<-) ==")
+  options(fingertree.use_cpp = TRUE) # setup only
+  vals <- as.list(seq_len(n))
+  names(vals) <- paste0("k", seq_len(n))
+  t <- tree_from(vals)
+  nms <- names(vals)
+  qv <- vector("list", queries)
+  vv <- vector("list", queries)
+  for(k in seq_len(queries)) {
+    q <- sample(nms, width, replace = TRUE)
+    qv[[k]] <- rev(q)
+    vv[[k]] <- as.list(seq_len(width) + k)
+  }
+  timing <- system.time({
+    options(fingertree.use_cpp = use_cpp)
+    for(k in seq_len(queries)) {
+      t[qv[[k]]] <- vv[[k]]
+    }
+  })
+  print(timing)
+  timing
+}
+
 run_all_benches <- function(n = 2000, use_cpp = TRUE) {
   out <- list(
     #append_default = bench_default(n = n, use_cpp = use_cpp),
@@ -341,15 +465,21 @@ run_all_benches <- function(n = 2000, use_cpp = TRUE) {
     # concat_custom = bench_concat_custom_monoid(n = max(100L, as.integer(n / 2L)), reps = 500, use_cpp = use_cpp),
     # concat_named = bench_concat_named(n = max(100L, as.integer(n / 2L)), reps = 500, use_cpp = use_cpp),
     # concat_named_custom = bench_concat_named_custom_monoid(n = max(100L, as.integer(n / 2L)), reps = 500, use_cpp = use_cpp),
-    locate_default = bench_locate_default(n = max(500L, as.integer(n)), queries = 200, use_cpp = use_cpp),
-    locate_custom = bench_locate_custom_monoid(n = max(500L, as.integer(n)), queries = 200, use_cpp = use_cpp),
-    locate_custom_named = bench_locate_custom_monoid_named(n = max(500L, as.integer(n)), queries = 200, use_cpp = use_cpp),
-    split_tree_default = bench_split_tree_default(n = max(500L, as.integer(n)), queries = 200, use_cpp = use_cpp),
-    split_tree_custom = bench_split_tree_custom_monoid(n = max(500L, as.integer(n)), queries = 200, use_cpp = use_cpp),
-    split_tree_custom_named = bench_split_tree_custom_monoid_named(n = max(500L, as.integer(n)), queries = 200, use_cpp = use_cpp),
-    split_default = bench_split_default(n = max(500L, as.integer(n)), queries = 200, use_cpp = use_cpp),
-    split_custom = bench_split_custom_monoid(n = max(500L, as.integer(n)), queries = 200, use_cpp = use_cpp),
-    split_custom_named = bench_split_custom_monoid_named(n = max(500L, as.integer(n)), queries = 200, use_cpp = use_cpp)
+    # locate_default = bench_locate_default(n = max(500L, as.integer(n)), queries = 200, use_cpp = use_cpp),
+    # locate_custom = bench_locate_custom_monoid(n = max(500L, as.integer(n)), queries = 200, use_cpp = use_cpp),
+    # locate_custom_named = bench_locate_custom_monoid_named(n = max(500L, as.integer(n)), queries = 200, use_cpp = use_cpp),
+    # split_tree_default = bench_split_tree_default(n = max(500L, as.integer(n)), queries = 200, use_cpp = use_cpp),
+    # split_tree_custom = bench_split_tree_custom_monoid(n = max(500L, as.integer(n)), queries = 200, use_cpp = use_cpp),
+    # split_tree_custom_named = bench_split_tree_custom_monoid_named(n = max(500L, as.integer(n)), queries = 200, use_cpp = use_cpp),
+    # split_default = bench_split_default(n = max(500L, as.integer(n)), queries = 200, use_cpp = use_cpp),
+    # split_custom = bench_split_custom_monoid(n = max(500L, as.integer(n)), queries = 200, use_cpp = use_cpp),
+    # split_custom_named = bench_split_custom_monoid_named(n = max(500L, as.integer(n)), queries = 200, use_cpp = use_cpp),
+    index_int_vec_read = bench_index_integer_vector_read(n = max(500L, as.integer(n) %/% 2L), queries = 20, width = 6, use_cpp = use_cpp),
+    index_int_single = bench_index_integer_single_read(n = max(500L, as.integer(n) %/% 2L), queries = 200, use_cpp = use_cpp),
+    index_name_vec_read = bench_index_name_vector_read(n = max(400L, as.integer(n) %/% 4L), queries = 8, width = 5, use_cpp = use_cpp),
+    index_name_single = bench_index_name_single_read(n = max(500L, as.integer(n) %/% 2L), queries = 200, use_cpp = use_cpp),
+    index_int_vec_replace = bench_index_integer_vector_replace(n = max(500L, as.integer(n) %/% 2L), queries = 20, width = 6, use_cpp = use_cpp),
+    index_name_vec_replace = bench_index_name_vector_replace(n = max(500L, as.integer(n) %/% 2L), queries = 8, width = 5, use_cpp = use_cpp)
   )
   out
 }

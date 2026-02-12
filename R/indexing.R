@@ -1,3 +1,31 @@
+# recursive fill helper for `.ft_to_list` to avoid repeated list concatenation.
+# Runtime: O(n) in number of elements visited.
+.ft_to_list_fill(x, st) %::% . : environment : .
+.ft_to_list_fill(x, st) %as% {
+  if(!is_structural_node(x)) {
+    st$out[[st$pos]] <- x
+    st$pos <- st$pos + 1L
+    return(invisible(NULL))
+  }
+  if(x %isa% Empty) {
+    return(invisible(NULL))
+  }
+  if(x %isa% Single) {
+    .ft_to_list_fill(.subset2(x, 1), st)
+    return(invisible(NULL))
+  }
+  if(x %isa% Deep) {
+    .ft_to_list_fill(.subset2(x, "prefix"), st)
+    .ft_to_list_fill(.subset2(x, "middle"), st)
+    .ft_to_list_fill(.subset2(x, "suffix"), st)
+    return(invisible(NULL))
+  }
+  for(el in x) {
+    .ft_to_list_fill(el, st)
+  }
+  invisible(NULL)
+}
+
 # flatten a fingertree into its element sequence (left-to-right)
 # Runtime: O(n) in number of elements.
 .ft_to_list(x) %::% . : list
@@ -5,20 +33,15 @@
   if(!is_structural_node(x)) {
     return(list(x))
   }
-  if(x %isa% Empty) {
+  n <- as.integer(node_measure(x, ".size"))
+  if(n == 0L) {
     return(list())
   }
-  if(x %isa% Single) {
-    return(.ft_to_list(.subset2(x, 1)))
-  }
-  if(x %isa% Deep) {
-    return(c(.ft_to_list(.subset2(x,"prefix")), .ft_to_list(.subset2(x,"middle")), .ft_to_list(.subset2(x,"suffix"))))
-  }
-  out <- list()
-  for(el in x) {
-    out <- c(out, .ft_to_list(el))
-  }
-  out
+  st <- new.env(parent = emptyenv())
+  st$out <- vector("list", n)
+  st$pos <- 1L
+  .ft_to_list_fill(x, st)
+  st$out
 }
 
 # Runtime: O(n) worst-case in relevant input/subtree size.
@@ -103,7 +126,7 @@
 }
 
 # collect internal element names in left-to-right order.
-# Runtime: O(n) (calls `.ft_to_list`).
+# Runtime: O(n).
 .ft_collect_names(t) %::% . : character
 .ft_collect_names(t) %as% {
   els <- .ft_to_list(t)
@@ -154,11 +177,13 @@
 # Runtime: O(n).
 .ft_name_positions(t) %::% . : integer
 .ft_name_positions(t) %as% {
-  .ft_assert_name_state(t)
   n <- as.integer(node_measure(t, ".size"))
   nn <- as.integer(node_measure(t, ".named_count"))
   if(n == 0L || nn == 0L) {
     stop("Tree has no element names.")
+  }
+  if(nn != n) {
+    stop("Invalid name state: mixed named and unnamed elements are not allowed.")
   }
   nms <- .ft_collect_names(t)
   pos <- seq_len(length(nms))
@@ -166,11 +191,83 @@
   pos
 }
 
+# measure contribution of one child in terms of leaf-element count.
+# Runtime: O(1) using cached `.size` for structural children.
+.ft_child_size(el) %::% . : integer
+.ft_child_size(el) %as% {
+  if(is_structural_node(el)) {
+    return(as.integer(node_measure(el, ".size")))
+  }
+  1L
+}
+
+# recursive linear search for one name with early exit.
+# Runtime: O(n) worst-case, O(k) until first match.
+.ft_find_name_position_impl(x, target, offset) %::% . : character : integer : integer
+.ft_find_name_position_impl(x, target, offset = 0L) %as% {
+  if(!is_structural_node(x)) {
+    nm <- .ft_get_name(x)
+    if(!is.null(nm) && identical(nm, target)) {
+      return(offset + 1L)
+    }
+    return(NA_integer_)
+  }
+  if(x %isa% Empty) {
+    return(NA_integer_)
+  }
+  if(x %isa% Single) {
+    return(.ft_find_name_position_impl(.subset2(x, 1), target, offset))
+  }
+  if(x %isa% Deep) {
+    p <- .ft_find_name_position_impl(.subset2(x, "prefix"), target, offset)
+    if(!is.na(p)) {
+      return(p)
+    }
+    offset <- offset + as.integer(node_measure(.subset2(x, "prefix"), ".size"))
+    p <- .ft_find_name_position_impl(.subset2(x, "middle"), target, offset)
+    if(!is.na(p)) {
+      return(p)
+    }
+    offset <- offset + as.integer(node_measure(.subset2(x, "middle"), ".size"))
+    return(.ft_find_name_position_impl(.subset2(x, "suffix"), target, offset))
+  }
+  for(el in x) {
+    p <- .ft_find_name_position_impl(el, target, offset)
+    if(!is.na(p)) {
+      return(p)
+    }
+    offset <- offset + .ft_child_size(el)
+  }
+  NA_integer_
+}
+
+# find one name position without constructing full name->position map.
+# Runtime: O(n) worst-case.
+.ft_find_name_position(t, target) %::% . : character : integer
+.ft_find_name_position(t, target) %as% {
+  .ft_find_name_position_impl(t, target, 0L)
+}
+
 # match requested names to positions. If strict_missing is FALSE, missing names
 # are represented as NA integer placeholders.
 # Runtime: O(n + m), where n=tree size and m=length(idx).
 .ft_match_name_indices(t, idx, strict_missing) %::% . : character : logical : integer
 .ft_match_name_indices(t, idx, strict_missing = FALSE) %as% {
+  n <- as.integer(node_measure(t, ".size"))
+  nn <- as.integer(node_measure(t, ".named_count"))
+  if(n == 0L || nn == 0L) {
+    stop("Tree has no element names.")
+  }
+  if(nn != n) {
+    stop("Invalid name state: mixed named and unnamed elements are not allowed.")
+  }
+  if(length(idx) == 1L) {
+    p <- .ft_find_name_position(t, idx[[1]])
+    if(isTRUE(strict_missing) && is.na(p)) {
+      stop("Unknown element name(s): ", idx[[1]])
+    }
+    return(as.integer(p))
+  }
   name_to_pos <- .ft_name_positions(t)
   pos <- unname(name_to_pos[idx])
   if(isTRUE(strict_missing) && any(is.na(pos))) {

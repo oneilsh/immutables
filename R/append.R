@@ -37,5 +37,5 @@ append <- function(t, x) {
       stop("Cannot mix named and unnamed elements (append would create mixed named and unnamed tree).")
     }
   }
-  add_right(t, x2, ms)
+  .add_right_fast(t, x2, ms)
 }

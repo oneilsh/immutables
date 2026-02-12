@@ -20,11 +20,7 @@
 #' @export
 # Runtime: O(n log n) by repeated right-add without full-tree validation scans.
 tree_from <- function(x, values = NULL, monoids = NULL) {
-  ms <- if(is.null(monoids)) {
-    list(.size = size_measure_monoid())
-  } else {
-    ensure_size_monoids(monoids)
-  }
+  ms <- if(is.null(monoids)) ensure_size_monoids(list(.size = size_measure_monoid())) else ensure_size_monoids(monoids)
 
   t <- empty_tree(monoids = ms)
   x_list <- as.list(x)
@@ -59,7 +55,7 @@ tree_from <- function(x, values = NULL, monoids = NULL) {
       } else {
         el <- .ft_set_name(el, .ft_effective_name(el))
       }
-      t <- add_right(t, el, ms)
+      t <- .add_right_fast(t, el, ms)
     }
   } else {
     v_list <- as.list(values)
@@ -74,7 +70,7 @@ tree_from <- function(x, values = NULL, monoids = NULL) {
       } else {
         el <- .ft_set_name(el, .ft_effective_name(el))
       }
-      t <- add_right(t, el, ms)
+      t <- .add_right_fast(t, el, ms)
     }
   }
   t

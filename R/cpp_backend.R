@@ -60,3 +60,8 @@
 .ft_cpp_split_tree <- function(t, predicate, monoids, monoid_name, accumulator) {
   .Call("ft_cpp_split_tree", t, predicate, monoids, monoid_name, accumulator, PACKAGE = "fingertree")
 }
+
+# Runtime: O(n) worst-case, O(k) until first matched name.
+.ft_cpp_find_name_position <- function(t, name) {
+  .Call("ft_cpp_find_name_position", t, name, PACKAGE = "fingertree")
+}

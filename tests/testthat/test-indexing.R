@@ -61,6 +61,22 @@ testthat::test_that("[[<- keeps monoid attrs and updates one element via split p
   testthat::expect_identical(t2[[4]], 99)
 })
 
+testthat::test_that("[[<- with NULL removes one element by index or name", {
+  sum_m <- MeasureMonoid(`+`, 0, as.numeric)
+  t <- tree_from(1:5, monoids = list(sum = sum_m))
+  t[[3]] <- NULL
+  testthat::expect_identical(attr(t, "measures")$.size, 4)
+  testthat::expect_identical(attr(t, "measures")$sum, 12)
+  testthat::expect_identical(t[[3]], 4L)
+
+  tn <- tree_from(setNames(as.list(1:4), c("a", "b", "c", "d")))
+  tn[["c"]] <- NULL
+  testthat::expect_identical(attr(tn, "measures")$.size, 3)
+  testthat::expect_identical(attr(tn, "measures")$.named_count, 3L)
+  testthat::expect_error(tn[["c"]], "Unknown element name")
+  testthat::expect_identical(tn[["d"]], 4L)
+})
+
 testthat::test_that("[<- applies duplicate indices sequentially (last write wins)", {
   t <- tree_from(letters[1:5])
   t[c(2, 2)] <- list("X", "Y")
@@ -192,6 +208,11 @@ testthat::test_that("$ provides strict exact-name access and replacement", {
   t$b <- 99
   testthat::expect_identical(t$b, 99)
   testthat::expect_identical(attr(t, "measures")$.named_count, 4L)
+
+  t$b <- NULL
+  testthat::expect_identical(attr(t, "measures")$.size, 3)
+  testthat::expect_identical(attr(t, "measures")$.named_count, 3L)
+  testthat::expect_error(t$b, "Unknown element name")
 })
 
 testthat::test_that("logical read indexing supports recycling and rejects NA", {

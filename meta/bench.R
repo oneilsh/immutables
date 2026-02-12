@@ -489,7 +489,7 @@ devtools::document()
 devtools::load_all()
 
 with_cpp <- run_all_benches(use_cpp = TRUE)
-no_cpp <- run_all_benches(use_cpp = FALSE)
+#no_cpp <- run_all_benches(use_cpp = FALSE)
 
 print(as.data.frame(with_cpp))
-print(as.data.frame(no_cpp))
+#print(as.data.frame(no_cpp))

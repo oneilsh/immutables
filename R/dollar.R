@@ -21,15 +21,16 @@
 #' t <- tree_from(setNames(as.list(1:3), c("a", "b", "c")))
 #' t$b
 #' @export
-# Runtime: O(1) for structural-field fallback on unnamed trees; O(n) for
-# name lookup due name-position materialization.
+# Runtime: O(1) for structural-field fallback on unnamed trees; O(n) worst-case
+# for name lookup (single-name locate with early exit).
 `$.FingerTree` <- function(x, name) {
   nm <- .ft_dollar_name(substitute(name))
   # Preserve structural-field `$` access on unnamed trees for internal traversal
   # and developer ergonomics. Use actual list-field names instead of hard-coding.
-  if(nm %in% names(unclass(x))) {
-    nn <- as.integer(node_measure(x, ".named_count"))
-    if(nn == 0L) {
+  ms <- attr(x, "measures", exact = TRUE)
+  nn <- if(!is.null(ms) && !is.null(ms[[".named_count"]])) as.integer(ms[[".named_count"]]) else NA_integer_
+  if(!is.na(nn) && nn == 0L) {
+    if(nm %in% names(unclass(x))) {
       return(.subset2(x, nm))
     }
   }

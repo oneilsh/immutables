@@ -23,6 +23,14 @@ bool has_name_attr(SEXP x) {
   return !Rf_isNull(nm) && XLENGTH(nm) > 0;
 }
 
+bool name_equals(SEXP x, const std::string& target) {
+  SEXP nm = Rf_getAttrib(x, ft_name_sym);
+  if(Rf_isNull(nm) || XLENGTH(nm) == 0) {
+    return false;
+  }
+  return as<std::string>(STRING_ELT(nm, 0)) == target;
+}
+
 double child_size(SEXP x) {
   if(has_class(x, "FingerTree") || has_class(x, "Digit") || has_class(x, "Node")) {
     List ms = Rf_getAttrib(x, measures_sym);
@@ -37,6 +45,53 @@ int child_named_count(SEXP x) {
     return as<int>(ms[".named_count"]);
   }
   return has_name_attr(x) ? 1 : 0;
+}
+
+int find_name_position_impl(SEXP x, const std::string& target, int offset) {
+  if(!is_structural_node_cpp(x)) {
+    return name_equals(x, target) ? (offset + 1) : -1;
+  }
+
+  if(has_class(x, "Empty")) {
+    return -1;
+  }
+
+  if(has_class(x, "Single")) {
+    List s(x);
+    return find_name_position_impl(s[0], target, offset);
+  }
+
+  if(has_class(x, "Deep")) {
+    List d(x);
+    SEXP prefix = d["prefix"];
+    SEXP middle = d["middle"];
+    SEXP suffix = d["suffix"];
+
+    int p = find_name_position_impl(prefix, target, offset);
+    if(p >= 0) {
+      return p;
+    }
+    offset += static_cast<int>(child_size(prefix));
+
+    p = find_name_position_impl(middle, target, offset);
+    if(p >= 0) {
+      return p;
+    }
+    offset += static_cast<int>(child_size(middle));
+
+    return find_name_position_impl(suffix, target, offset);
+  }
+
+  List xs(x);
+  for(int i = 0; i < xs.size(); ++i) {
+    SEXP el = xs[i];
+    int p = find_name_position_impl(el, target, offset);
+    if(p >= 0) {
+      return p;
+    }
+    offset += static_cast<int>(child_size(el));
+  }
+  return -1;
 }
 
 List measures_from_children(const List& children, const List& monoids) {
@@ -897,5 +952,23 @@ extern "C" SEXP ft_cpp_split_tree(SEXP t, SEXP predicate_, SEXP monoids_, SEXP m
   }
   List monoid_spec(monoid_spec_sexp);
   return split_tree_impl_cpp(predicate, i_, t, monoids, monoid_name, monoid_spec);
+  END_RCPP
+}
+
+extern "C" SEXP ft_cpp_find_name_position(SEXP t, SEXP name_) {
+  BEGIN_RCPP
+  CharacterVector nm(name_);
+  if(nm.size() != 1 || CharacterVector::is_na(nm[0])) {
+    stop("`name` must be a single non-missing string.");
+  }
+  std::string target = as<std::string>(nm[0]);
+  if(target.empty()) {
+    stop("`name` must be a single non-empty string.");
+  }
+  int p = find_name_position_impl(t, target, 0);
+  if(p < 0) {
+    return IntegerVector::create(NA_INTEGER);
+  }
+  return IntegerVector::create(p);
   END_RCPP
 }

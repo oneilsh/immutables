@@ -117,6 +117,26 @@
   rep(values, length.out = target_len)
 }
 
+# check whether replacement payloads provide any explicit name hints
+# (outer list names, ft_name attrs, or inline scalar names()).
+# Runtime: O(k), where k = number of replacement values.
+.ft_values_have_name_hints(values) %::% list : logical
+.ft_values_have_name_hints(values) %as% {
+  vn <- names(values)
+  if(!is.null(vn) && any(!is.na(vn) & vn != "")) {
+    return(TRUE)
+  }
+  if(length(values) == 0L) {
+    return(FALSE)
+  }
+  for(v in values) {
+    if(!is.null(.ft_get_name(v)) || !is.null(.ft_name_from_value(v))) {
+      return(TRUE)
+    }
+  }
+  FALSE
+}
+
 # remove internal naming metadata from user-visible element returns.
 # Runtime: O(n) worst-case in relevant input/subtree size.
 .ft_strip_name(el) %::% . : .
@@ -262,7 +282,7 @@
     stop("Invalid name state: mixed named and unnamed elements are not allowed.")
   }
   if(length(idx) == 1L) {
-    p <- .ft_find_name_position(t, idx[[1]])
+    p <- if(.ft_cpp_enabled()) .ft_cpp_find_name_position(t, idx[[1]]) else .ft_find_name_position(t, idx[[1]])
     if(isTRUE(strict_missing) && is.na(p)) {
       stop("Unknown element name(s): ", idx[[1]])
     }
@@ -457,10 +477,10 @@
 #' # Logical replacement with recycling
 #' t[c(TRUE, FALSE, TRUE, FALSE, TRUE, FALSE)] <- list(1)
 #' @export
-# Runtime: O(k * n) worst-case due sequential single-element replacements,
-# where k = number of replaced positions.
+# Runtime: O(n + k) for vector replacement paths via one flatten + one rebuild,
+# where n = tree size and k = number of replaced positions.
 `[<-.FingerTree` <- function(x, i, value) {
-  resolve_tree_monoids(x, required = TRUE)
+  ms <- resolve_tree_monoids(x, required = TRUE)
   vals <- as.list(value)
   n <- as.integer(node_measure(x, ".size"))
 
@@ -479,6 +499,31 @@
     if(length(idx) == 0L) {
       return(x)
     }
+    xs <- .ft_to_list(x)
+    has_name_hints <- .ft_values_have_name_hints(vals)
+    if(!has_name_hints) {
+      # For wider updates, resolve name->position once (O(n + k)).
+      # For tiny updates, scalar lookup can still be competitive.
+      if(length(idx) <= 4L) {
+        for(k in seq_along(idx)) {
+          p <- .ft_match_name_indices(x, idx[[k]], strict_missing = TRUE)
+          xs[p] <- list(.ft_set_name(vals[[k]], idx[[k]]))
+        }
+      } else {
+        name_to_pos <- .ft_name_positions(x)
+        pos <- unname(name_to_pos[idx])
+        if(any(is.na(pos))) {
+          missing_names <- unique(idx[is.na(pos)])
+          stop("Unknown element name(s): ", paste(missing_names, collapse = ", "))
+        }
+        pos <- as.integer(pos)
+        for(k in seq_along(pos)) {
+          xs[pos[[k]]] <- list(.ft_set_name(vals[[k]], idx[[k]]))
+        }
+      }
+      return(tree_from(xs, monoids = ms))
+    }
+
     name_to_pos <- .ft_name_positions(x)
     pos <- unname(name_to_pos[idx])
     if(any(is.na(pos))) {
@@ -486,7 +531,6 @@
       stop("Unknown element name(s): ", paste(missing_names, collapse = ", "))
     }
     pos <- as.integer(pos)
-    out <- x
     vn <- names(vals)
     name_vec <- names(name_to_pos)
     for(k in seq_along(pos)) {
@@ -498,21 +542,48 @@
       upd <- .ft_update_name_map(name_to_pos, name_vec, pos[[k]], nm)
       name_to_pos <- upd$name_to_pos
       name_vec <- upd$name_vec
-      v <- .ft_set_name(vals[[k]], nm)
-      out[[pos[[k]]]] <- v
+      xs[pos[[k]]] <- list(.ft_set_name(vals[[k]], nm))
     }
-    return(out)
+    return(tree_from(xs, monoids = ms))
   }
 
   idx <- .ft_assert_int_indices(i, n)
   if(length(vals) != length(idx)) {
     stop("Replacement length must match index length exactly.")
   }
-  out <- x
   vn <- names(vals)
+  has_name_hints <- .ft_values_have_name_hints(vals)
   n_named <- as.integer(node_measure(x, ".named_count"))
   use_name_map <- n > 0L && n_named == n
-  if(use_name_map) {
+
+  # Sparse vector replacement is usually faster as repeated point updates.
+  # Dense replacement is faster as flatten+single rebuild.
+  sparse_cutoff <- max(8L, as.integer(sqrt(max(1L, n))))
+  if(length(idx) <= sparse_cutoff) {
+    out <- x
+    if(use_name_map && has_name_hints) {
+      name_to_pos <- .ft_name_positions(x)
+      name_vec <- names(name_to_pos)
+    }
+    for(k in seq_along(idx)) {
+      name_hint <- if(!is.null(vn)) vn[[k]] else NULL
+      nm <- .ft_effective_name(vals[[k]], name_hint)
+      if(is.null(nm)) {
+        old <- .ft_get_elem_at(out, idx[[k]])
+        nm <- .ft_get_name(old)
+      }
+      if(use_name_map && has_name_hints && !is.null(nm)) {
+        upd <- .ft_update_name_map(name_to_pos, name_vec, idx[[k]], nm)
+        name_to_pos <- upd$name_to_pos
+        name_vec <- upd$name_vec
+      }
+      out[[idx[[k]]]] <- .ft_set_name(vals[[k]], nm)
+    }
+    return(out)
+  }
+
+  xs <- .ft_to_list(x)
+  if(use_name_map && has_name_hints) {
     name_to_pos <- .ft_name_positions(x)
     name_vec <- names(name_to_pos)
   }
@@ -520,18 +591,18 @@
     name_hint <- if(!is.null(vn)) vn[[k]] else NULL
     nm <- .ft_effective_name(vals[[k]], name_hint)
     if(is.null(nm)) {
-      old <- .ft_get_elem_at(out, idx[[k]])
+      old <- xs[[idx[[k]]]]
       nm <- .ft_get_name(old)
     }
-    if(use_name_map && !is.null(nm)) {
+    if(use_name_map && has_name_hints && !is.null(nm)) {
       upd <- .ft_update_name_map(name_to_pos, name_vec, idx[[k]], nm)
       name_to_pos <- upd$name_to_pos
       name_vec <- upd$name_vec
     }
     v <- .ft_set_name(vals[[k]], nm)
-    out[[idx[[k]]]] <- v
+    xs[idx[[k]]] <- list(v)
   }
-  out
+  tree_from(xs, monoids = ms)
 }
 
 #' Replace one element by position or unique name
@@ -548,11 +619,20 @@
 #'
 #' tn <- tree_from(setNames(as.list(1:3), c("x", "y", "z")))
 #' tn[["y"]] <- 99
+#'
+#' # Assigning NULL removes an element (by index or name)
+#' t <- tree_from(letters[1:4])
+#' t[[2]] <- NULL
+#' tn <- tree_from(setNames(as.list(1:3), c("a", "b", "c")))
+#' tn[["b"]] <- NULL
 #' @export
 # Runtime: O(n) via split + append + concat.
 `[[<-.FingerTree` <- function(x, i, value) {
   if(is.character(i) && length(i) == 1L && !is.na(i)) {
     pos <- .ft_match_name_indices(x, i, strict_missing = TRUE)
+    if(is.null(value)) {
+      return(`[[<-.FingerTree`(x, pos, NULL))
+    }
     nm <- .ft_effective_name(value)
     if(is.null(nm)) {
       nm <- i
@@ -565,6 +645,10 @@
   idx <- .ft_assert_int_indices(i, n)
   if(length(idx) != 1L) {
     stop("[[<- expects exactly one index.")
+  }
+  if(is.null(value)) {
+    s <- split_tree(x, function(v) v >= idx, ".size")
+    return(concat(s$left, s$right, ms))
   }
   nm <- .ft_effective_name(value)
   if(is.null(nm)) {

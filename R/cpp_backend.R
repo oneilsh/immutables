@@ -1,0 +1,32 @@
+# Runtime: O(1).
+.ft_cpp_enabled <- function() {
+  isTRUE(getOption("fingertree.use_cpp", TRUE))
+}
+
+# Runtime: O(m), where m is monoid count.
+.ft_cpp_eligible_monoids <- function(monoids) {
+  if(is.null(monoids) || !is.list(monoids) || is.null(names(monoids))) {
+    return(FALSE)
+  }
+  setequal(names(monoids), c(".size", ".named_count"))
+}
+
+# Runtime: O(1).
+.ft_cpp_can_use <- function(monoids) {
+  .ft_cpp_enabled() && .ft_cpp_eligible_monoids(monoids)
+}
+
+# Runtime: O(log n) near right edge.
+.ft_cpp_add_right <- function(t, el, monoids) {
+  .Call("ft_cpp_append_right", t, el, monoids, PACKAGE = "fingertree")
+}
+
+# Runtime: O(log n) near left edge.
+.ft_cpp_add_left <- function(t, el, monoids) {
+  .Call("ft_cpp_prepend_left", t, el, monoids, PACKAGE = "fingertree")
+}
+
+# Runtime: O(n log n), n = number of elements.
+.ft_cpp_tree_from <- function(elements, monoids) {
+  .Call("ft_cpp_tree_from", elements, monoids, PACKAGE = "fingertree")
+}

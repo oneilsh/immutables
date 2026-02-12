@@ -7,4 +7,6 @@
 #' @import rlist
 #' @import rstack
 #' @import igraph
+#' @importFrom Rcpp evalCpp
+#' @useDynLib fingertree, .registration = TRUE
 "_PACKAGE"

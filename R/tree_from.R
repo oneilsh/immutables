@@ -22,7 +22,6 @@
 tree_from <- function(x, values = NULL, monoids = NULL) {
   ms <- if(is.null(monoids)) ensure_size_monoids(list(.size = size_measure_monoid())) else ensure_size_monoids(monoids)
 
-  t <- empty_tree(monoids = ms)
   x_list <- as.list(x)
   in_names <- names(x)
   use_names <- !is.null(in_names) && length(in_names) > 0L
@@ -55,7 +54,8 @@ tree_from <- function(x, values = NULL, monoids = NULL) {
       } else {
         el <- .ft_set_name(el, .ft_effective_name(el))
       }
-      t <- .add_right_fast(t, el, ms)
+      # Preserve NULL elements; `[[<- NULL` would drop positions from the list.
+      x_list[i] <- list(el)
     }
   } else {
     v_list <- as.list(values)
@@ -70,8 +70,17 @@ tree_from <- function(x, values = NULL, monoids = NULL) {
       } else {
         el <- .ft_set_name(el, .ft_effective_name(el))
       }
-      t <- .add_right_fast(t, el, ms)
+      x_list[[i]] <- el
     }
   }
+
+  if(.ft_cpp_can_use(ms)) {
+    return(.ft_cpp_tree_from(x_list, ms))
+  }
+
+  t <- empty_tree(monoids = ms)
+  for(i in seq_along(x_list)) {
+      t <- .add_right_fast(t, x_list[[i]], ms)
+    }
   t
 }

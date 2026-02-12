@@ -10,10 +10,13 @@ License: MIT
 Encoding: UTF-8
 LazyData: true
 Imports:
+    Rcpp,
     lambda.r,
     rlist,
     rstack,
     igraph
+LinkingTo:
+    Rcpp
 Suggests:
     pkgdown,
     testthat (>= 3.0.0)

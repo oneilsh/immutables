@@ -20,10 +20,17 @@
 #' @export
 # Runtime: O(log n) tree update, with O(1) local name-state checks.
 prepend <- function(t, x) {
-  ms <- resolve_tree_monoids(t, required = TRUE)
+  ms <- attr(t, "monoids", exact = TRUE)
+  if(is.null(ms)) {
+    stop("Tree has no monoids attribute.")
+  }
   x2 <- .ft_set_name(x, .ft_effective_name(x))
-  n <- as.integer(node_measure(t, ".size"))
-  nn <- as.integer(node_measure(t, ".named_count"))
+  m <- attr(t, "measures", exact = TRUE)
+  if(is.null(m)) {
+    stop("Tree has no measures attribute.")
+  }
+  n <- as.integer(m[[".size"]])
+  nn <- as.integer(m[[".named_count"]])
   x_named <- !is.null(.ft_get_name(x2))
   # Runtime: O(1). Enforce non-mixed naming invariant without full traversal.
   if(n > 0L) {
@@ -36,6 +43,9 @@ prepend <- function(t, x) {
     if(nn == n && !x_named) {
       stop("Cannot mix named and unnamed elements (prepend would create mixed named and unnamed tree).")
     }
+  }
+  if(.ft_cpp_can_use(ms)) {
+    return(.ft_cpp_add_left(t, x2, ms))
   }
   add_left(t, x2, ms)
 }

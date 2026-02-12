@@ -24,26 +24,42 @@ prepend <- function(t, x) {
   if(is.null(ms)) {
     stop("Tree has no monoids attribute.")
   }
-  x2 <- .ft_set_name(x, .ft_effective_name(x))
   m <- attr(t, "measures", exact = TRUE)
   if(is.null(m)) {
     stop("Tree has no measures attribute.")
   }
   n <- as.integer(m[[".size"]])
   nn <- as.integer(m[[".named_count"]])
-  x_named <- !is.null(.ft_get_name(x2))
   # Runtime: O(1). Enforce non-mixed naming invariant without full traversal.
-  if(n > 0L) {
-    if(nn != 0L && nn != n) {
-      stop("Invalid tree name state: mixed named/unnamed elements.")
-    }
-    if(nn == 0L && x_named) {
-      stop("Cannot mix named and unnamed elements (prepend would create mixed named and unnamed tree).")
-    }
-    if(nn == n && !x_named) {
-      stop("Cannot mix named and unnamed elements (prepend would create mixed named and unnamed tree).")
-    }
+  if(n > 0L && nn != 0L && nn != n) {
+    stop("Invalid tree name state: mixed named/unnamed elements.")
   }
+
+  x2 <- x
+  if(nn == 0L) {
+    # Fast unnamed path: avoid attr writes when incoming element is also unnamed.
+    nm <- .ft_get_name(x)
+    if(is.null(nm)) {
+      nm <- .ft_name_from_value(x)
+    }
+    if(is.null(nm)) {
+      if(.ft_cpp_can_use(ms)) {
+        return(.ft_cpp_add_left(t, x2, ms))
+      }
+      return(add_left(t, x2, ms))
+    }
+    if(n > 0L) {
+      stop("Cannot mix named and unnamed elements (prepend would create mixed named and unnamed tree).")
+    }
+    x2 <- .ft_set_name(x2, nm)
+  } else {
+    nm <- .ft_effective_name(x)
+    if(is.null(nm)) {
+      stop("Cannot mix named and unnamed elements (prepend would create mixed named and unnamed tree).")
+    }
+    x2 <- .ft_set_name(x2, nm)
+  }
+
   if(.ft_cpp_can_use(ms)) {
     return(.ft_cpp_add_left(t, x2, ms))
   }

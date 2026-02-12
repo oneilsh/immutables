@@ -7,7 +7,7 @@
 \alias{print.Empty}
 \title{Print a compact summary of a finger tree}
 \usage{
-\method{print}{FingerTree}(x, show_internal_monoids = FALSE, ...)
+\method{print}{FingerTree}(x, max_elements = 6L, show_internal_monoids = FALSE, ...)
 
 \method{print}{Deep}(x, ...)
 
@@ -18,10 +18,13 @@
 \arguments{
 \item{x}{FingerTree.}
 
+\item{max_elements}{Maximum number of elements to show in list-style preview.
+Default `6`.}
+
 \item{show_internal_monoids}{Logical; show internal monoids (`.size`,
 `.named_count`). Default `FALSE`.}
 
-\item{...}{Unused.}
+\item{...}{Passed through to `print()` for preview elements.}
 }
 \value{
 `x`, invisibly.

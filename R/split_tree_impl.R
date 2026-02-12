@@ -14,7 +14,11 @@ split_tree_impl(p, i, t, monoids, monoid_name) %as% {
   if(is.null(mr)) {
     stop(paste0("Unknown measure monoid '", monoid_name, "'."))
   }
+  split_tree_impl_fast(p, i, t, ms, mr, monoid_name)
+}
 
+# Runtime: O(log n) near split point depth.
+split_tree_impl_fast <- function(p, i, t, ms, mr, monoid_name) {
   if(t %isa% Empty) {
     stop("split_tree_impl requires a non-empty tree")
   }
@@ -33,7 +37,7 @@ split_tree_impl(p, i, t, monoids, monoid_name) %as% {
 
   if(p(vpr)) {
     # split occurs in prefix digit
-    s <- split_digit(p, i, .subset2(t,"prefix"), ms, monoid_name)
+    s <- split_digit_impl(p, i, .subset2(t,"prefix"), ms, mr, monoid_name)
     left_tree <- digit_to_tree(s$left, ms)
     right_tree <- deepL(build_digit(s$right, ms), .subset2(t,"middle"), .subset2(t,"suffix"), ms)
     return(list(left = left_tree, elem = s$elem, right = right_tree))
@@ -41,16 +45,16 @@ split_tree_impl(p, i, t, monoids, monoid_name) %as% {
 
   if(p(vm)) {
     # split occurs in middle tree, then inside the selected Node2/Node3
-    sm <- split_tree_impl(p, vpr, .subset2(t,"middle"), ms, monoid_name)
+    sm <- split_tree_impl_fast(p, vpr, .subset2(t,"middle"), ms, mr, monoid_name)
     inode <- mr$f(vpr, node_measure(sm$left, monoid_name))
-    sx <- split_digit(p, inode, as.list(sm$elem), ms, monoid_name)
+    sx <- split_digit_impl(p, inode, as.list(sm$elem), ms, mr, monoid_name)
     left_tree <- deepR(.subset2(t,"prefix"), sm$left, build_digit(sx$left, ms), ms)
     right_tree <- deepL(build_digit(sx$right, ms), sm$right, .subset2(t,"suffix"), ms)
     return(list(left = left_tree, elem = sx$elem, right = right_tree))
   }
 
   # split occurs in suffix digit
-  s <- split_digit(p, vm, .subset2(t,"suffix"), ms, monoid_name)
+  s <- split_digit_impl(p, vm, .subset2(t,"suffix"), ms, mr, monoid_name)
   left_tree <- deepR(.subset2(t,"prefix"), .subset2(t,"middle"), build_digit(s$left, ms), ms)
   right_tree <- digit_to_tree(s$right, ms)
   list(left = left_tree, elem = s$elem, right = right_tree)

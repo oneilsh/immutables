@@ -50,3 +50,13 @@
 .ft_cpp_concat <- function(x, y, monoids) {
   .Call("ft_cpp_concat", x, y, monoids, PACKAGE = "fingertree")
 }
+
+# Runtime: O(log n) near locate point depth.
+.ft_cpp_locate <- function(t, predicate, monoids, monoid_name, accumulator) {
+  .Call("ft_cpp_locate", t, predicate, monoids, monoid_name, accumulator, PACKAGE = "fingertree")
+}
+
+# Runtime: O(log n) near split point depth.
+.ft_cpp_split_tree <- function(t, predicate, monoids, monoid_name, accumulator) {
+  .Call("ft_cpp_split_tree", t, predicate, monoids, monoid_name, accumulator, PACKAGE = "fingertree")
+}

@@ -25,5 +25,8 @@ split_tree <- function(t, predicate, monoid_name, accumulator = NULL) {
   }
 
   i <- if(is.null(accumulator)) mr$i else accumulator
-  split_tree_impl(predicate, i, t, ms, monoid_name)
+  if(.ft_cpp_can_use(ms)) {
+    return(.ft_cpp_split_tree(t, predicate, ms, monoid_name, i))
+  }
+  split_tree_impl_fast(predicate, i, t, ms, mr, monoid_name)
 }

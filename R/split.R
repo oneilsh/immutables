@@ -25,7 +25,11 @@ split <- function(t, predicate, monoid_name) {
   }
 
   if(predicate(node_measure(t, monoid_name))) {
-    s <- split_tree_impl(predicate, mr$i, t, ms, monoid_name)
+    s <- if(.ft_cpp_can_use(ms)) {
+      .ft_cpp_split_tree(t, predicate, ms, monoid_name, mr$i)
+    } else {
+      split_tree_impl_fast(predicate, mr$i, t, ms, mr, monoid_name)
+    }
     right <- prepend(s$right, s$elem)
     return(list(left = s$left, right = right))
   }

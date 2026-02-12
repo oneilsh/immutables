@@ -56,7 +56,11 @@ locate_digit(p, i, digit, monoids, monoid_name, i_size = 0L) %as% {
   if(is.null(mr)) {
     stop(paste0("Unknown measure monoid '", monoid_name, "'."))
   }
+  locate_digit_impl(p, i, digit, ms, mr, monoid_name, i_size)
+}
 
+# Runtime: O(k), where k = digit length (<= 4 in normal tree structure).
+locate_digit_impl <- function(p, i, digit, ms, mr, monoid_name, i_size = 0L) {
   acc <- i
   size_before <- as.integer(i_size)
 
@@ -68,7 +72,7 @@ locate_digit(p, i, digit, monoids, monoid_name, i_size = 0L) %as% {
 
     if(p(acc_after)) {
       if(is_structural_node(el)) {
-        return(locate_tree_impl(p, acc, el, ms, monoid_name, size_before))
+        return(locate_tree_impl_fast(p, acc, el, ms, mr, monoid_name, size_before))
       }
 
       right <- if(idx == length(digit)) list() else digit[(idx + 1):length(digit)]
@@ -98,9 +102,13 @@ locate_tree_impl(p, i, t, monoids, monoid_name, i_size = 0L) %as% {
   if(is.null(mr)) {
     stop(paste0("Unknown measure monoid '", monoid_name, "'."))
   }
+  locate_tree_impl_fast(p, i, t, ms, mr, monoid_name, i_size)
+}
 
+# Runtime: O(log n) near locate point depth.
+locate_tree_impl_fast <- function(p, i, t, ms, mr, monoid_name, i_size = 0L) {
   if(!is_structural_node(t)) {
-    return(locate_digit(p, i, list(t), ms, monoid_name, as.integer(i_size)))
+    return(locate_digit_impl(p, i, list(t), ms, mr, monoid_name, as.integer(i_size)))
   }
 
   if(t %isa% Empty) {
@@ -108,7 +116,7 @@ locate_tree_impl(p, i, t, monoids, monoid_name, i_size = 0L) %as% {
   }
 
   if(t %isa% Single) {
-    return(locate_digit(p, i, list(.subset2(t, 1)), ms, monoid_name, as.integer(i_size)))
+    return(locate_digit_impl(p, i, list(.subset2(t, 1)), ms, mr, monoid_name, as.integer(i_size)))
   }
 
   if(t %isa% Deep) {
@@ -123,7 +131,7 @@ locate_tree_impl(p, i, t, monoids, monoid_name, i_size = 0L) %as% {
     nm <- as.integer(node_measure(.subset2(t,"middle"), ".size"))
 
     if(p(vpr)) {
-      res <- locate_tree_impl(p, i, .subset2(t,"prefix"), ms, monoid_name, as.integer(i_size))
+      res <- locate_tree_impl_fast(p, i, .subset2(t,"prefix"), ms, mr, monoid_name, as.integer(i_size))
       if(res$found) {
         res$right_measure <- mr$f(mr$f(res$right_measure, mm), msf)
       }
@@ -131,16 +139,16 @@ locate_tree_impl(p, i, t, monoids, monoid_name, i_size = 0L) %as% {
     }
 
     if(p(vm)) {
-      res <- locate_tree_impl(p, vpr, .subset2(t,"middle"), ms, monoid_name, as.integer(i_size + npr))
+      res <- locate_tree_impl_fast(p, vpr, .subset2(t,"middle"), ms, mr, monoid_name, as.integer(i_size + npr))
       if(res$found) {
         res$right_measure <- mr$f(res$right_measure, msf)
       }
       return(res)
     }
 
-    return(locate_tree_impl(p, vm, .subset2(t,"suffix"), ms, monoid_name, as.integer(i_size + npr + nm)))
+    return(locate_tree_impl_fast(p, vm, .subset2(t,"suffix"), ms, mr, monoid_name, as.integer(i_size + npr + nm)))
   }
 
   # Node / Digit structural lists
-  locate_digit(p, i, as.list(t), ms, monoid_name, as.integer(i_size))
+  locate_digit_impl(p, i, as.list(t), ms, mr, monoid_name, as.integer(i_size))
 }

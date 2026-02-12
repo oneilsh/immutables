@@ -52,7 +52,11 @@ locate <- function(t, predicate, monoid_name, accumulator = NULL, include_metada
     ))
   }
 
-  res <- locate_tree_impl(predicate, i, t, ms, monoid_name, 0L)
+  res <- if(.ft_cpp_can_use(ms)) {
+    .ft_cpp_locate(t, predicate, ms, monoid_name, i)
+  } else {
+    locate_tree_impl_fast(predicate, i, t, ms, mr, monoid_name, 0L)
+  }
   if(!isTRUE(include_metadata)) {
     return(list(found = res$found, elem = res$elem))
   }

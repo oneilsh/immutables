@@ -2,14 +2,18 @@
 # Runtime: O(n) worst-case in relevant input/subtree size.
 split_digit(p, i, digit, monoids, monoid_name) %::% Function : . : list : list : character : list
 split_digit(p, i, digit, monoids, monoid_name) %as% {
-  if(length(digit) == 0) {
-    stop("split_digit called with empty digit")
-  }
-
   ms <- ensure_size_monoids(monoids)
   mr <- ms[[monoid_name]]
   if(is.null(mr)) {
     stop(paste0("Unknown measure monoid '", monoid_name, "'."))
+  }
+  split_digit_impl(p, i, digit, ms, mr, monoid_name)
+}
+
+# Runtime: O(k), where k = digit length (<= 4 in normal tree structure).
+split_digit_impl <- function(p, i, digit, ms, mr, monoid_name) {
+  if(length(digit) == 0) {
+    stop("split_digit called with empty digit")
   }
 
   acc <- i

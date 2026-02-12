@@ -9,6 +9,8 @@ extern SEXP ft_cpp_prepend_left_named(SEXP, SEXP, SEXP, SEXP);
 extern SEXP ft_cpp_tree_from(SEXP, SEXP);
 extern SEXP ft_cpp_tree_from_prepared(SEXP, SEXP, SEXP, SEXP);
 extern SEXP ft_cpp_concat(SEXP, SEXP, SEXP);
+extern SEXP ft_cpp_locate(SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP ft_cpp_split_tree(SEXP, SEXP, SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
   {"ft_cpp_append_right", (DL_FUNC) &ft_cpp_append_right, 3},
@@ -18,6 +20,8 @@ static const R_CallMethodDef CallEntries[] = {
   {"ft_cpp_tree_from", (DL_FUNC) &ft_cpp_tree_from, 2},
   {"ft_cpp_tree_from_prepared", (DL_FUNC) &ft_cpp_tree_from_prepared, 4},
   {"ft_cpp_concat", (DL_FUNC) &ft_cpp_concat, 3},
+  {"ft_cpp_locate", (DL_FUNC) &ft_cpp_locate, 5},
+  {"ft_cpp_split_tree", (DL_FUNC) &ft_cpp_split_tree, 5},
   {NULL, NULL, 0}
 };
 

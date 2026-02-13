@@ -27,6 +27,6 @@ s <- split_tree(t, function(v) v >= 4, ".size")
 s$elem
 
 cat_m <- MeasureMonoid(paste0, "", as.character)
-reduce_left(s$left, cat_m)
-reduce_left(s$right, cat_m)
+fold_left(s$left, cat_m)
+fold_left(s$right, cat_m)
 }

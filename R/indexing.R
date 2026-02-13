@@ -411,7 +411,7 @@
 #' t <- tree_from(letters[1:6])
 #' s <- t[c(2, 4, 6)]
 #' cat_m <- MeasureMonoid(paste0, "", as.character)
-#' reduce_left(s, cat_m)
+#' fold_left(s, cat_m)
 #'
 #' # Empty index returns empty tree
 #' attr(t[integer(0)], "measures")$.size
@@ -419,7 +419,7 @@
 #' # Character indexing by element names
 #' tn <- tree_from(setNames(as.list(letters[1:4]), c("w", "x", "y", "z")))
 #' out <- tn[c("y", "missing", "w")]
-#' reduce_left(out, MeasureMonoid(paste0, "", function(el) if(is.null(el)) "_" else el))
+#' fold_left(out, MeasureMonoid(paste0, "", function(el) if(is.null(el)) "_" else el))
 #'
 #' # Logical indexing with recycling
 #' t[c(TRUE, FALSE)]
@@ -470,6 +470,12 @@
   tree_from(out, monoids = ms)
 }
 
+#' @export
+# Runtime: Delegates to `[.FingerTree`.
+`[.flexseq` <- function(x, i, ...) {
+  .as_flexseq(`[.FingerTree`(x, i, ...))
+}
+
 #' Extract one element by position or unique name
 #'
 #' @param x FingerTree.
@@ -499,6 +505,12 @@
   .ft_strip_name(.ft_get_elem_at(x, idx))
 }
 
+#' @export
+# Runtime: Delegates to `[[.FingerTree`.
+`[[.flexseq` <- function(x, i, ...) {
+  `[[.FingerTree`(x, i, ...)
+}
+
 #' Replace selected elements by position or name
 #'
 #' @param x FingerTree.
@@ -509,7 +521,7 @@
 #' t <- tree_from(1:6)
 #' t[c(2, 5)] <- list(20, 50)
 #' sum_m <- MeasureMonoid(`+`, 0, as.numeric)
-#' reduce_left(t, sum_m)
+#' fold_left(t, sum_m)
 #'
 #' # Replacement length must match
 #' try(t[c(1, 2)] <- list(999))
@@ -634,6 +646,12 @@
   tree_from(xs, monoids = ms)
 }
 
+#' @export
+# Runtime: Delegates to `[<-.FingerTree`.
+`[<-.flexseq` <- function(x, i, value) {
+  .as_flexseq(`[<-.FingerTree`(x, i, value))
+}
+
 #' Replace one element by position or unique name
 #'
 #' @param x FingerTree.
@@ -644,7 +662,7 @@
 #' t <- tree_from(letters[1:4])
 #' t[[2]] <- "ZZ"
 #' cat_m <- MeasureMonoid(paste0, "", as.character)
-#' reduce_left(t, cat_m)
+#' fold_left(t, cat_m)
 #'
 #' tn <- tree_from(setNames(as.list(1:3), c("x", "y", "z")))
 #' tn[["y"]] <- 99
@@ -706,4 +724,10 @@
   s <- split_tree(x, function(v) v >= idx, ".size")
   left_plus <- append(s$left, value)
   concat(left_plus, s$right, ms)
+}
+
+#' @export
+# Runtime: Delegates to `[[<-.FingerTree`.
+`[[<-.flexseq` <- function(x, i, value) {
+  .as_flexseq(`[[<-.FingerTree`(x, i, value))
 }

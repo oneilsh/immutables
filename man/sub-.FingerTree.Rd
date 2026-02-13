@@ -24,7 +24,7 @@ Subset a finger tree by position or element name
 t <- tree_from(letters[1:6])
 s <- t[c(2, 4, 6)]
 cat_m <- MeasureMonoid(paste0, "", as.character)
-reduce_left(s, cat_m)
+fold_left(s, cat_m)
 
 # Empty index returns empty tree
 attr(t[integer(0)], "measures")$.size
@@ -32,7 +32,7 @@ attr(t[integer(0)], "measures")$.size
 # Character indexing by element names
 tn <- tree_from(setNames(as.list(letters[1:4]), c("w", "x", "y", "z")))
 out <- tn[c("y", "missing", "w")]
-reduce_left(out, MeasureMonoid(paste0, "", function(el) if(is.null(el)) "_" else el))
+fold_left(out, MeasureMonoid(paste0, "", function(el) if(is.null(el)) "_" else el))
 
 # Logical indexing with recycling
 t[c(TRUE, FALSE)]

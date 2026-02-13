@@ -11,8 +11,8 @@
 #' s$elem
 #'
 #' cat_m <- MeasureMonoid(paste0, "", as.character)
-#' reduce_left(s$left, cat_m)
-#' reduce_left(s$right, cat_m)
+#' fold_left(s$left, cat_m)
+#' fold_left(s$right, cat_m)
 #' @export
 # Runtime: O(log n) near split point depth.
 split_tree <- function(t, predicate, monoid_name, accumulator = NULL) {
@@ -25,8 +25,12 @@ split_tree <- function(t, predicate, monoid_name, accumulator = NULL) {
   }
 
   i <- if(is.null(accumulator)) mr$i else accumulator
-  if(.ft_cpp_can_use(ms)) {
-    return(.ft_cpp_split_tree(t, predicate, ms, monoid_name, i))
+  out <- if(.ft_cpp_can_use(ms)) {
+    .ft_cpp_split_tree(t, predicate, ms, monoid_name, i)
+  } else {
+    split_tree_impl_fast(predicate, i, t, ms, mr, monoid_name)
   }
-  split_tree_impl_fast(predicate, i, t, ms, mr, monoid_name)
+  out$left <- .as_flexseq(out$left)
+  out$right <- .as_flexseq(out$right)
+  out
 }

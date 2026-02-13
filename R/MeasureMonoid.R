@@ -9,11 +9,10 @@
 #' t <- as_flexseq(1:5)
 #' fold_left(t, sum_m)
 #'
-#' # Measure from element metadata
-#' t2 <- as_flexseq(letters[1:3], values = c(10, 20, 30))
-#' value_sum <- measure_monoid(`+`, 0, function(el) as.numeric(attr(el, "value")))
-#' t2m <- add_monoids(t2, list(value_sum = value_sum))
-#' attr(t2m, "measures")$value_sum
+#' # Add a custom monoid after construction
+#' nchar_sum <- measure_monoid(`+`, 0, function(el) nchar(as.character(el)))
+#' t2 <- add_monoids(as_flexseq(letters[1:3]), list(nchar_sum = nchar_sum))
+#' attr(t2, "measures")$nchar_sum
 #' @export
 # Runtime: O(1).
 measure_monoid <- function(f, i, measure) {

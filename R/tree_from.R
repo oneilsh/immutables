@@ -1,8 +1,7 @@
 #' Build a Structural Tree from a Vector or List
 #'
 #' @param x Elements to insert.
-#' @param values Optional parallel values (same length as `x`).
-#' @param monoids Optional named list of `MeasureMonoid` objects.
+#' @param monoids Optional named list of `measure_monoid` objects.
 #' @return A finger tree with cached measures for all monoids.
 #'   If `x` has names, they are used for name-based indexing and must be
 #'   complete (no missing/empty names) and unique.
@@ -10,7 +9,7 @@
 #' t <- tree_from(letters[1:4])
 #' t[[2]]
 #'
-#' sum_m <- MeasureMonoid(`+`, 0, as.numeric)
+#' sum_m <- measure_monoid(`+`, 0, as.numeric)
 #' t2 <- tree_from(1:5, monoids = list(sum = sum_m))
 #' attr(t2, "measures")
 #'
@@ -19,18 +18,11 @@
 #' tn[["k2"]]
 #' @export
 # Runtime: O(n log n) by repeated right-add without full-tree validation scans.
-tree_from <- function(x, values = NULL, monoids = NULL) {
+tree_from <- function(x, monoids = NULL) {
   ms <- if(is.null(monoids)) ensure_size_monoids(list(.size = size_measure_monoid())) else ensure_size_monoids(monoids)
 
   x_list <- as.list(x)
   n <- length(x_list)
-  v_list <- NULL
-  if(!is.null(values)) {
-    v_list <- as.list(values)
-    if(n != length(v_list)) {
-      stop("length of entries and values lists given to tree_from not equal.")
-    }
-  }
 
   resolved_names <- NULL
   in_names <- names(x)
@@ -102,34 +94,20 @@ tree_from <- function(x, values = NULL, monoids = NULL) {
   }
 
   if(.ft_cpp_can_use(ms)) {
-    if(is.null(v_list) && is.null(resolved_names)) {
+    if(is.null(resolved_names)) {
       return(.as_flexseq(.ft_cpp_tree_from(x_list, ms)))
     }
     return(.as_flexseq(.ft_cpp_tree_from_prepared(
       x_list,
-      if(is.null(v_list)) NULL else v_list,
-      if(is.null(resolved_names)) NULL else resolved_names,
+      resolved_names,
       ms
     )))
   }
 
-  if(is.null(v_list) && is.null(resolved_names)) {
-    t <- empty_tree(monoids = ms)
-    for(i in seq_along(x_list)) {
-      t <- .add_right_fast(t, x_list[[i]], ms)
-    }
-    return(.as_flexseq(t))
-  }
-
-  if(!is.null(v_list) || !is.null(resolved_names)) {
+  if(!is.null(resolved_names)) {
     for(i in seq_along(x_list)) {
       el <- x_list[[i]]
-      if(!is.null(v_list)) {
-        attr(el, "value") <- v_list[[i]]
-      }
-      if(!is.null(resolved_names)) {
-        el <- .ft_set_name(el, resolved_names[[i]])
-      }
+      el <- .ft_set_name(el, resolved_names[[i]])
       # Preserve NULL elements; `[[<- NULL` would drop positions from the list.
       x_list[i] <- list(el)
     }

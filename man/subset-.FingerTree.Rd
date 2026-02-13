@@ -23,7 +23,7 @@ Replace selected elements by position or name
 t <- tree_from(1:6)
 t[c(2, 5)] <- list(20, 50)
 sum_m <- MeasureMonoid(`+`, 0, as.numeric)
-reduce_left(t, sum_m)
+fold_left(t, sum_m)
 
 # Replacement length must match
 try(t[c(1, 2)] <- list(999))

@@ -41,7 +41,7 @@ testthat::test_that("add_monoids merges and supports overwrite flag", {
   testthat::expect_true(!identical(attr(t2, "measures")$sum, attr(t3, "measures")$sum))
 })
 
-testthat::test_that("concat_trees unions monoids and warns on shared names", {
+testthat::test_that("concat_trees unions monoids on shared names", {
   a <- measure_monoid(function(x, y) x + y, 0, function(el) el)
   b <- measure_monoid(function(x, y) x + y, 0, function(el) 1)
 
@@ -50,11 +50,9 @@ testthat::test_that("concat_trees unions monoids and warns on shared names", {
   t <- c(t1, t2)
   testthat::expect_true(all(c(".size", "sum", "cnt") %in% names(attr(t, "monoids"))))
 
-  # shared name warning path: left definition is assumed authoritative
+  # shared name path: left definition is assumed authoritative
   t3 <- as_flexseq(1:2, monoids = list(sum = a))
   t4 <- as_flexseq(3:4, monoids = list(sum = measure_monoid(function(x, y) x + y, 0, function(el) 1)))
-  testthat::expect_warning(
-    c(t3, t4),
-    class = "immutables_monoid_assumption_warning"
-  )
+  t_merged <- c(t3, t4)
+  testthat::expect_true("sum" %in% names(attr(t_merged, "monoids")))
 })

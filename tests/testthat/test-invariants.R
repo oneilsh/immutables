@@ -80,10 +80,7 @@ testthat::test_that("structural invariants hold after concat and split", {
   mr <- measure_monoid(function(a, b) a + b, 0, function(el) 1)
   t1 <- as_flexseq(letters[1:12], monoids = list(count = mr))
   t2 <- as_flexseq(letters[13:20], monoids = list(count = mr))
-  testthat::expect_warning(
-    t <- c(t1, t2),
-    class = "immutables_monoid_assumption_warning"
-  )
+  t <- c(t1, t2)
   validate_fingertree_invariants(t)
 
   s <- split(t, function(v) v >= 10, ".size")

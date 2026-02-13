@@ -23,7 +23,7 @@ left <- tree_from(letters[1:3])
 right <- tree_from(letters[4:6])
 t <- concat_trees(left, right)
 cat_m <- MeasureMonoid(paste0, "", as.character)
-reduce_left(t, cat_m)
+fold_left(t, cat_m)
 
 # Concatenate trees carrying a custom monoid
 sum_m <- MeasureMonoid(`+`, 0, as.numeric)

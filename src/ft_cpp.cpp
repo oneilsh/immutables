@@ -8,7 +8,6 @@ SEXP class_sym = Rf_install("class");
 SEXP monoids_sym = Rf_install("monoids");
 SEXP measures_sym = Rf_install("measures");
 SEXP ft_name_sym = Rf_install("ft_name");
-SEXP value_sym = Rf_install("value");
 
 bool has_class(SEXP x, const char* cls) {
   return Rf_inherits(x, cls);
@@ -382,16 +381,8 @@ SEXP clone_with_name(SEXP el, SEXP name_) {
   return out;
 }
 
-SEXP clone_with_attrs(SEXP el, SEXP value_, SEXP name_) {
+SEXP clone_with_attrs(SEXP el, SEXP name_) {
   SEXP out = PROTECT(Rf_duplicate(el));
-
-  if(!Rf_isNull(value_)) {
-    if(Rf_isNull(out)) {
-      UNPROTECT(1);
-      stop("Cannot attach a value to NULL element.");
-    }
-    Rf_setAttrib(out, value_sym, value_);
-  }
 
   if(!Rf_isNull(name_)) {
     CharacterVector nm(name_);
@@ -976,20 +967,12 @@ extern "C" SEXP ft_cpp_tree_from(SEXP elements_, SEXP monoids_) {
   END_RCPP
 }
 
-extern "C" SEXP ft_cpp_tree_from_prepared(SEXP elements_, SEXP values_, SEXP names_, SEXP monoids_) {
+extern "C" SEXP ft_cpp_tree_from_prepared(SEXP elements_, SEXP names_, SEXP monoids_) {
   BEGIN_RCPP
   List elements(elements_);
   List monoids(monoids_);
-  const bool has_values = !Rf_isNull(values_);
   const bool has_names = !Rf_isNull(names_);
-  List values;
   CharacterVector names;
-  if(has_values) {
-    values = as<List>(values_);
-    if(values.size() != elements.size()) {
-      stop("`values` length must match elements length.");
-    }
-  }
   if(has_names) {
     names = as<CharacterVector>(names_);
     if(names.size() != elements.size()) {
@@ -999,9 +982,8 @@ extern "C" SEXP ft_cpp_tree_from_prepared(SEXP elements_, SEXP values_, SEXP nam
 
   SEXP t = make_empty(monoids);
   for(int i = 0; i < elements.size(); ++i) {
-    SEXP value = has_values ? static_cast<SEXP>(values[i]) : R_NilValue;
     SEXP name = has_names ? static_cast<SEXP>(CharacterVector::create(names[i])) : R_NilValue;
-    SEXP el = clone_with_attrs(elements[i], value, name);
+    SEXP el = clone_with_attrs(elements[i], name);
     t = add_right_cpp(t, el, monoids);
   }
   return t;

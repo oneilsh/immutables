@@ -4,14 +4,12 @@
 \alias{tree_from}
 \title{Build a Structural Tree from a Vector or List}
 \usage{
-tree_from(x, values = NULL, monoids = NULL)
+tree_from(x, monoids = NULL)
 }
 \arguments{
 \item{x}{Elements to insert.}
 
-\item{values}{Optional parallel values (same length as `x`).}
-
-\item{monoids}{Optional named list of `MeasureMonoid` objects.}
+\item{monoids}{Optional named list of `measure_monoid` objects.}
 }
 \value{
 A finger tree with cached measures for all monoids.
@@ -25,7 +23,7 @@ Build a Structural Tree from a Vector or List
 t <- tree_from(letters[1:4])
 t[[2]]
 
-sum_m <- MeasureMonoid(`+`, 0, as.numeric)
+sum_m <- measure_monoid(`+`, 0, as.numeric)
 t2 <- tree_from(1:5, monoids = list(sum = sum_m))
 attr(t2, "measures")
 

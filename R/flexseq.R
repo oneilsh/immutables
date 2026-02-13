@@ -41,7 +41,6 @@ flexseq <- function(..., monoids = NULL) {
 #' Coerce to a Persistent Flexible Sequence
 #'
 #' @param x Input vector/list-like object.
-#' @param values Optional parallel values (same length as `x`).
 #' @param monoids Optional named list of measure monoids.
 #' @return A `flexseq` object.
 #' @examples
@@ -49,31 +48,9 @@ flexseq <- function(..., monoids = NULL) {
 #' as_flexseq(setNames(as.list(letters[1:3]), c("k1", "k2", "k3")))
 #' @export
 # Runtime: O(n log n) over element count.
-as_flexseq <- function(x, values = NULL, monoids = NULL) {
-  t <- tree_from(x, values = values, monoids = monoids)
+as_flexseq <- function(x, monoids = NULL) {
+  t <- tree_from(x, monoids = monoids)
   .as_flexseq(t)
-}
-
-#' Fold Left Over a Sequence
-#'
-#' @param x A `flexseq`.
-#' @param monoid A `measure_monoid` specification.
-#' @return Reduced value.
-#' @export
-# Runtime: O(n) over number of elements.
-fold_left <- function(x, monoid) {
-  reduce_left(x, monoid)
-}
-
-#' Fold Right Over a Sequence
-#'
-#' @param x A `flexseq`.
-#' @param monoid A `measure_monoid` specification.
-#' @return Reduced value.
-#' @export
-# Runtime: O(n) over number of elements.
-fold_right <- function(x, monoid) {
-  reduce_right(x, monoid)
 }
 
 #' Concatenate Sequences

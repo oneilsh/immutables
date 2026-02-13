@@ -26,6 +26,6 @@ attr(s$left, "measures")$.size
 attr(s$right, "measures")$.size
 
 cat_m <- MeasureMonoid(paste0, "", as.character)
-reduce_left(s$left, cat_m)
-reduce_left(s$right, cat_m)
+fold_left(s$left, cat_m)
+fold_left(s$right, cat_m)
 }

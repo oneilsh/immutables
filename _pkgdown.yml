@@ -19,8 +19,8 @@ reference:
   - title: "Query API"
     desc: "Folds and locate/split queries"
     contents:
-      - reduce_left
-      - reduce_right
+      - fold_left
+      - fold_right
       - locate
       - split_tree
       - split

@@ -37,10 +37,7 @@ testthat::test_that("multiple measures propagate through concat", {
   t1 <- as_flexseq(1:3, monoids = ms)
   t1 <- append(t1, 4)
   t2 <- as_flexseq(10:11, monoids = ms)
-  testthat::expect_warning(
-    t <- c(t1, t2),
-    class = "immutables_monoid_assumption_warning"
-  )
+  t <- c(t1, t2)
 
   root <- attr(t, "measures")
   testthat::expect_identical(root$sum, 31)

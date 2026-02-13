@@ -23,7 +23,7 @@ Replace one element by position or unique name
 t <- tree_from(letters[1:4])
 t[[2]] <- "ZZ"
 cat_m <- MeasureMonoid(paste0, "", as.character)
-reduce_left(t, cat_m)
+fold_left(t, cat_m)
 
 tn <- tree_from(setNames(as.list(1:3), c("x", "y", "z")))
 tn[["y"]] <- 99

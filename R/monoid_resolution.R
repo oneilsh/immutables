@@ -53,17 +53,3 @@ merge_monoid_sets(base, add, overwrite = FALSE) %as% {
   }
   ensure_size_monoids(b)
 }
-
-# Runtime: O(k), where k = number of shared names in warning text.
-emit_concat_assumption_warning(shared_names) %::% character : .
-emit_concat_assumption_warning(shared_names) %as% {
-  msg <- paste0(
-    "concat_trees(): shared monoid names assumed equivalent; left-tree definitions are used for: ",
-    paste(shared_names, collapse = ", ")
-  )
-  w <- structure(
-    list(message = msg, call = NULL),
-    class = c("immutables_monoid_assumption_warning", "warning", "condition")
-  )
-  warning(w)
-}

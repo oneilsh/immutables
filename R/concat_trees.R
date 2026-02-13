@@ -11,7 +11,7 @@
 #' right <- tree_from(letters[4:6])
 #' t <- concat_trees(left, right)
 #' cat_m <- MeasureMonoid(paste0, "", as.character)
-#' reduce_left(t, cat_m)
+#' fold_left(t, cat_m)
 #'
 #' # Concatenate trees carrying a custom monoid
 #' sum_m <- MeasureMonoid(`+`, 0, as.numeric)
@@ -28,9 +28,6 @@ concat_trees <- function(x, y) {
 
   shared <- intersect(names(mx), names(my))
   shared <- setdiff(shared, c(".size", ".named_count"))
-  if(length(shared) > 0) {
-    emit_concat_assumption_warning(shared)
-  }
 
   left_only <- setdiff(names(mx), names(my))
   left_only <- setdiff(left_only, c(".size", ".named_count"))

@@ -42,8 +42,8 @@
 }
 
 # Runtime: O(n log n), n = number of elements.
-.ft_cpp_tree_from_prepared <- function(elements, values, names, monoids) {
-  .Call("ft_cpp_tree_from_prepared", elements, values, names, monoids, PACKAGE = "immutables")
+.ft_cpp_tree_from_prepared <- function(elements, names, monoids) {
+  .Call("ft_cpp_tree_from_prepared", elements, names, monoids, PACKAGE = "immutables")
 }
 
 # Runtime: O(log n + log m) typical spine depth for balanced trees.

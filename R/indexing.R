@@ -106,12 +106,9 @@
 # Runtime: O(1).
 .ft_name_map_threshold() %::% integer
 .ft_name_map_threshold() %as% {
-  th <- getOption("fingertree.name_map_threshold", 8L)
-  th <- suppressWarnings(as.integer(th))
-  if(length(th) != 1L || is.na(th) || th < 2L) {
-    return(8L)
-  }
-  th
+  # Tuned internal constant: switch to one-pass name->position map lookup for
+  # medium/large character queries; keep scalar find loop for short vectors.
+  8L
 }
 
 # Runtime: O(target_len) in recycled output size.

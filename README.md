@@ -15,12 +15,6 @@ Two options are useful when benchmarking/debugging internals:
   - Useful for debugging hand-mutated trees.
   - Default is `FALSE` (fast path).
 
-Indexing name lookup threshold can also be tuned:
-
-- `options(fingertree.name_map_threshold = 8L)`
-  - For character index vectors shorter than this threshold, repeated scalar lookup is used.
-  - At or above threshold, a name->position map lookup path is used.
-
 `R/` - implementation files for the 2-3 finger tree and monoids.
 
 `scripts/monoids_demo.R` - demo/exploration of monoid-annotated binary trees (not 2-3 finger trees).

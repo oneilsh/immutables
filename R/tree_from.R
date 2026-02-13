@@ -16,7 +16,7 @@
 #' # Named elements support character indexing
 #' tn <- tree_from(setNames(as.list(letters[1:3]), c("k1", "k2", "k3")))
 #' tn[["k2"]]
-#' @export
+#' @keywords internal
 # Runtime: O(n log n) by repeated right-add without full-tree validation scans.
 tree_from <- function(x, monoids = NULL) {
   ms <- if(is.null(monoids)) ensure_size_monoids(list(.size = size_measure_monoid())) else ensure_size_monoids(monoids)

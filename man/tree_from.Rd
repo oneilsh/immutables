@@ -31,3 +31,4 @@ attr(t2, "measures")
 tn <- tree_from(setNames(as.list(letters[1:3]), c("k1", "k2", "k3")))
 tn[["k2"]]
 }
+\keyword{internal}

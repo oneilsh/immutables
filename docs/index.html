@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>fingertree • fingertree</title>
+<title>fingertree • immutables</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -20,7 +20,7 @@
 
     <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
 
-    <a class="navbar-brand me-2" href="index.html">fingertree</a>
+    <a class="navbar-brand me-2" href="index.html">immutables</a>
 
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1</small>
 
@@ -37,6 +37,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
 </form></li>
+<li class="nav-item"><a class="nav-link" href="https://github.com/oneilsh/immutables/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -48,15 +49,45 @@
 <div class="page-header"><h1 id="monoid-annotated-2-3-finger-trees-in-r">Monoid-annotated 2-3 Finger Trees in R<a class="anchor" aria-label="anchor" href="#monoid-annotated-2-3-finger-trees-in-r"></a>
 </h1></div>
 <p>Alpha tests on monoid-annotated fingertrees in R. Please note that this repository is very much an alpha work-in-progress; code is inefficient, functionality is missing.</p>
+<div class="section level2">
+<h2 id="runtime-options">Runtime Options<a class="anchor" aria-label="anchor" href="#runtime-options"></a>
+</h2>
+<p>Two options are useful when benchmarking/debugging internals:</p>
+<ul>
+<li>
+<code>options(immutables.use_cpp = TRUE/FALSE)</code>
+<ul>
+<li>Enables/disables C++ fast paths for append/prepend/indexing/split/locate/concat.</li>
+<li>Default is <code>TRUE</code>.</li>
+</ul>
+</li>
+<li>
+<code>options(immutables.validate_monoids = TRUE/FALSE)</code>
+<ul>
+<li>Enables extra monoid normalization checks inside hot-path monoid resolution.</li>
+<li>Useful for debugging hand-mutated trees.</li>
+<li>Default is <code>FALSE</code> (fast path).</li>
+</ul>
+</li>
+</ul>
 <p><code>R/</code> - implementation files for the 2-3 finger tree and monoids.</p>
 <p><code>scripts/monoids_demo.R</code> - demo/exploration of monoid-annotated binary trees (not 2-3 finger trees).</p>
 <p><code>scripts/monoids_typed.R</code> - typed monoid/tree implementation using <code>lambda.r</code>.</p>
 <p><code>scripts/</code> - demo/experiment scripts for finger trees and plotting.</p>
 </div>
-  </main><aside class="col-md-3"><div class="license">
+</div>
+  </main><aside class="col-md-3"><div class="links">
+<h2 data-toc-skip>Links</h2>
+<ul class="list-unstyled">
+<li><a href="https://github.com/oneilsh/immutables/">Browse source code</a></li>
+</ul>
+</div>
+
+<div class="license">
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
-<li><a href="https://opensource.org/licenses/mit-license.php" class="external-link">MIT</a></li>
+<li><a href="LICENSE.html">Full license</a></li>
+<li><small><a href="https://opensource.org/licenses/mit-license.php" class="external-link">MIT</a> + file <a href="LICENSE-text.html">LICENSE</a></small></li>
 </ul>
 </div>
 
@@ -64,7 +95,7 @@
 <div class="citation">
 <h2 data-toc-skip>Citation</h2>
 <ul class="list-unstyled">
-<li><a href="authors.html#citation">Citing fingertree</a></li>
+<li><a href="authors.html#citation">Citing immutables</a></li>
 </ul>
 </div>
 

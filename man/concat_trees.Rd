@@ -32,3 +32,4 @@ b <- tree_from(4:5, monoids = list(sum = sum_m))
 t2 <- suppressWarnings(concat_trees(a, b))
 attr(t2, "measures")$sum
 }
+\keyword{internal}

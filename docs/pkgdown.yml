@@ -1,5 +1,8 @@
-pandoc: '0'
+pandoc: '3.9'
 pkgdown: 2.1.0
 pkgdown_sha: ~
 articles: {}
-last_built: 2026-02-13T00:56Z
+last_built: 2026-02-13T04:47Z
+urls:
+  reference: https://github.com/oneilsh/immutables/reference
+  article: https://github.com/oneilsh/immutables/articles

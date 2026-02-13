@@ -1,6 +1,7 @@
 Package: immutables
 Type: Package
 Title: Fast and Functional Data Structures
+URL: https://github.com/oneilsh/immutables
 Version: 0.0.1
 Authors@R: c(
     person(given = "Shawn T.", family = "O'Neil", email = "shawn@tislab.org", role = c("aut", "cre"))

@@ -19,7 +19,7 @@
 #' b <- tree_from(4:5, monoids = list(sum = sum_m))
 #' t2 <- suppressWarnings(concat_trees(a, b))
 #' attr(t2, "measures")$sum
-#' @export
+#' @keywords internal
 # Runtime: O(nx + ny) when monoid harmonization requires add_monoids passes;
 # otherwise concat spine work is near-logarithmic in boundary distance.
 concat_trees <- function(x, y) {

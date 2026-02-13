@@ -8,6 +8,13 @@
 \description{
 Monoid-annotated 2-3 finger trees.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/oneilsh/immutables}
+}
+
+}
 \author{
 \strong{Maintainer}: Shawn T. O'Neil \email{shawn@tislab.org}
 

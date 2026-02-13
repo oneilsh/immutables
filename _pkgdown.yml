@@ -1,3 +1,5 @@
+url: https://github.com/oneilsh/immutables
+
 template:
   bootstrap: 5
 
@@ -6,40 +8,48 @@ home:
   description: Monoid-annotated 2-3 finger trees for R
 
 reference:
-  - title: "Core API"
-    desc: "User-facing tree construction and updates"
+  - title: "flexseq API"
+    desc: "User-facing persistent sequence API"
     contents:
-      - empty_tree
-      - tree_from
+      - flexseq
+      - as_flexseq
       - prepend
       - append
-      - concat_trees
-      - add_monoids
-
-  - title: "Query API"
-    desc: "Folds and locate/split queries"
-    contents:
+      - "c.flexseq"
+      - "print.flexseq"
+      - "length.flexseq"
       - fold_left
       - fold_right
-      - locate
-      - split_tree
-      - split
-
-  - title: "Types"
-    desc: "Monoid and predicate constructors"
-    contents:
-      - MeasureMonoid
-      - Predicate
-
-  - title: "Indexing"
-    desc: "Vector-like extraction and replacement"
-    contents:
       - "[.FingerTree"
       - "[[.FingerTree"
       - "[<-.FingerTree"
       - "[[<-.FingerTree"
+      - "$.FingerTree"
+      - "$<-.FingerTree"
+      - "plot.flexseq"
 
-  - title: "Visualization"
+  - title: "priority_queue API"
+    desc: "Persistent priority queue API"
     contents:
+      - priority_queue
+      - as_priority_queue
+      - insert
+      - is_empty
+      - peek_min
+      - peek_max
+      - extract_min
+      - extract_max
+      - "print.priority_queue"
+
+  - title: "developer API"
+    desc: "Lower-level constructors, query primitives, and tooling"
+    contents:
+      - add_monoids
+      - locate
+      - split
+      - split_tree
+      - measure_monoid
+      - predicate
+      - validate_tree
+      - validate_name_state
       - get_graph_df
-      - plot_tree

@@ -24,26 +24,8 @@
 }
 
 # Runtime: O(1).
-.pq_set_next_seq <- function(q, next_seq) {
-  attr(q, "pq_next_seq") <- as.numeric(next_seq)
-  q
-}
-
-# Runtime: O(1).
 .pq_make_entry <- function(item, priority, seq_id) {
   list(item = item, priority = .pq_assert_priority(priority), seq_id = as.numeric(seq_id))
-}
-
-# Runtime: O(1).
-.pq_decode_item <- function(entry) {
-  .pq_assert_entry(entry)
-  entry[["item"]]
-}
-
-# Runtime: O(1).
-.pq_decode_priority <- function(entry) {
-  .pq_assert_entry(entry)
-  as.numeric(entry[["priority"]])
 }
 
 # Runtime: O(m), m = number of user monoids.
@@ -67,7 +49,8 @@
   if(is.null(next_seq)) {
     next_seq <- as.numeric(node_measure(x, ".size")) + 1
   }
-  .pq_set_next_seq(x, next_seq)
+  attr(x, "pq_next_seq") <- as.numeric(next_seq)
+  x
 }
 
 # Runtime: O(n log n) from underlying sequence construction.
@@ -206,7 +189,7 @@ is_empty <- function(q) {
   target <- node_measure(q, monoid_name)
   pred <- function(v) .pq_measure_equal(v, target)
   loc <- locate(q, pred, monoid_name)
-  .pq_decode_item(loc$elem)
+  loc$elem[["item"]]
 }
 
 # Runtime: O(log n) near split point depth.
@@ -224,8 +207,8 @@ is_empty <- function(q) {
   rest <- .as_priority_queue(rest, next_seq = .pq_next_seq(q))
 
   list(
-    element = .pq_decode_item(s$elem),
-    priority = .pq_decode_priority(s$elem),
+    element = s$elem[["item"]],
+    priority = as.numeric(s$elem[["priority"]]),
     queue = rest
   )
 }
@@ -284,15 +267,4 @@ extract_min <- function(q) {
 #' @export
 extract_max <- function(q) {
   .pq_extract(q, ".pq_max")
-}
-
-#' Priority Queue Length
-#'
-#' @method length priority_queue
-#' @param x A `priority_queue`.
-#' @return Number of entries.
-#' @export
-# Runtime: O(1) from cached `.size`.
-length.priority_queue <- function(x) {
-  as.integer(node_measure(x, ".size"))
 }

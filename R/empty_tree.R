@@ -9,7 +9,7 @@
 #' count_m <- MeasureMonoid(`+`, 0, function(el) 1)
 #' t2 <- empty_tree(monoids = list(count = count_m))
 #' attr(t2, "measures")
-#' @export
+#' @keywords internal
 # Runtime: O(1).
 empty_tree <- function(monoids = NULL) {
   ms <- if(is.null(monoids)) {

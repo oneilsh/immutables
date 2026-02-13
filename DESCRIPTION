@@ -1,11 +1,14 @@
-Package: fingertree
+Package: immutables
 Type: Package
-Title: Monoid-Annotated 2-3 Finger Trees
+Title: Fast and Functional Data Structures
 Version: 0.0.1
 Authors@R: c(
     person(given = "Shawn T.", family = "O'Neil", email = "shawn@tislab.org", role = c("aut", "cre"))
   )
-Description: Experimental implementation of monoid-annotated 2-3 finger trees in R.
+Description: Provides fast, side-effect free data structures, including
+    catenable named lists, priority queues, double-ended queues, and
+    more. Implemented as Monoid-Annotated 2-3 Finger Trees as described
+    by Hinze and Paterson.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

@@ -1,5 +1,5 @@
 # Runtime: O(1) fast-path; optional O(m) validation when
-# `options(fingertree.validate_monoids = TRUE)`.
+# `options(immutables.validate_monoids = TRUE)`.
 resolve_tree_monoids(t, required) %::% . : logical : .
 resolve_tree_monoids(t, required = FALSE) %as% {
   ms <- attr(t, "monoids", exact = TRUE)
@@ -9,7 +9,7 @@ resolve_tree_monoids(t, required = FALSE) %as% {
   if(is.null(ms)) {
     return(NULL)
   }
-  if(isTRUE(getOption("fingertree.validate_monoids", FALSE))) {
+  if(isTRUE(getOption("immutables.validate_monoids", FALSE))) {
     return(ensure_size_monoids(ms))
   }
   ms
@@ -63,7 +63,7 @@ emit_concat_assumption_warning(shared_names) %as% {
   )
   w <- structure(
     list(message = msg, call = NULL),
-    class = c("fingertree_monoid_assumption_warning", "warning", "condition")
+    class = c("immutables_monoid_assumption_warning", "warning", "condition")
   )
   warning(w)
 }

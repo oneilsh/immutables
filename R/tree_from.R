@@ -1,4 +1,4 @@
-#' Build a tree from a vector or list
+#' Build a Structural Tree from a Vector or List
 #'
 #' @param x Elements to insert.
 #' @param values Optional parallel values (same length as `x`).
@@ -103,14 +103,14 @@ tree_from <- function(x, values = NULL, monoids = NULL) {
 
   if(.ft_cpp_can_use(ms)) {
     if(is.null(v_list) && is.null(resolved_names)) {
-      return(.ft_cpp_tree_from(x_list, ms))
+      return(.as_flexseq(.ft_cpp_tree_from(x_list, ms)))
     }
-    return(.ft_cpp_tree_from_prepared(
+    return(.as_flexseq(.ft_cpp_tree_from_prepared(
       x_list,
       if(is.null(v_list)) NULL else v_list,
       if(is.null(resolved_names)) NULL else resolved_names,
       ms
-    ))
+    )))
   }
 
   if(is.null(v_list) && is.null(resolved_names)) {
@@ -118,7 +118,7 @@ tree_from <- function(x, values = NULL, monoids = NULL) {
     for(i in seq_along(x_list)) {
       t <- .add_right_fast(t, x_list[[i]], ms)
     }
-    return(t)
+    return(.as_flexseq(t))
   }
 
   if(!is.null(v_list) || !is.null(resolved_names)) {
@@ -139,5 +139,5 @@ tree_from <- function(x, values = NULL, monoids = NULL) {
   for(i in seq_along(x_list)) {
     t <- .add_right_fast(t, x_list[[i]], ms)
   }
-  t
+  .as_flexseq(t)
 }

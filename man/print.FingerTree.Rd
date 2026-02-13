@@ -33,9 +33,10 @@ Default `6`.}
 Print a compact summary of a finger tree
 }
 \examples{
-t <- tree_from(letters[1:10])
+t <- as_flexseq(letters[1:10])
 t
 
-tn <- tree_from(setNames(as.list(1:5), paste0("k", 1:5)))
+tn <- as_flexseq(setNames(as.list(1:5), paste0("k", 1:5)))
 tn
 }
+\keyword{internal}

@@ -184,7 +184,7 @@ draw_tree(t) %as% {
 
 
 # a monoid search predicate is a function
-Predicate(f) %as% Function(f)
+predicate(f) %as% Function(f)
 
 # # 
 # search_in(t, p, m) %::% Leaf : Predicate : Monoid : .
@@ -253,7 +253,7 @@ draw_tree(t1)
 # p <- function(tag) {tag > 4}
 # p(3) => F
 # p(5) => T
-p <- Predicate(function(tag) {tag >= 14})
+p <- predicate(function(tag) {tag >= 14})
 print(search_in(t1, p, adder))
 
 
@@ -284,7 +284,7 @@ draw_tree(t1)
 # p <- function(tag) {tag > 4}
 # p(3) => F
 # p(5) => T
-p <- Predicate(function(tag) {tag == t1$tag})
+p <- predicate(function(tag) {tag == t1$tag})
 print(search_in(t1, p, minner))
 
 

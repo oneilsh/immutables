@@ -13,7 +13,7 @@
 #' t2 <- tree_from(letters[1:10])
 #' gdf2 <- get_graph_df(t2)
 #' nrow(gdf2[[2]])
-#' @export
+#' @keywords internal
 # Runtime: O(n) over tree nodes/elements.
 get_graph_df <- function(t) {
   edge_rows <- list()
@@ -120,7 +120,7 @@ get_graph_df <- function(t) {
 #' t2 <- tree_from(letters[1:12])
 #' plot_tree(t2, node_label = "both", vertex.size = 8)
 #' }
-#' @export
+#' @keywords internal
 # Runtime: O(n) to build graph structures prior to plotting.
 plot_tree <- function(t1, vertex.size = 4, edge.width = 1, label_edges = FALSE, title = NULL,
                       node_label = c("value", "type", "both", "none"), ...) {

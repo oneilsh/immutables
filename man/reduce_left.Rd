@@ -18,10 +18,10 @@ Reduced value.
 Reduce from the left
 }
 \examples{
-t <- tree_from(1:5)
-sum_m <- MeasureMonoid(`+`, 0, as.numeric)
+t <- as_flexseq(1:5)
+sum_m <- measure_monoid(`+`, 0, as.numeric)
 reduce_left(t, sum_m)
 
-cat_m <- MeasureMonoid(paste0, "", as.character)
-reduce_left(tree_from(letters[1:4]), cat_m)
+cat_m <- measure_monoid(paste0, "", as.character)
+reduce_left(as_flexseq(letters[1:4]), cat_m)
 }

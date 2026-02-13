@@ -2,7 +2,7 @@
 % Please edit documentation in R/concat_trees.R
 \name{concat_trees}
 \alias{concat_trees}
-\title{Concatenate two trees}
+\title{Concatenate Two Structural Trees}
 \usage{
 concat_trees(x, y)
 }

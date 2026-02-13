@@ -20,26 +20,26 @@ if(requireNamespace("devtools", quietly = TRUE)) {
   if(requireNamespace("devtools", quietly = TRUE)) {
     devtools::load_all(quiet = TRUE)
   } else {
-    library(fingertree)
+    library(immutables)
   }
 
   set.seed(seed)
 
   # Always use C++ for setup so the probe isolates replacement behavior.
-  options(fingertree.use_cpp = TRUE)
+  options(immutables.use_cpp = TRUE)
   if(named) {
     vals <- as.list(seq_len(n))
     names(vals) <- paste0("k", seq_len(n))
-    t <- tree_from(vals)
+    t <- as_flexseq(vals)
     idx <- sample(names(vals), width, replace = TRUE)
     repl <- as.list(seq_len(width) + n)
   } else {
-    t <- tree_from(as.list(seq_len(n)))
+    t <- as_flexseq(as.list(seq_len(n)))
     idx <- sample.int(n, width, replace = TRUE)
     repl <- as.list(seq_len(width) + n)
   }
 
-  options(fingertree.use_cpp = use_cpp_runtime)
+  options(immutables.use_cpp = use_cpp_runtime)
   tm <- system.time({
     t[idx] <- repl
   })
@@ -55,24 +55,24 @@ if(requireNamespace("devtools", quietly = TRUE)) {
           if(requireNamespace("devtools", quietly = TRUE)) {
             devtools::load_all(quiet = TRUE)
           } else {
-            library(fingertree)
+            library(immutables)
           }
 
           set.seed(seed)
-          options(fingertree.use_cpp = TRUE)
+          options(immutables.use_cpp = TRUE)
           if(isTRUE(named)) {
             vals <- as.list(seq_len(n))
             names(vals) <- paste0("k", seq_len(n))
-            t <- tree_from(vals)
+            t <- as_flexseq(vals)
             idx <- sample(names(vals), width, replace = TRUE)
             repl <- as.list(seq_len(width) + n)
           } else {
-            t <- tree_from(as.list(seq_len(n)))
+            t <- as_flexseq(as.list(seq_len(n)))
             idx <- sample.int(n, width, replace = TRUE)
             repl <- as.list(seq_len(width) + n)
           }
 
-          options(fingertree.use_cpp = isTRUE(use_cpp_runtime))
+          options(immutables.use_cpp = isTRUE(use_cpp_runtime))
           tm <- system.time({
             t[idx] <- repl
           })

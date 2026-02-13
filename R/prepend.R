@@ -5,16 +5,16 @@
 #' @return Updated tree.
 #'   If `t` is name-indexed, prepending unnamed elements is invalid.
 #' @examples
-#' t <- tree_from(letters[2:4])
+#' t <- as_flexseq(letters[2:4])
 #' t2 <- prepend(t, "a")
 #' t2[[1]]
 #'
 #' # Compose with append and reduce
-#' cat_m <- MeasureMonoid(paste0, "", as.character)
-#' reduce_left(append(t2, "z"), cat_m)
+#' cat_m <- measure_monoid(paste0, "", as.character)
+#' fold_left(append(t2, "z"), cat_m)
 #'
 #' # Prepend to a named tree with an explicit element name
-#' tn <- tree_from(setNames(as.list(2:3), c("b", "c")))
+#' tn <- as_flexseq(setNames(as.list(2:3), c("b", "c")))
 #' tn2 <- prepend(tn, stats::setNames(1, "a"))
 #' tn2[["a"]]
 #' @export
@@ -44,15 +44,15 @@ prepend <- function(t, x) {
     }
     if(is.null(nm)) {
       if(.ft_cpp_can_use(ms)) {
-        return(.ft_cpp_add_left(t, x2, ms))
+        return(.as_flexseq(.ft_cpp_add_left(t, x2, ms)))
       }
-      return(.add_left_fast(t, x2, ms))
+      return(.as_flexseq(.add_left_fast(t, x2, ms)))
     }
     if(n > 0L) {
       stop("Cannot mix named and unnamed elements (prepend would create mixed named and unnamed tree).")
     }
     if(.ft_cpp_can_use(ms)) {
-      return(.ft_cpp_add_left_named(t, x, nm, ms))
+      return(.as_flexseq(.ft_cpp_add_left_named(t, x, nm, ms)))
     }
     x2 <- .ft_set_name(x2, nm)
   } else {
@@ -61,13 +61,13 @@ prepend <- function(t, x) {
       stop("Cannot mix named and unnamed elements (prepend would create mixed named and unnamed tree).")
     }
     if(.ft_cpp_can_use(ms)) {
-      return(.ft_cpp_add_left_named(t, x, nm, ms))
+      return(.as_flexseq(.ft_cpp_add_left_named(t, x, nm, ms)))
     }
     x2 <- .ft_set_name(x2, nm)
   }
 
   if(.ft_cpp_can_use(ms)) {
-    return(.ft_cpp_add_left(t, x2, ms))
+    return(.as_flexseq(.ft_cpp_add_left(t, x2, ms)))
   }
-  .add_left_fast(t, x2, ms)
+  .as_flexseq(.add_left_fast(t, x2, ms))
 }

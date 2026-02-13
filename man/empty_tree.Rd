@@ -2,7 +2,7 @@
 % Please edit documentation in R/empty_tree.R
 \name{empty_tree}
 \alias{empty_tree}
-\title{Create an empty finger tree}
+\title{Create an Empty Structural Tree}
 \usage{
 empty_tree(monoids = NULL)
 }
@@ -13,7 +13,7 @@ empty_tree(monoids = NULL)
 An empty finger tree with structural `monoids` and `measures` attrs.
 }
 \description{
-Create an empty finger tree
+Create an Empty Structural Tree
 }
 \examples{
 t <- empty_tree()

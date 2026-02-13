@@ -1,5 +1,5 @@
 testthat::test_that("locate finds same distinguished element as split_tree", {
-  t <- tree_from(letters[1:8])
+  t <- as_flexseq(letters[1:8])
 
   l <- locate(t, function(v) v >= 5, ".size")
   s <- split_tree(t, function(v) v >= 5, ".size")
@@ -9,7 +9,7 @@ testthat::test_that("locate finds same distinguished element as split_tree", {
 })
 
 testthat::test_that("locate metadata for .size is symmetric", {
-  t <- tree_from(letters[1:6])
+  t <- as_flexseq(letters[1:6])
 
   l <- locate(t, function(v) v >= 4, ".size", include_metadata = TRUE)
 
@@ -22,8 +22,8 @@ testthat::test_that("locate metadata for .size is symmetric", {
 })
 
 testthat::test_that("locate metadata works with non-size monoid and .size index", {
-  sum_m <- MeasureMonoid(`+`, 0, as.numeric)
-  t <- tree_from(1:6, monoids = list(sum = sum_m))
+  sum_m <- measure_monoid(`+`, 0, as.numeric)
+  t <- as_flexseq(1:6, monoids = list(sum = sum_m))
 
   l <- locate(t, function(v) v >= 10, "sum", include_metadata = TRUE)
 
@@ -36,7 +36,7 @@ testthat::test_that("locate metadata works with non-size monoid and .size index"
 })
 
 testthat::test_that("locate returns not-found without reconstruction", {
-  t <- tree_from(letters[1:5])
+  t <- as_flexseq(letters[1:5])
 
   l <- locate(t, function(v) v >= 99, ".size")
   testthat::expect_false(l$found)

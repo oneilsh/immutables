@@ -1,4 +1,4 @@
-#' Create an empty finger tree
+#' Create an Empty Structural Tree
 #'
 #' @param monoids Optional named list of `MeasureMonoid` objects.
 #' @return An empty finger tree with structural `monoids` and `measures` attrs.

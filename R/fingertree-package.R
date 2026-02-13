@@ -1,4 +1,4 @@
-#' fingertree
+#' immutables
 #'
 #' Monoid-annotated 2-3 finger trees.
 #'
@@ -7,5 +7,5 @@
 #' @import rlist
 #' @import igraph
 #' @importFrom Rcpp evalCpp
-#' @useDynLib fingertree, .registration = TRUE
+#' @useDynLib immutables, .registration = TRUE
 "_PACKAGE"

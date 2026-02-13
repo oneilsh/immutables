@@ -62,12 +62,12 @@
 #' @param ... Passed through to `print()` for preview elements.
 #' @return `x`, invisibly.
 #' @examples
-#' t <- tree_from(letters[1:10])
+#' t <- as_flexseq(letters[1:10])
 #' t
 #'
-#' tn <- tree_from(setNames(as.list(1:5), paste0("k", 1:5)))
+#' tn <- as_flexseq(setNames(as.list(1:5), paste0("k", 1:5)))
 #' tn
-#' @export
+#' @keywords internal
 # Runtime: O(min(n, max_elements) + h) for preview extraction where h is
 # traversed structural overhead; avoids full-tree flattening.
 print.FingerTree <- function(x, max_elements = 6L, show_internal_monoids = FALSE, ...) {
@@ -109,9 +109,20 @@ print.FingerTree <- function(x, max_elements = 6L, show_internal_monoids = FALSE
   invisible(x)
 }
 
+#' Print a flexseq
+#'
+#' @method print flexseq
+#' @param x A `flexseq`.
+#' @param ... Passed through to `print.FingerTree`.
+#' @export
+# Runtime: Delegates to `print.FingerTree`.
+print.flexseq <- function(x, ...) {
+  print.FingerTree(x, ...)
+}
+
 #' @rdname print.FingerTree
 #' @method print Deep
-#' @export
+#' @keywords internal
 # Runtime: Delegates to `print.FingerTree`.
 print.Deep <- function(x, ...) {
   print.FingerTree(x, ...)
@@ -119,7 +130,7 @@ print.Deep <- function(x, ...) {
 
 #' @rdname print.FingerTree
 #' @method print Single
-#' @export
+#' @keywords internal
 # Runtime: Delegates to `print.FingerTree`.
 print.Single <- function(x, ...) {
   print.FingerTree(x, ...)
@@ -127,7 +138,7 @@ print.Single <- function(x, ...) {
 
 #' @rdname print.FingerTree
 #' @method print Empty
-#' @export
+#' @keywords internal
 # Runtime: Delegates to `print.FingerTree`.
 print.Empty <- function(x, ...) {
   print.FingerTree(x, ...)

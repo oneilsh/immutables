@@ -26,3 +26,4 @@ t2 <- tree_from(letters[1:10])
 gdf2 <- get_graph_df(t2)
 nrow(gdf2[[2]])
 }
+\keyword{internal}

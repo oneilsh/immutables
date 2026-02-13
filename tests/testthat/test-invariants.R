@@ -64,8 +64,8 @@ validate_fingertree_invariants <- function(t) {
 }
 
 testthat::test_that("structural invariants hold after mixed updates", {
-  mr <- MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
-  t <- empty_tree(monoids = list(count = mr))
+  mr <- measure_monoid(function(a, b) a + b, 0, function(el) 1)
+  t <- flexseq(monoids = list(count = mr))
   for(i in 1:30) {
     if(i %% 2 == 0) {
       t <- append(t, letters[i %% 26 + 1])
@@ -77,12 +77,12 @@ testthat::test_that("structural invariants hold after mixed updates", {
 })
 
 testthat::test_that("structural invariants hold after concat and split", {
-  mr <- MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
-  t1 <- tree_from(letters[1:12], monoids = list(count = mr))
-  t2 <- tree_from(letters[13:20], monoids = list(count = mr))
+  mr <- measure_monoid(function(a, b) a + b, 0, function(el) 1)
+  t1 <- as_flexseq(letters[1:12], monoids = list(count = mr))
+  t2 <- as_flexseq(letters[13:20], monoids = list(count = mr))
   testthat::expect_warning(
-    t <- concat_trees(t1, t2),
-    class = "fingertree_monoid_assumption_warning"
+    t <- c(t1, t2),
+    class = "immutables_monoid_assumption_warning"
   )
   validate_fingertree_invariants(t)
 
@@ -92,8 +92,8 @@ testthat::test_that("structural invariants hold after concat and split", {
 })
 
 testthat::test_that("measured deep trees retain root measure through updates", {
-  mr <- MeasureMonoid(function(a, b) a + b, 0, function(el) 1)
-  t <- tree_from(letters[1:10], monoids = list(count = mr))
+  mr <- measure_monoid(function(a, b) a + b, 0, function(el) 1)
+  t <- as_flexseq(letters[1:10], monoids = list(count = mr))
   t <- prepend(t, "z")
   t <- append(t, "y")
   testthat::expect_identical(attr(t, "measures")$.size, 12)

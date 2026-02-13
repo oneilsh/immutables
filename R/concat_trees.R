@@ -1,4 +1,4 @@
-#' Concatenate two trees
+#' Concatenate Two Structural Trees
 #'
 #' Same-name monoids are assumed equivalent; left-tree definitions win.
 #' Missing monoids are added to each side before concatenation.
@@ -44,8 +44,8 @@ concat_trees <- function(x, y) {
   merged <- ensure_size_monoids(merged)
 
   if(.ft_cpp_can_use(merged)) {
-    return(.ft_cpp_concat(x2, y2, merged))
+    return(.as_flexseq(.ft_cpp_concat(x2, y2, merged)))
   }
 
-  concat(x2, y2, merged)
+  .as_flexseq(concat(x2, y2, merged))
 }

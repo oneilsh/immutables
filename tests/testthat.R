@@ -1,4 +1,4 @@
 library(testthat)
-library(fingertree)
+library(immutables)
 
-test_check("fingertree")
+test_check("immutables")

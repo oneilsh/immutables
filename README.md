@@ -7,10 +7,10 @@ inefficient, functionality is missing.
 
 Two options are useful when benchmarking/debugging internals:
 
-- `options(fingertree.use_cpp = TRUE/FALSE)`
+- `options(immutables.use_cpp = TRUE/FALSE)`
   - Enables/disables C++ fast paths for append/prepend/indexing/split/locate/concat.
   - Default is `TRUE`.
-- `options(fingertree.validate_monoids = TRUE/FALSE)`
+- `options(immutables.validate_monoids = TRUE/FALSE)`
   - Enables extra monoid normalization checks inside hot-path monoid resolution.
   - Useful for debugging hand-mutated trees.
   - Default is `FALSE` (fast path).

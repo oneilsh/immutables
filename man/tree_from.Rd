@@ -2,7 +2,7 @@
 % Please edit documentation in R/tree_from.R
 \name{tree_from}
 \alias{tree_from}
-\title{Build a tree from a vector or list}
+\title{Build a Structural Tree from a Vector or List}
 \usage{
 tree_from(x, values = NULL, monoids = NULL)
 }
@@ -19,7 +19,7 @@ A finger tree with cached measures for all monoids.
   complete (no missing/empty names) and unique.
 }
 \description{
-Build a tree from a vector or list
+Build a Structural Tree from a Vector or List
 }
 \examples{
 t <- tree_from(letters[1:4])

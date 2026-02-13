@@ -67,12 +67,12 @@ reduce_right_impl(t, r) %as% {
 #' @param monoid A `MeasureMonoid` object.
 #' @return Reduced value.
 #' @examples
-#' t <- tree_from(1:5)
-#' sum_m <- MeasureMonoid(`+`, 0, as.numeric)
+#' t <- as_flexseq(1:5)
+#' sum_m <- measure_monoid(`+`, 0, as.numeric)
 #' reduce_right(t, sum_m)
 #'
-#' cat_m <- MeasureMonoid(paste0, "", as.character)
-#' reduce_right(tree_from(letters[1:4]), cat_m)
+#' cat_m <- measure_monoid(paste0, "", as.character)
+#' reduce_right(as_flexseq(letters[1:4]), cat_m)
 #' @export
 # Runtime: O(n) over number of elements.
 reduce_right <- function(t, monoid) {

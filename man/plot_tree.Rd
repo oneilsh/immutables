@@ -41,3 +41,4 @@ t2 <- tree_from(letters[1:12])
 plot_tree(t2, node_label = "both", vertex.size = 8)
 }
 }
+\keyword{internal}

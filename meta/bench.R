@@ -10,8 +10,8 @@ if(requireNamespace("devtools", quietly = TRUE)) {
 bench_default <- function(n = 2000, use_cpp = TRUE) {
   message("== default monoids, unnamed elements ==")
   timing <- system.time({
-    options(fingertree.use_cpp = use_cpp)
-    t <- empty_tree()
+    options(immutables.use_cpp = use_cpp)
+    t <- flexseq()
     for(i in seq_len(n)) {
       t <- append(t, i)
       if(i %% 100 == 0) print(i)
@@ -23,10 +23,10 @@ bench_default <- function(n = 2000, use_cpp = TRUE) {
 
 bench_custom_monoid <- function(n = 2000, use_cpp = TRUE) {
   message("== custom monoid, unnamed elements ==")
-  sum_m <- MeasureMonoid(function(a, b) a + b, 0, function(el) as.numeric(el))
+  sum_m <- measure_monoid(function(a, b) a + b, 0, function(el) as.numeric(el))
   timing <- system.time({
-    options(fingertree.use_cpp = use_cpp)
-    t <- empty_tree(monoids = list(sum = sum_m))
+    options(immutables.use_cpp = use_cpp)
+    t <- flexseq(monoids = list(sum = sum_m))
     for(i in seq_len(n)) {
       t <- append(t, i)
       if(i %% 100 == 0) print(i)
@@ -39,8 +39,8 @@ bench_custom_monoid <- function(n = 2000, use_cpp = TRUE) {
 bench_named <- function(n = 2000, use_cpp = TRUE) {
   message("== default monoids, named elements ==")
   timing <- system.time({
-    options(fingertree.use_cpp = use_cpp)
-    t <- empty_tree()
+    options(immutables.use_cpp = use_cpp)
+    t <- flexseq()
     for(i in seq_len(n)) {
       t <- append(t, stats::setNames(i, paste0("k", i)))
       if(i %% 100 == 0) print(i)
@@ -52,10 +52,10 @@ bench_named <- function(n = 2000, use_cpp = TRUE) {
 
 bench_named_custom_monoid <- function(n = 2000, use_cpp = TRUE) {
   message("== custom monoid, named elements ==")
-  sum_m <- MeasureMonoid(function(a, b) a + b, 0, function(el) as.numeric(el))
+  sum_m <- measure_monoid(function(a, b) a + b, 0, function(el) as.numeric(el))
   timing <- system.time({
-    options(fingertree.use_cpp = use_cpp)
-    t <- empty_tree(monoids = list(sum = sum_m))
+    options(immutables.use_cpp = use_cpp)
+    t <- flexseq(monoids = list(sum = sum_m))
     for(i in seq_len(n)) {
       t <- append(t, stats::setNames(i, paste0("k", i)))
       if(i %% 100 == 0) print(i)
@@ -69,8 +69,8 @@ bench_tree_from_default <- function(n = 2000, use_cpp = TRUE) {
   message("== tree_from default monoids, unnamed elements ==")
   x <- as.list(seq_len(n))
   timing <- system.time({
-    options(fingertree.use_cpp = use_cpp)
-    t <- tree_from(x)
+    options(immutables.use_cpp = use_cpp)
+    t <- as_flexseq(x)
   })
   print(timing)
   timing
@@ -79,10 +79,10 @@ bench_tree_from_default <- function(n = 2000, use_cpp = TRUE) {
 bench_tree_from_custom_monoid <- function(n = 2000, use_cpp = TRUE) {
   message("== tree_from custom monoid, unnamed elements ==")
   x <- as.list(seq_len(n))
-  sum_m <- MeasureMonoid(function(a, b) a + b, 0, function(el) as.numeric(el))
+  sum_m <- measure_monoid(function(a, b) a + b, 0, function(el) as.numeric(el))
   timing <- system.time({
-    options(fingertree.use_cpp = use_cpp)
-    t <- tree_from(x, monoids = list(sum = sum_m))
+    options(immutables.use_cpp = use_cpp)
+    t <- as_flexseq(x, monoids = list(sum = sum_m))
   })
   print(timing)
   timing
@@ -93,8 +93,8 @@ bench_tree_from_named <- function(n = 2000, use_cpp = TRUE) {
   x <- as.list(seq_len(n))
   names(x) <- paste0("k", seq_len(n))
   timing <- system.time({
-    options(fingertree.use_cpp = use_cpp)
-    t <- tree_from(x)
+    options(immutables.use_cpp = use_cpp)
+    t <- as_flexseq(x)
   })
   print(timing)
   timing
@@ -104,10 +104,10 @@ bench_tree_from_named_custom_monoid <- function(n = 2000, use_cpp = TRUE) {
   message("== tree_from custom monoid, named elements ==")
   x <- as.list(seq_len(n))
   names(x) <- paste0("k", seq_len(n))
-  sum_m <- MeasureMonoid(function(a, b) a + b, 0, function(el) as.numeric(el))
+  sum_m <- measure_monoid(function(a, b) a + b, 0, function(el) as.numeric(el))
   timing <- system.time({
-    options(fingertree.use_cpp = use_cpp)
-    t <- tree_from(x, monoids = list(sum = sum_m))
+    options(immutables.use_cpp = use_cpp)
+    t <- as_flexseq(x, monoids = list(sum = sum_m))
   })
   print(timing)
   timing
@@ -115,12 +115,12 @@ bench_tree_from_named_custom_monoid <- function(n = 2000, use_cpp = TRUE) {
 
 bench_concat_default <- function(n = 2000, reps = 500, use_cpp = TRUE) {
   message("== concat default monoids, unnamed elements ==")
-  left <- tree_from(as.list(seq_len(n)))
-  right <- tree_from(as.list(seq_len(n) + n))
+  left <- as_flexseq(as.list(seq_len(n)))
+  right <- as_flexseq(as.list(seq_len(n) + n))
   timing <- system.time({
-    options(fingertree.use_cpp = use_cpp)
+    options(immutables.use_cpp = use_cpp)
     for(i in seq_len(reps)) {
-      t <- concat_trees(left, right)
+      t <- c(left, right)
       if(i %% 100 == 0) print(i)
     }
   })
@@ -130,13 +130,13 @@ bench_concat_default <- function(n = 2000, reps = 500, use_cpp = TRUE) {
 
 bench_concat_custom_monoid <- function(n = 2000, reps = 500, use_cpp = TRUE) {
   message("== concat custom monoid, unnamed elements ==")
-  sum_m <- MeasureMonoid(function(a, b) a + b, 0, function(el) as.numeric(el))
-  left <- tree_from(as.list(seq_len(n)), monoids = list(sum = sum_m))
-  right <- tree_from(as.list(seq_len(n) + n), monoids = list(sum = sum_m))
+  sum_m <- measure_monoid(function(a, b) a + b, 0, function(el) as.numeric(el))
+  left <- as_flexseq(as.list(seq_len(n)), monoids = list(sum = sum_m))
+  right <- as_flexseq(as.list(seq_len(n) + n), monoids = list(sum = sum_m))
   timing <- system.time({
-    options(fingertree.use_cpp = use_cpp)
+    options(immutables.use_cpp = use_cpp)
     for(i in seq_len(reps)) {
-      t <- suppressWarnings(concat_trees(left, right))
+      t <- suppressWarnings(c(left, right))
       if(i %% 100 == 0) print(i)
     }
   })
@@ -150,12 +150,12 @@ bench_concat_named <- function(n = 2000, reps = 500, use_cpp = TRUE) {
   names(left_vals) <- paste0("l", seq_len(n))
   right_vals <- as.list(seq_len(n) + n)
   names(right_vals) <- paste0("r", seq_len(n))
-  left <- tree_from(left_vals)
-  right <- tree_from(right_vals)
+  left <- as_flexseq(left_vals)
+  right <- as_flexseq(right_vals)
   timing <- system.time({
-    options(fingertree.use_cpp = use_cpp)
+    options(immutables.use_cpp = use_cpp)
     for(i in seq_len(reps)) {
-      t <- concat_trees(left, right)
+      t <- c(left, right)
       if(i %% 100 == 0) print(i)
     }
   })
@@ -165,17 +165,17 @@ bench_concat_named <- function(n = 2000, reps = 500, use_cpp = TRUE) {
 
 bench_concat_named_custom_monoid <- function(n = 2000, reps = 500, use_cpp = TRUE) {
   message("== concat custom monoid, named elements ==")
-  sum_m <- MeasureMonoid(function(a, b) a + b, 0, function(el) as.numeric(el))
+  sum_m <- measure_monoid(function(a, b) a + b, 0, function(el) as.numeric(el))
   left_vals <- as.list(seq_len(n))
   names(left_vals) <- paste0("l", seq_len(n))
   right_vals <- as.list(seq_len(n) + n)
   names(right_vals) <- paste0("r", seq_len(n))
-  left <- tree_from(left_vals, monoids = list(sum = sum_m))
-  right <- tree_from(right_vals, monoids = list(sum = sum_m))
+  left <- as_flexseq(left_vals, monoids = list(sum = sum_m))
+  right <- as_flexseq(right_vals, monoids = list(sum = sum_m))
   timing <- system.time({
-    options(fingertree.use_cpp = use_cpp)
+    options(immutables.use_cpp = use_cpp)
     for(i in seq_len(reps)) {
-      t <- suppressWarnings(concat_trees(left, right))
+      t <- suppressWarnings(c(left, right))
       if(i %% 100 == 0) print(i)
     }
   })
@@ -185,10 +185,10 @@ bench_concat_named_custom_monoid <- function(n = 2000, reps = 500, use_cpp = TRU
 
 bench_locate_default <- function(n = 3000, queries = 200, use_cpp = TRUE) {
   message("== locate default monoids, unnamed elements ==")
-  t <- tree_from(as.list(seq_len(n)))
+  t <- as_flexseq(as.list(seq_len(n)))
   idx <- sample.int(n, queries, replace = TRUE)
   timing <- system.time({
-    options(fingertree.use_cpp = use_cpp)
+    options(immutables.use_cpp = use_cpp)
     for(i in idx) {
       x <- locate(t, function(v) v >= i, ".size")
     }
@@ -199,12 +199,12 @@ bench_locate_default <- function(n = 3000, queries = 200, use_cpp = TRUE) {
 
 bench_locate_custom_monoid <- function(n = 3000, queries = 200, use_cpp = TRUE) {
   message("== locate custom monoid, unnamed elements ==")
-  sum_m <- MeasureMonoid(function(a, b) a + b, 0, function(el) as.numeric(el))
-  t <- tree_from(as.list(seq_len(n)), monoids = list(sum = sum_m))
+  sum_m <- measure_monoid(function(a, b) a + b, 0, function(el) as.numeric(el))
+  t <- as_flexseq(as.list(seq_len(n)), monoids = list(sum = sum_m))
   idx <- sample.int(n, queries, replace = TRUE)
   targets <- cumsum(seq_len(n))[idx]
   timing <- system.time({
-    options(fingertree.use_cpp = use_cpp)
+    options(immutables.use_cpp = use_cpp)
     for(target in targets) {
       x <- locate(t, function(v) v >= target, "sum")
     }
@@ -215,14 +215,14 @@ bench_locate_custom_monoid <- function(n = 3000, queries = 200, use_cpp = TRUE) 
 
 bench_locate_custom_monoid_named <- function(n = 3000, queries = 200, use_cpp = TRUE) {
   message("== locate custom monoid, named elements ==")
-  sum_m <- MeasureMonoid(function(a, b) a + b, 0, function(el) as.numeric(el))
+  sum_m <- measure_monoid(function(a, b) a + b, 0, function(el) as.numeric(el))
   vals <- as.list(seq_len(n))
   names(vals) <- paste0("k", seq_len(n))
-  t <- tree_from(vals, monoids = list(sum = sum_m))
+  t <- as_flexseq(vals, monoids = list(sum = sum_m))
   idx <- sample.int(n, queries, replace = TRUE)
   targets <- cumsum(seq_len(n))[idx]
   timing <- system.time({
-    options(fingertree.use_cpp = use_cpp)
+    options(immutables.use_cpp = use_cpp)
     for(target in targets) {
       x <- locate(t, function(v) v >= target, "sum")
     }
@@ -233,10 +233,10 @@ bench_locate_custom_monoid_named <- function(n = 3000, queries = 200, use_cpp = 
 
 bench_split_tree_default <- function(n = 3000, queries = 200, use_cpp = TRUE) {
   message("== split_tree default monoids, unnamed elements ==")
-  t <- tree_from(as.list(seq_len(n)))
+  t <- as_flexseq(as.list(seq_len(n)))
   idx <- sample.int(n, queries, replace = TRUE)
   timing <- system.time({
-    options(fingertree.use_cpp = use_cpp)
+    options(immutables.use_cpp = use_cpp)
     for(i in idx) {
       s <- split_tree(t, function(v) v >= i, ".size")
     }
@@ -247,12 +247,12 @@ bench_split_tree_default <- function(n = 3000, queries = 200, use_cpp = TRUE) {
 
 bench_split_tree_custom_monoid <- function(n = 3000, queries = 200, use_cpp = TRUE) {
   message("== split_tree custom monoid, unnamed elements ==")
-  sum_m <- MeasureMonoid(function(a, b) a + b, 0, function(el) as.numeric(el))
-  t <- tree_from(as.list(seq_len(n)), monoids = list(sum = sum_m))
+  sum_m <- measure_monoid(function(a, b) a + b, 0, function(el) as.numeric(el))
+  t <- as_flexseq(as.list(seq_len(n)), monoids = list(sum = sum_m))
   idx <- sample.int(n, queries, replace = TRUE)
   targets <- cumsum(seq_len(n))[idx]
   timing <- system.time({
-    options(fingertree.use_cpp = use_cpp)
+    options(immutables.use_cpp = use_cpp)
     for(target in targets) {
       s <- split_tree(t, function(v) v >= target, "sum")
     }
@@ -263,14 +263,14 @@ bench_split_tree_custom_monoid <- function(n = 3000, queries = 200, use_cpp = TR
 
 bench_split_tree_custom_monoid_named <- function(n = 3000, queries = 200, use_cpp = TRUE) {
   message("== split_tree custom monoid, named elements ==")
-  sum_m <- MeasureMonoid(function(a, b) a + b, 0, function(el) as.numeric(el))
+  sum_m <- measure_monoid(function(a, b) a + b, 0, function(el) as.numeric(el))
   vals <- as.list(seq_len(n))
   names(vals) <- paste0("k", seq_len(n))
-  t <- tree_from(vals, monoids = list(sum = sum_m))
+  t <- as_flexseq(vals, monoids = list(sum = sum_m))
   idx <- sample.int(n, queries, replace = TRUE)
   targets <- cumsum(seq_len(n))[idx]
   timing <- system.time({
-    options(fingertree.use_cpp = use_cpp)
+    options(immutables.use_cpp = use_cpp)
     for(target in targets) {
       s <- split_tree(t, function(v) v >= target, "sum")
     }
@@ -281,10 +281,10 @@ bench_split_tree_custom_monoid_named <- function(n = 3000, queries = 200, use_cp
 
 bench_split_default <- function(n = 3000, queries = 200, use_cpp = TRUE) {
   message("== split default monoids, unnamed elements ==")
-  t <- tree_from(as.list(seq_len(n)))
+  t <- as_flexseq(as.list(seq_len(n)))
   idx <- sample.int(n, queries, replace = TRUE)
   timing <- system.time({
-    options(fingertree.use_cpp = use_cpp)
+    options(immutables.use_cpp = use_cpp)
     for(i in idx) {
       s <- split(t, function(v) v >= i, ".size")
     }
@@ -295,12 +295,12 @@ bench_split_default <- function(n = 3000, queries = 200, use_cpp = TRUE) {
 
 bench_split_custom_monoid <- function(n = 3000, queries = 200, use_cpp = TRUE) {
   message("== split custom monoid, unnamed elements ==")
-  sum_m <- MeasureMonoid(function(a, b) a + b, 0, function(el) as.numeric(el))
-  t <- tree_from(as.list(seq_len(n)), monoids = list(sum = sum_m))
+  sum_m <- measure_monoid(function(a, b) a + b, 0, function(el) as.numeric(el))
+  t <- as_flexseq(as.list(seq_len(n)), monoids = list(sum = sum_m))
   idx <- sample.int(n, queries, replace = TRUE)
   targets <- cumsum(seq_len(n))[idx]
   timing <- system.time({
-    options(fingertree.use_cpp = use_cpp)
+    options(immutables.use_cpp = use_cpp)
     for(target in targets) {
       s <- split(t, function(v) v >= target, "sum")
     }
@@ -311,14 +311,14 @@ bench_split_custom_monoid <- function(n = 3000, queries = 200, use_cpp = TRUE) {
 
 bench_split_custom_monoid_named <- function(n = 3000, queries = 200, use_cpp = TRUE) {
   message("== split custom monoid, named elements ==")
-  sum_m <- MeasureMonoid(function(a, b) a + b, 0, function(el) as.numeric(el))
+  sum_m <- measure_monoid(function(a, b) a + b, 0, function(el) as.numeric(el))
   vals <- as.list(seq_len(n))
   names(vals) <- paste0("k", seq_len(n))
-  t <- tree_from(vals, monoids = list(sum = sum_m))
+  t <- as_flexseq(vals, monoids = list(sum = sum_m))
   idx <- sample.int(n, queries, replace = TRUE)
   targets <- cumsum(seq_len(n))[idx]
   timing <- system.time({
-    options(fingertree.use_cpp = use_cpp)
+    options(immutables.use_cpp = use_cpp)
     for(target in targets) {
       s <- split(t, function(v) v >= target, "sum")
     }
@@ -330,15 +330,15 @@ bench_split_custom_monoid_named <- function(n = 3000, queries = 200, use_cpp = T
 # vector integer indexing with out-of-order/duplicate positions.
 bench_index_integer_vector_read <- function(n = 1000, queries = 20, width = 6, use_cpp = TRUE) {
   message("== indexing integer vector read (out-of-order, duplicates) ==")
-  options(fingertree.use_cpp = TRUE) # setup only
-  t <- tree_from(as.list(seq_len(n)))
+  options(immutables.use_cpp = TRUE) # setup only
+  t <- as_flexseq(as.list(seq_len(n)))
   qv <- vector("list", queries)
   for(k in seq_len(queries)) {
     q <- sample.int(n, width, replace = TRUE)
     qv[[k]] <- rev(q)
   }
   timing <- system.time({
-    options(fingertree.use_cpp = use_cpp)
+    options(immutables.use_cpp = use_cpp)
     for(q in qv) {
       s <- t[q]
     }
@@ -350,11 +350,11 @@ bench_index_integer_vector_read <- function(n = 1000, queries = 20, width = 6, u
 # scalar integer indexing via [[.
 bench_index_integer_single_read <- function(n = 1000, queries = 100, use_cpp = TRUE) {
   message("== indexing integer scalar read ([[) ==")
-  options(fingertree.use_cpp = TRUE) # setup only
-  t <- tree_from(as.list(seq_len(n)))
+  options(immutables.use_cpp = TRUE) # setup only
+  t <- as_flexseq(as.list(seq_len(n)))
   idx <- sample.int(n, queries, replace = TRUE)
   timing <- system.time({
-    options(fingertree.use_cpp = use_cpp)
+    options(immutables.use_cpp = use_cpp)
     for(i in idx) {
       x <- t[[i]]
     }
@@ -366,10 +366,10 @@ bench_index_integer_single_read <- function(n = 1000, queries = 100, use_cpp = T
 # vector name indexing with out-of-order/duplicate names and one missing placeholder.
 bench_index_name_vector_read <- function(n = 600, queries = 8, width = 5, use_cpp = TRUE) {
   message("== indexing name vector read (out-of-order, duplicates, missing) ==")
-  options(fingertree.use_cpp = TRUE) # setup only
+  options(immutables.use_cpp = TRUE) # setup only
   vals <- as.list(seq_len(n))
   names(vals) <- paste0("k", seq_len(n))
-  t <- tree_from(vals)
+  t <- as_flexseq(vals)
   nms <- names(vals)
   qv <- vector("list", queries)
   for(k in seq_len(queries)) {
@@ -377,7 +377,7 @@ bench_index_name_vector_read <- function(n = 600, queries = 8, width = 5, use_cp
     qv[[k]] <- c(rev(q), "k__missing__")
   }
   timing <- system.time({
-    options(fingertree.use_cpp = use_cpp)
+    options(immutables.use_cpp = use_cpp)
     for(q in qv) {
       s <- t[q]
     }
@@ -389,13 +389,13 @@ bench_index_name_vector_read <- function(n = 600, queries = 8, width = 5, use_cp
 # scalar name indexing via [[.
 bench_index_name_single_read <- function(n = 600, queries = 50, use_cpp = TRUE) {
   message("== indexing name scalar read ([[) ==")
-  options(fingertree.use_cpp = TRUE) # setup only
+  options(immutables.use_cpp = TRUE) # setup only
   vals <- as.list(seq_len(n))
   names(vals) <- paste0("k", seq_len(n))
-  t <- tree_from(vals)
+  t <- as_flexseq(vals)
   idx <- sample(names(vals), queries, replace = TRUE)
   timing <- system.time({
-    options(fingertree.use_cpp = use_cpp)
+    options(immutables.use_cpp = use_cpp)
     for(nm in idx) {
       x <- t[[nm]]
     }
@@ -407,8 +407,8 @@ bench_index_name_single_read <- function(n = 600, queries = 50, use_cpp = TRUE) 
 # vector integer replacement path.
 bench_index_integer_vector_replace <- function(n = 1000, queries = 20, width = 6, use_cpp = TRUE) {
   message("== indexing integer vector replace ([<-) ==")
-  options(fingertree.use_cpp = TRUE) # setup only
-  t <- tree_from(as.list(seq_len(n)))
+  options(immutables.use_cpp = TRUE) # setup only
+  t <- as_flexseq(as.list(seq_len(n)))
   qv <- vector("list", queries)
   vv <- vector("list", queries)
   for(k in seq_len(queries)) {
@@ -417,7 +417,7 @@ bench_index_integer_vector_replace <- function(n = 1000, queries = 20, width = 6
     vv[[k]] <- as.list(seq_len(width) + k)
   }
   timing <- system.time({
-    options(fingertree.use_cpp = use_cpp)
+    options(immutables.use_cpp = use_cpp)
     for(k in seq_len(queries)) {
       t[qv[[k]]] <- vv[[k]]
     }
@@ -429,10 +429,10 @@ bench_index_integer_vector_replace <- function(n = 1000, queries = 20, width = 6
 # vector name replacement path with out-of-order/duplicate names.
 bench_index_name_vector_replace <- function(n = 600, queries = 8, width = 5, use_cpp = TRUE) {
   message("== indexing name vector replace ([<-) ==")
-  options(fingertree.use_cpp = TRUE) # setup only
+  options(immutables.use_cpp = TRUE) # setup only
   vals <- as.list(seq_len(n))
   names(vals) <- paste0("k", seq_len(n))
-  t <- tree_from(vals)
+  t <- as_flexseq(vals)
   nms <- names(vals)
   qv <- vector("list", queries)
   vv <- vector("list", queries)
@@ -442,7 +442,7 @@ bench_index_name_vector_replace <- function(n = 600, queries = 8, width = 5, use
     vv[[k]] <- as.list(seq_len(width) + k)
   }
   timing <- system.time({
-    options(fingertree.use_cpp = use_cpp)
+    options(immutables.use_cpp = use_cpp)
     for(k in seq_len(queries)) {
       t[qv[[k]]] <- vv[[k]]
     }

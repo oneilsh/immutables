@@ -1,7 +1,7 @@
 # helpers for converting between digits/nodes/trees and for deconstructing trees
 
 # attach canonical monoid set to a constructed subtree
-# Runtime: O(n) worst-case in relevant input/subtree size.
+# Runtime: O(1).
 with_tree_monoids(t, monoids) %::% FingerTree : list : FingerTree
 with_tree_monoids(t, monoids) %as% {
   attr(t, "monoids") <- ensure_size_monoids(monoids)
@@ -12,7 +12,7 @@ with_tree_monoids(t, monoids) %as% {
 # input: xs list of 1..4 elements (raw elements or nodes), measure monoid r.
 # output: measured Digit(xs...) with preserved order.
 # note: empty input returns an empty list() sentinel, used by deepL/deepR rebuild logic.
-# Runtime: O(n) worst-case in relevant input/subtree size.
+# Runtime: O(k), where k = length(xs) and k <= 4 for in-tree digits.
 build_digit(xs, monoids) %::% list : list : .
 build_digit(xs, monoids) %as% {
   if(length(xs) == 0) {
@@ -24,12 +24,12 @@ build_digit(xs, monoids) %as% {
 # build a Deep node from prefix digit, middle tree, and suffix digit.
 # input: pr (Digit), m (FingerTree), sf (Digit), measure monoid r.
 # output: measured Deep(pr, m, sf).
-# Runtime: O(n) worst-case in relevant input/subtree size.
+# Runtime: O(1) with measured children.
 build_deep(pr, m, sf, monoids) %::% Digit : FingerTree : Digit : list : Deep
 build_deep(pr, m, sf, monoids) %as% with_tree_monoids(measured_deep(pr, m, sf, monoids), monoids)
 
 # convert a small list/digit (size 0..4) into a valid measured FingerTree shape.
-# Runtime: O(n) worst-case in relevant input/subtree size.
+# Runtime: O(1), since digit size is bounded (0..4).
 digit_to_tree(d, monoids) %::% list : list : FingerTree
 digit_to_tree(d, monoids) %as% {
   n <- length(d)
@@ -54,14 +54,14 @@ digit_to_tree(d, monoids) %as% {
 }
 
 # convert a Node2/Node3 into a measured Digit of its children.
-# Runtime: O(n) worst-case in relevant input/subtree size.
+# Runtime: O(1), since Node arity is bounded (2..3).
 node_to_digit(node, monoids) %::% Node : list : Digit
 node_to_digit(node, monoids) %as% build_digit(as.list(node), monoids)
 
 # viewL: return leftmost element and the remaining tree
 # input: t non-empty FingerTree, measure monoid r.
 # output: list(elem = leftmost element of t, rest = t without that element).
-# Runtime: O(n) worst-case in relevant input/subtree size.
+# Runtime: O(log n) worst-case.
 viewL(t, monoids) %::% FingerTree : list : list
 viewL(t, monoids) %as% {
   if(t %isa% Empty) {
@@ -92,7 +92,7 @@ viewL(t, monoids) %as% {
 # viewR: return rightmost element and the remaining tree
 # input: t non-empty FingerTree, measure monoid r.
 # output: list(elem = rightmost element of t, rest = t without that element).
-# Runtime: O(n) worst-case in relevant input/subtree size.
+# Runtime: O(log n) worst-case.
 viewR(t, monoids) %::% FingerTree : list : list
 viewR(t, monoids) %as% {
   if(t %isa% Empty) {
@@ -124,7 +124,7 @@ viewR(t, monoids) %as% {
 # input: pr digit/list for prefix, m middle FingerTree of nodes, sf suffix digit/list.
 # output: a valid FingerTree preserving order; if pr is empty it borrows from m or
 # collapses to a tree built from sf.
-# Runtime: O(n) worst-case in relevant input/subtree size.
+# Runtime: O(log n) worst-case.
 deepL(pr, m, sf, monoids) %::% . : FingerTree : . : list : FingerTree
 deepL(pr, m, sf, monoids) %as% {
   if(length(pr) > 0) {
@@ -144,7 +144,7 @@ deepL(pr, m, sf, monoids) %as% {
 # input: pr prefix digit/list, m middle FingerTree of nodes, sf suffix digit/list.
 # output: a valid FingerTree preserving order; if sf is empty it borrows from m or
 # collapses to a tree built from pr.
-# Runtime: O(n) worst-case in relevant input/subtree size.
+# Runtime: O(log n) worst-case.
 deepR(pr, m, sf, monoids) %::% . : FingerTree : . : list : FingerTree
 deepR(pr, m, sf, monoids) %as% {
   if(length(sf) > 0) {

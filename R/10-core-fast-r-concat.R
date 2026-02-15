@@ -33,7 +33,7 @@
   out
 }
 
-# Runtime: O(log n + length(ts)) in typical balanced usage, with recursion
+# Runtime: O(log n + k) in typical balanced usage, where k = length(ts), with recursion
 # depth proportional to concatenation spine depth.
 .app3_fast <- function(xs, ts, ys, monoids) {
   if(xs %isa% Empty) {

@@ -28,7 +28,7 @@
   list(item = item, priority = .pq_assert_priority(priority), seq_id = as.numeric(seq_id))
 }
 
-# Runtime: O(m), m = number of user monoids.
+# Runtime: O(1) under fixed monoid set.
 .pq_merge_monoids <- function(monoids = NULL) {
   user <- if(is.null(monoids)) list() else monoids
   if(length(user) > 0L) {

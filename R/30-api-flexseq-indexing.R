@@ -44,7 +44,7 @@
   st$out
 }
 
-# Runtime: O(m), where m = length(idx).
+# Runtime: O(k), where k = length(idx).
 .ft_assert_int_indices(idx, n) %::% . : numeric : integer
 .ft_assert_int_indices(idx, n) %as% {
   if(is.null(idx)) {
@@ -66,7 +66,7 @@
   idx
 }
 
-# Runtime: O(m), where m = length(idx).
+# Runtime: O(k), where k = length(idx).
 .ft_assert_chr_indices(idx) %::% . : character
 .ft_assert_chr_indices(idx) %as% {
   if(is.null(idx)) {
@@ -289,7 +289,7 @@
 
 # match requested names to positions. If strict_missing is FALSE, missing names
 # are represented as NA integer placeholders.
-# Runtime: O(n + m), where n=tree size and m=length(idx).
+# Runtime: O(n + k), where n = tree size and k = length(idx).
 .ft_match_name_indices(t, idx, strict_missing) %::% . : character : logical : integer
 .ft_match_name_indices(t, idx, strict_missing = FALSE) %as% {
   n <- as.integer(node_measure(t, ".size"))
@@ -344,7 +344,7 @@
 }
 
 # bulk positional read helper preserving ft_name metadata.
-# Runtime: O(m log n) fallback; C++ path is typically faster.
+# Runtime: O(k log n) fallback, where k = length(idx); C++ path is typically faster.
 .ft_get_elems_at(x, idx) %::% . : integer : list
 .ft_get_elems_at(x, idx) %as% {
   if(length(idx) == 0L) {
@@ -383,7 +383,7 @@
 }
 
 # update name mapping for sequential replacement and enforce uniqueness.
-# Runtime: O(1) average map updates.
+# Runtime: O(k), where k is current map size.
 .ft_update_name_map(name_to_pos, name_vec, pos, nm) %::% . : character : integer : character : list
 .ft_update_name_map(name_to_pos, name_vec, pos, nm) %as% {
   old_nm <- name_vec[[pos]]
@@ -423,8 +423,8 @@
 #' # logical indexing supports recycling
 #' x[c(TRUE, FALSE)]
 #' @export
-# Runtime: integer/logical reads O(m log n), where m = selected positions;
-# character reads are adaptive: O(m * n_lookup) for short queries, O(n + m)
+# Runtime: integer/logical reads O(k log n), where k = selected positions;
+# character reads are adaptive: O(k * n_lookup) for short queries, O(n + k)
 # with name-map path for wider queries.
 `[.flexseq` <- function(x, i, ...) {
   if(missing(i)) {

@@ -25,7 +25,7 @@ app3(xs, ts, x, monoids) %as% .app3_fast(xs, ts, x, monoids)
 app3(xs, ts, ys, monoids) %::% Deep : list : Deep : list : FingerTree
 app3(xs, ts, ys, monoids) %as% .app3_fast(xs, ts, ys, monoids)
 
-# Runtime: O(n) worst-case in relevant input/subtree size.
+# Runtime: O(log(min(nx, ny))) for balanced trees, where nx/ny are input sizes.
 concat(xs, ys, monoids) %::% FingerTree : FingerTree : list : FingerTree
 concat(xs, ys, monoids) %as% {
   .app3_fast(xs, list(), ys, monoids)

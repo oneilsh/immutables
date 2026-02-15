@@ -1,4 +1,4 @@
-# Runtime: O(1) fast-path; optional O(m) validation when
+# Runtime: O(1) fast-path; optional O(1) validation under fixed monoid set when
 # `options(immutables.validate_monoids = TRUE)`.
 resolve_tree_monoids(t, required) %::% . : logical : .
 resolve_tree_monoids(t, required = FALSE) %as% {
@@ -29,7 +29,7 @@ resolve_named_monoid(t, monoid_name) %as% {
   list(monoids = ms, monoid = mr)
 }
 
-# Runtime: O(b + a), where b/a are base/add monoid counts.
+# Runtime: O(1) under fixed monoid set.
 merge_monoid_sets(base, add, overwrite) %::% list : list : logical : list
 merge_monoid_sets(base, add, overwrite = FALSE) %as% {
   b <- ensure_size_monoids(base)

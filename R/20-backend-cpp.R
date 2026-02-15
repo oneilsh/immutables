@@ -3,7 +3,7 @@
   isTRUE(getOption("immutables.use_cpp", TRUE))
 }
 
-# Runtime: O(m), where m is monoid count.
+# Runtime: O(1).
 .ft_cpp_eligible_monoids <- function(monoids) {
   if(is.null(monoids) || !is.list(monoids) || is.null(names(monoids))) {
     return(FALSE)
@@ -46,7 +46,7 @@
   .Call("ft_cpp_tree_from_prepared", elements, names, monoids, PACKAGE = "immutables")
 }
 
-# Runtime: O(log n + log m) typical spine depth for balanced trees.
+# Runtime: O(log n) typical spine depth for balanced trees.
 .ft_cpp_concat <- function(x, y, monoids) {
   .Call("ft_cpp_concat", x, y, monoids, PACKAGE = "immutables")
 }
@@ -71,7 +71,7 @@
   .Call("ft_cpp_get_by_index", t, as.integer(idx), PACKAGE = "immutables")
 }
 
-# Runtime: O(m log n), where m is length(idx_vec).
+# Runtime: O(k log n), where k = length(idx_vec).
 .ft_cpp_get_many_by_index <- function(t, idx_vec) {
   .Call("ft_cpp_get_many_by_index", t, as.integer(idx_vec), PACKAGE = "immutables")
 }

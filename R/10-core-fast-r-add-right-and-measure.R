@@ -7,7 +7,7 @@
   }
 }
 
-# Runtime: O(m * c), where m is monoid count and c is child count (small constant here).
+# Runtime: O(k), where k = length(children).
 .compute_measures_for_children_fast <- function(children, monoids) {
   out <- vector("list", length(monoids))
   names(out) <- names(monoids)
@@ -22,7 +22,7 @@
   out
 }
 
-# Runtime: O(m), where m is monoid count.
+# Runtime: O(1).
 .measured_empty_fast <- function(monoids) {
   e <- Empty()
   attr(e, "monoids") <- monoids
@@ -31,7 +31,7 @@
   e
 }
 
-# Runtime: O(m), where m is monoid count.
+# Runtime: O(1).
 .measured_single_fast <- function(el, monoids) {
   s <- Single(el)
   attr(s, "monoids") <- monoids
@@ -45,7 +45,7 @@
   s
 }
 
-# Runtime: O(m * k), where k in [1,4].
+# Runtime: O(k), where k = length(children) and k in [1,4].
 .measured_digit_fast <- function(children, monoids) {
   d <- do.call(Digit, children)
   attr(d, "monoids") <- monoids
@@ -53,7 +53,7 @@
   d
 }
 
-# Runtime: O(m).
+# Runtime: O(1).
 .measured_node2_fast <- function(a, b, monoids) {
   n <- Node2(a, b)
   attr(n, "monoids") <- monoids
@@ -61,7 +61,7 @@
   n
 }
 
-# Runtime: O(m).
+# Runtime: O(1).
 .measured_node3_fast <- function(a, b, c, monoids) {
   n <- Node3(a, b, c)
   attr(n, "monoids") <- monoids
@@ -69,7 +69,7 @@
   n
 }
 
-# Runtime: O(m), where m is number of monoids.
+# Runtime: O(1).
 # Fast constructor for Deep nodes that reuses cached child measures directly.
 .measured_deep_fast <- function(prefix, middle, suffix, monoids) {
   t <- Deep(prefix, middle, suffix)

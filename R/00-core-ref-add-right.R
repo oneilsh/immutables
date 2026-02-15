@@ -1,10 +1,10 @@
-# Runtime: O(n) worst-case in relevant input/subtree size.
+# Runtime: O(1).
 add_right(e, el, monoids) %::% Empty : . : list : Single
 add_right(e, el, monoids) %as% {
   measured_single(el, monoids)
 }
 
-# Runtime: O(n) worst-case in relevant input/subtree size.
+# Runtime: O(1).
 add_right(s, el, monoids) %::% Single : . : list : Deep
 add_right(s, el, monoids) %as% {
   measured_deep(
@@ -15,7 +15,7 @@ add_right(s, el, monoids) %as% {
   )
 }
 
-# Runtime: O(n) worst-case in relevant input/subtree size.
+# Runtime: O(k), where k is digit length (bounded by 4 in-tree).
 add_right(d, el, monoids) %::% Digit : . : list : Digit
 add_right(d, el, monoids) %as% {
   oldclasses <- class(d)
@@ -25,7 +25,7 @@ add_right(d, el, monoids) %as% {
 }
 
 # symmetric case for add_right. Only new nodes get measures.
-# Runtime: O(n) worst-case in relevant input/subtree size.
+# Runtime: O(log n) worst-case.
 add_right(d, el, monoids) %::% Deep : . : list : Deep
 add_right(d, el, monoids) %as% {
   if(length(.subset2(d, "suffix")) == 4) {
@@ -39,7 +39,7 @@ add_right(d, el, monoids) %as% {
   }
 }
 
-# Runtime: O(n) worst-case in relevant input/subtree size.
+# Runtime: O(k log n), where k = length(els).
 add_all_right(t, els, monoids) %::% FingerTree : . : list : FingerTree
 add_all_right(t, els, monoids) %as% {
   for(el in els) {

@@ -3,6 +3,15 @@
 Alpha tests on monoid-annotated fingertrees in R. Please note that this repository is very much an alpha work-in-progress; code is 
 inefficient, functionality is missing. 
 
+## Reference
+
+Core structure and semantics are based on:
+
+- Hinze, R. and Paterson, R. (2006), *Finger trees: a simple general-purpose data structure*.
+  <https://www.cs.ox.ac.uk/ralf.hinze/publications/FingerTrees.pdf>
+
+See `docs/architecture.md` for the reference-vs-fast backend contract and file-family layout.
+
 ## Runtime Options
 
 Two options are useful when benchmarking/debugging internals:

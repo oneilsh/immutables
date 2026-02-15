@@ -68,6 +68,67 @@ snapshot_locate <- function(x) {
   )
 }
 
+parity_scenarios <- c(
+  "MeasureMonoid constructor/use",
+  "predicate constructor/use",
+  "empty_tree",
+  "tree_from",
+  "tree_from unnamed",
+  "add_monoids",
+  "append",
+  "append named",
+  "prepend",
+  "prepend named",
+  "concat_trees",
+  "reduce_left",
+  "reduce_right",
+  "split_tree",
+  "split",
+  "locate",
+  "[ read (integer/logical/name)",
+  "[[ read (integer/name)",
+  "[<- replacement (integer/logical/name)",
+  "[[<- replacement and deletion",
+  "$ read",
+  "$<- replacement",
+  "print.FingerTree output",
+  "get_graph_df",
+  "validate_tree",
+  "validate_name_state"
+)
+
+cpp_wrapper_coverage <- list(
+  .ft_cpp_add_right = c("append"),
+  .ft_cpp_add_right_named = c("append named"),
+  .ft_cpp_add_left = c("prepend"),
+  .ft_cpp_add_left_named = c("prepend named"),
+  .ft_cpp_tree_from = c("tree_from unnamed"),
+  .ft_cpp_tree_from_prepared = c("tree_from"),
+  .ft_cpp_concat = c("concat_trees"),
+  .ft_cpp_locate = c("locate"),
+  .ft_cpp_split_tree = c("split_tree", "split"),
+  .ft_cpp_find_name_position = c("$ read", "[ read (integer/logical/name)"),
+  .ft_cpp_get_by_index = c("[[ read (integer/name)"),
+  .ft_cpp_get_many_by_index = c("[ read (integer/logical/name)"),
+  .ft_cpp_name_positions = c("[ read (integer/logical/name)")
+)
+
+testthat::test_that("backend parity: coverage map includes all cpp wrappers", {
+  ns <- asNamespace("immutables")
+  wrappers <- ls(ns, all.names = TRUE)
+  wrappers <- wrappers[startsWith(wrappers, ".ft_cpp_")]
+  wrappers <- setdiff(wrappers, c(".ft_cpp_enabled", ".ft_cpp_eligible_monoids", ".ft_cpp_can_use"))
+
+  testthat::expect_setequal(names(cpp_wrapper_coverage), wrappers)
+
+  for(op in names(cpp_wrapper_coverage)) {
+    tags <- cpp_wrapper_coverage[[op]]
+    for(tag in tags) {
+      testthat::expect_true(tag %in% parity_scenarios, info = paste("Missing parity scenario tag:", tag))
+    }
+  }
+})
+
 testthat::test_that("backend parity: MeasureMonoid constructor/use", {
   expect_backend_identical({
     m <- measure_monoid(function(a, b) a + b, 0, as.numeric)
@@ -98,6 +159,13 @@ testthat::test_that("backend parity: tree_from", {
   })
 })
 
+testthat::test_that("backend parity: tree_from unnamed", {
+  expect_backend_identical({
+    ms <- list(sum = measure_monoid(function(a, b) a + b, 0, as.numeric))
+    snapshot_tree(as_flexseq(as.list(1:8), monoids = ms))
+  })
+})
+
 testthat::test_that("backend parity: add_monoids", {
   expect_backend_identical({
     t <- as_flexseq(1:8)
@@ -114,10 +182,26 @@ testthat::test_that("backend parity: append", {
   })
 })
 
+testthat::test_that("backend parity: append named", {
+  expect_backend_identical({
+    t <- as_flexseq(setNames(as.list(1:4), LETTERS[1:4]))
+    t <- append(t, structure(5, names = "E"))
+    snapshot_tree(t)
+  })
+})
+
 testthat::test_that("backend parity: prepend", {
   expect_backend_identical({
     t <- as_flexseq(1:10)
     t <- prepend(t, 0)
+    snapshot_tree(t)
+  })
+})
+
+testthat::test_that("backend parity: prepend named", {
+  expect_backend_identical({
+    t <- as_flexseq(setNames(as.list(1:4), LETTERS[1:4]))
+    t <- prepend(t, structure(0, names = "Z"))
     snapshot_tree(t)
   })
 })

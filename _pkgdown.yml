@@ -15,6 +15,7 @@ reference:
       - as_flexseq
       - prepend
       - append
+      - "append.flexseq"
       - "c.flexseq"
       - "print.flexseq"
       - "length.flexseq"

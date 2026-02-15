@@ -10,10 +10,12 @@
 #'   `monoid_name` (character scalar naming the monoid to scan).
 #' @return A list with `left` and `right` flexseq objects.
 #' @examples
-#' t <- as_flexseq(letters[1:6])
-#' s <- split(t, function(v) v >= 4, ".size")
-#' length(s$left)
-#' length(s$right)
+#' x <- as_flexseq(letters[1:6])
+#' x
+#'
+#' s <- split(x, function(v) v >= 4, ".size")
+#' s$left
+#' s$right
 #' @export
 # Runtime: O(log n) near split point depth.
 split.flexseq <- function(x, f, ...) {

@@ -16,6 +16,11 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/flexseq.html">Getting Started with flexseq</a></li>
+    <li><a class="dropdown-item" href="../articles/priority-queues.html">Priority Queues</a></li>
+  </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="nav-link" href="https://github.com/oneilsh/immutables/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -50,7 +55,7 @@
 
 
 <dt id="arg-monoids">monoids<a class="anchor" aria-label="anchor" href="#arg-monoids"></a></dt>
-<dd><p>Named list of `MeasureMonoid` objects to add.</p></dd>
+<dd><p>Named list of `measure_monoid` objects to add.</p></dd>
 
 
 <dt id="arg-overwrite">overwrite<a class="anchor" aria-label="anchor" href="#arg-overwrite"></a></dt>
@@ -64,22 +69,302 @@
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">t</span> <span class="op">&lt;-</span> <span class="fu"><a href="tree_from.html">tree_from</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in tree_from(1:5):</span> could not find function "tree_from"</span>
-<span class="r-in"><span><span class="va">sum_m</span> <span class="op">&lt;-</span> <span class="fu">MeasureMonoid</span><span class="op">(</span><span class="va">`+`</span>, <span class="fl">0</span>, <span class="va">as.numeric</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in MeasureMonoid(`+`, 0, as.numeric):</span> could not find function "MeasureMonoid"</span>
-<span class="r-in"><span><span class="va">t2</span> <span class="op">&lt;-</span> <span class="fu">add_monoids</span><span class="op">(</span><span class="va">t</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sum <span class="op">=</span> <span class="va">sum_m</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'sum_m' not found</span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">t2</span>, <span class="st">"measures"</span><span class="op">)</span><span class="op">$</span><span class="va">sum</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 't2' not found</span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="as_flexseq.html">as_flexseq</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">x</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> FingerTree &lt;size=5, named=no&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   monoids: none</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[5]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Replace an existing monoid definition</span></span></span>
-<span class="r-in"><span><span class="va">sum2</span> <span class="op">&lt;-</span> <span class="fu">MeasureMonoid</span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">a</span>, <span class="va">b</span><span class="op">)</span> <span class="va">a</span> <span class="op">+</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">b</span>, <span class="fl">0</span>, <span class="va">as.numeric</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in MeasureMonoid(function(a, b) a + 2 * b, 0, as.numeric):</span> could not find function "MeasureMonoid"</span>
-<span class="r-in"><span><span class="va">t3</span> <span class="op">&lt;-</span> <span class="fu">add_monoids</span><span class="op">(</span><span class="va">t2</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sum <span class="op">=</span> <span class="va">sum2</span><span class="op">)</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'sum2' not found</span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">t3</span>, <span class="st">"measures"</span><span class="op">)</span><span class="op">$</span><span class="va">sum</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 't3' not found</span>
+<span class="r-in"><span><span class="va">sum_m</span> <span class="op">&lt;-</span> <span class="fu"><a href="measure_monoid.html">measure_monoid</a></span><span class="op">(</span><span class="va">`+`</span>, <span class="fl">0</span>, <span class="va">as.numeric</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">x2</span> <span class="op">&lt;-</span> <span class="fu">add_monoids</span><span class="op">(</span><span class="va">x</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sum <span class="op">=</span> <span class="va">sum_m</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">x2</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $prefix</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"class")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Digit" "list" </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"monoids")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"monoids")$.size</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $f</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function(a, b) a + b</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x110a0e718&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $i</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $measure</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function(el) 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x110a0e718&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"class")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "measure_monoid" "MeasureMonoid"  "list"          </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"monoids")$.named_count</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $f</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function(a, b) a + b</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x110a40e88&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $i</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $measure</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function(el) {</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     if (isTRUE(.ft_has_name(el)))</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       1L</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     else 0L</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   }</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x110a40e88&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"class")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "measure_monoid" "MeasureMonoid"  "list"          </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"monoids")$sum</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $f</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function (e1, e2)  .Primitive("+")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $i</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $measure</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function (x, ...)  .Primitive("as.double")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"class")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "measure_monoid" "MeasureMonoid"  "list"          </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"measures")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"measures")$.size</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"measures")$.named_count</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"measures")$sum</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $middle</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"class")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Empty"      "FingerTree" "list"      </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"monoids")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"monoids")$.size</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $f</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function(a, b) a + b</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x110b1ab38&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $i</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $measure</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function(el) 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x110b1ab38&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"class")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "measure_monoid" "MeasureMonoid"  "list"          </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"monoids")$.named_count</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $f</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function(a, b) a + b</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x110b407f0&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $i</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $measure</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function(el) {</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     if (isTRUE(.ft_has_name(el)))</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       1L</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     else 0L</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   }</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x110b407f0&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"class")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "measure_monoid" "MeasureMonoid"  "list"          </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"monoids")$sum</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $f</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function (e1, e2)  .Primitive("+")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $i</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $measure</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function (x, ...)  .Primitive("as.double")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"class")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "measure_monoid" "MeasureMonoid"  "list"          </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"measures")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"measures")$.size</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"measures")$.named_count</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"measures")$sum</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $suffix</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"class")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Digit" "list" </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"monoids")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"monoids")$.size</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $f</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function(a, b) a + b</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x1073d0eb8&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $i</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $measure</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function(el) 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x1073d0eb8&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"class")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "measure_monoid" "MeasureMonoid"  "list"          </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"monoids")$.named_count</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $f</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function(a, b) a + b</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x1073b1220&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $i</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $measure</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function(el) {</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     if (isTRUE(.ft_has_name(el)))</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       1L</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     else 0L</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   }</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x1073b1220&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"class")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "measure_monoid" "MeasureMonoid"  "list"          </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"monoids")$sum</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $f</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function (e1, e2)  .Primitive("+")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $i</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $measure</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function (x, ...)  .Primitive("as.double")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"class")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "measure_monoid" "MeasureMonoid"  "list"          </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"measures")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"measures")$.size</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"measures")$.named_count</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"measures")$sum</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 14</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"class")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Deep"       "FingerTree" "list"      </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"monoids")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"monoids")$.size</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $f</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function(a, b) a + b</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x11449d8e0&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $i</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $measure</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function(el) 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x11449d8e0&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"class")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "measure_monoid" "MeasureMonoid"  "list"          </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"monoids")$.named_count</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $f</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function(a, b) a + b</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x114464fe8&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $i</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $measure</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function(el) {</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     if (isTRUE(.ft_has_name(el)))</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       1L</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     else 0L</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   }</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x114464fe8&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"class")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "measure_monoid" "MeasureMonoid"  "list"          </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"monoids")$sum</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $f</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function (e1, e2)  .Primitive("+")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $i</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $measure</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function (x, ...)  .Primitive("as.double")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"class")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "measure_monoid" "MeasureMonoid"  "list"          </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"measures")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"measures")$.size</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"measures")$.named_count</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"measures")$sum</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 15</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">x2</span>, <span class="st">"measures"</span><span class="op">)</span><span class="op">$</span><span class="va">sum</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 15</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># replace an existing monoid definition</span></span></span>
+<span class="r-in"><span><span class="va">sum2</span> <span class="op">&lt;-</span> <span class="fu"><a href="measure_monoid.html">measure_monoid</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">a</span>, <span class="va">b</span><span class="op">)</span> <span class="va">a</span> <span class="op">+</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">b</span>, <span class="fl">0</span>, <span class="va">as.numeric</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">x3</span> <span class="op">&lt;-</span> <span class="fu">add_monoids</span><span class="op">(</span><span class="va">x2</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sum <span class="op">=</span> <span class="va">sum2</span><span class="op">)</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">x3</span>, <span class="st">"measures"</span><span class="op">)</span><span class="op">$</span><span class="va">sum</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 60</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

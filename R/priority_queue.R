@@ -62,9 +62,10 @@
 #' @param monoids Optional additional named list of `measure_monoid` objects.
 #' @return A `priority_queue`.
 #' @examples
-#' q <- as_priority_queue(letters[1:4], priorities = c(3, 1, 2, 1))
-#' peek_min(q)
-#' peek_max(q)
+#' x <- as_priority_queue(letters[1:4], priorities = c(3, 1, 2, 1))
+#' x
+#' peek_min(x)
+#' peek_max(x)
 #' @export
 as_priority_queue <- function(x, priorities, names = NULL, monoids = NULL) {
   x_list <- as.list(x)
@@ -108,8 +109,9 @@ as_priority_queue <- function(x, priorities, names = NULL, monoids = NULL) {
 #' @param monoids Optional additional named list of `measure_monoid` objects.
 #' @return A `priority_queue`.
 #' @examples
-#' q <- priority_queue("a", "b", "c", priorities = c(2, 1, 2))
-#' peek_min(q)
+#' x <- priority_queue("a", "b", "c", priorities = c(2, 1, 2))
+#' x
+#' peek_min(x)
 #' @export
 priority_queue <- function(..., priorities = NULL, names = NULL, monoids = NULL) {
   xs <- list(...)
@@ -148,9 +150,12 @@ priority_queue <- function(..., priorities = NULL, names = NULL, monoids = NULL)
 #' @param name Optional element name.
 #' @return Updated `priority_queue`.
 #' @examples
-#' q <- priority_queue("a", "b", priorities = c(2, 1))
-#' q2 <- insert(q, "c", priority = 1)
-#' peek_min(q2)
+#' x <- priority_queue("a", "b", priorities = c(2, 1))
+#' x
+#'
+#' x2 <- insert(x, "c", priority = 1)
+#' x2
+#' peek_min(x2)
 #' @export
 insert <- function(q, element, priority, name = NULL) {
   .pq_assert_queue(q)
@@ -171,8 +176,11 @@ insert <- function(q, element, priority, name = NULL) {
 #' @param q A `priority_queue`.
 #' @return Logical scalar.
 #' @examples
-#' q <- priority_queue()
-#' is_empty(q)
+#' x <- priority_queue()
+#' is_empty(x)
+#'
+#' x2 <- priority_queue("a", priorities = 1)
+#' is_empty(x2)
 #' @export
 is_empty <- function(q) {
   .pq_assert_queue(q)
@@ -219,8 +227,9 @@ is_empty <- function(q) {
 #' @param q A `priority_queue`.
 #' @return Element with minimum priority (stable on ties).
 #' @examples
-#' q <- priority_queue("a", "b", "c", priorities = c(2, 1, 1))
-#' peek_min(q)
+#' x <- priority_queue("a", "b", "c", priorities = c(2, 1, 1))
+#' x
+#' peek_min(x)
 #' @export
 peek_min <- function(q) {
   .pq_peek(q, ".pq_min")
@@ -232,8 +241,9 @@ peek_min <- function(q) {
 #' @param q A `priority_queue`.
 #' @return Element with maximum priority (stable on ties).
 #' @examples
-#' q <- priority_queue("a", "b", "c", priorities = c(2, 3, 3))
-#' peek_max(q)
+#' x <- priority_queue("a", "b", "c", priorities = c(2, 3, 3))
+#' x
+#' peek_max(x)
 #' @export
 peek_max <- function(q) {
   .pq_peek(q, ".pq_max")
@@ -245,10 +255,11 @@ peek_max <- function(q) {
 #' @param q A `priority_queue`.
 #' @return List with `element`, `priority`, and updated `queue`.
 #' @examples
-#' q <- priority_queue("a", "b", "c", priorities = c(2, 1, 1))
-#' out <- extract_min(q)
+#' x <- priority_queue("a", "b", "c", priorities = c(2, 1, 1))
+#' out <- extract_min(x)
 #' out$element
 #' out$priority
+#' out$queue
 #' @export
 extract_min <- function(q) {
   .pq_extract(q, ".pq_min")
@@ -260,10 +271,11 @@ extract_min <- function(q) {
 #' @param q A `priority_queue`.
 #' @return List with `element`, `priority`, and updated `queue`.
 #' @examples
-#' q <- priority_queue("a", "b", "c", priorities = c(2, 3, 3))
-#' out <- extract_max(q)
+#' x <- priority_queue("a", "b", "c", priorities = c(2, 3, 3))
+#' out <- extract_max(x)
 #' out$element
 #' out$priority
+#' out$queue
 #' @export
 extract_max <- function(q) {
   .pq_extract(q, ".pq_max")

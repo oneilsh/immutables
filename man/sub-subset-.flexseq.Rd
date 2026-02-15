@@ -20,17 +20,17 @@ A new `flexseq` with one element replaced.
 Replace one element by position or unique name
 }
 \examples{
-t <- as_flexseq(letters[1:4])
-t[[2]] <- "ZZ"
-cat_m <- measure_monoid(paste0, "", as.character)
-fold_left(t, cat_m)
+x <- as_flexseq(letters[1:4])
+x2 <- x
+x2[[2]] <- "ZZ"
+x2
 
-tn <- as_flexseq(setNames(as.list(1:3), c("x", "y", "z")))
-tn[["y"]] <- 99
+x3 <- as_flexseq(setNames(as.list(1:3), c("x", "y", "z")))
+x3[["y"]] <- 99
+x3
 
-# Assigning NULL removes an element (by index or name)
-t <- as_flexseq(letters[1:4])
-t[[2]] <- NULL
-tn <- as_flexseq(setNames(as.list(1:3), c("a", "b", "c")))
-tn[["b"]] <- NULL
+# assigning NULL removes one element
+x4 <- as_flexseq(letters[1:4])
+x4[[2]] <- NULL
+x4
 }

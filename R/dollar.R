@@ -18,8 +18,8 @@
 #' @param name Element name.
 #' @return The matched element.
 #' @examples
-#' t <- as_flexseq(setNames(as.list(1:3), c("a", "b", "c")))
-#' t$b
+#' x <- as_flexseq(setNames(as.list(1:3), c("a", "b", "c")))
+#' x$b
 #' @export
 # Runtime: O(1) for structural-field fallback on unnamed trees; O(n) worst-case
 # for name lookup (single-name locate with early exit).
@@ -47,9 +47,9 @@
 #' @param value Replacement element.
 #' @return Updated tree.
 #' @examples
-#' t <- as_flexseq(setNames(as.list(1:3), c("a", "b", "c")))
-#' t$b <- 20
-#' t$b
+#' x <- as_flexseq(setNames(as.list(1:3), c("a", "b", "c")))
+#' x$b <- 20
+#' x$b
 #' @export
 # Runtime: O(n), delegated to `[[<-.flexseq`.
 `$<-.flexseq` <- function(x, name, value) {

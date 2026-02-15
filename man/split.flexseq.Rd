@@ -22,8 +22,10 @@ Splits a sequence at the point where the predicate first becomes TRUE on
 accumulated monoid measures.
 }
 \examples{
-t <- as_flexseq(letters[1:6])
-s <- split(t, function(v) v >= 4, ".size")
-length(s$left)
-length(s$right)
+x <- as_flexseq(letters[1:6])
+x
+
+s <- split(x, function(v) v >= 4, ".size")
+s$left
+s$right
 }

@@ -20,13 +20,16 @@ A persistent copy with recomputed cached measures.
 Add/merge monoids on an existing tree
 }
 \examples{
-t <- as_flexseq(1:5)
-sum_m <- measure_monoid(`+`, 0, as.numeric)
-t2 <- add_monoids(t, list(sum = sum_m))
-attr(t2, "measures")$sum
+x <- as_flexseq(1:5)
+x
 
-# Replace an existing monoid definition
+sum_m <- measure_monoid(`+`, 0, as.numeric)
+x2 <- add_monoids(x, list(sum = sum_m))
+x2
+attr(x2, "measures")$sum
+
+# replace an existing monoid definition
 sum2 <- measure_monoid(function(a, b) a + 2 * b, 0, as.numeric)
-t3 <- add_monoids(t2, list(sum = sum2), overwrite = TRUE)
-attr(t3, "measures")$sum
+x3 <- add_monoids(x2, list(sum = sum2), overwrite = TRUE)
+attr(x3, "measures")$sum
 }

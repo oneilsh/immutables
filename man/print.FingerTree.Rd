@@ -33,10 +33,10 @@ Default `6`.}
 Print a compact summary of a finger tree
 }
 \examples{
-t <- as_flexseq(letters[1:10])
-t
+x <- as_flexseq(letters[1:10])
+x
 
-tn <- as_flexseq(setNames(as.list(1:5), paste0("k", 1:5)))
-tn
+x2 <- as_flexseq(setNames(as.list(1:5), paste0("k", 1:5)))
+x2
 }
 \keyword{internal}

@@ -27,11 +27,15 @@ Read-only analogue of `split_tree()`: finds the distinguished element where
 the scan predicate flips, but does not rebuild left/right trees.
 }
 \examples{
-t <- as_flexseq(letters[1:6])
-locate(t, function(v) v >= 4, ".size")
+x <- as_flexseq(letters[1:6])
+x
 
-# Metadata-rich locate for custom monoid
+loc <- locate(x, function(v) v >= 4, ".size")
+loc
+
+# include metadata with a custom monoid
 sum_m <- measure_monoid(`+`, 0, as.numeric)
-t2 <- as_flexseq(1:6, monoids = list(sum = sum_m))
-locate(t2, function(v) v >= 10, "sum", include_metadata = TRUE)
+x2 <- as_flexseq(1:6, monoids = list(sum = sum_m))
+loc2 <- locate(x2, function(v) v >= 10, "sum", include_metadata = TRUE)
+loc2
 }

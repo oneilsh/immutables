@@ -19,16 +19,16 @@ Updated tree.
 Prepend an element
 }
 \examples{
-t <- as_flexseq(letters[2:4])
-t2 <- prepend(t, "a")
-t2[[1]]
+x <- as_flexseq(letters[2:5])
+x
 
-# Compose with append and reduce
-cat_m <- measure_monoid(paste0, "", as.character)
-fold_left(append(t2, "z"), cat_m)
+x2 <- prepend(x, "a")
+x2
 
-# Prepend to a named tree with an explicit element name
-tn <- as_flexseq(setNames(as.list(2:3), c("b", "c")))
-tn2 <- prepend(tn, stats::setNames(1, "a"))
-tn2[["a"]]
+# prepending to a named sequence requires a named element
+x3 <- as_flexseq(list(two = 2, three = 3))
+new_el <- 1
+names(new_el) <- "one"
+x4 <- prepend(x3, new_el)
+x4
 }

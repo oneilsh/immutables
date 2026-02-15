@@ -21,19 +21,17 @@ A new `flexseq` containing selected elements in query order.
 Subset a flexseq by position or element name
 }
 \examples{
-t <- as_flexseq(letters[1:6])
-s <- t[c(2, 4, 6)]
-cat_m <- measure_monoid(paste0, "", as.character)
-fold_left(s, cat_m)
+x <- as_flexseq(letters[1:6])
+x
 
-# Empty index returns empty tree
-attr(t[integer(0)], "measures")$.size
+x2 <- x[c(2, 4, 6)]
+x2
 
-# Character indexing by element names
-tn <- as_flexseq(setNames(as.list(letters[1:4]), c("w", "x", "y", "z")))
-out <- tn[c("y", "missing", "w")]
-fold_left(out, measure_monoid(paste0, "", function(el) if(is.null(el)) "_" else el))
+# named lookups return NULL for missing names
+x3 <- as_flexseq(setNames(as.list(letters[1:4]), c("w", "x", "y", "z")))
+x4 <- x3[c("y", "missing", "w")]
+x4
 
-# Logical indexing with recycling
-t[c(TRUE, FALSE)]
+# logical indexing supports recycling
+x[c(TRUE, FALSE)]
 }

@@ -20,6 +20,6 @@ non-empty names.
 Intended for debugging and tests, not hot runtime paths.
 }
 \examples{
-t <- as_flexseq(setNames(as.list(letters[1:4]), letters[1:4]))
-validate_name_state(t)
+x <- as_flexseq(setNames(as.list(letters[1:4]), letters[1:4]))
+validate_name_state(x)
 }

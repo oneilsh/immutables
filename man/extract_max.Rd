@@ -16,8 +16,9 @@ List with `element`, `priority`, and updated `queue`.
 Extract maximum-priority element
 }
 \examples{
-q <- priority_queue("a", "b", "c", priorities = c(2, 3, 3))
-out <- extract_max(q)
+x <- priority_queue("a", "b", "c", priorities = c(2, 3, 3))
+out <- extract_max(x)
 out$element
 out$priority
+out$queue
 }

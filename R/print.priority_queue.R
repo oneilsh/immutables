@@ -4,8 +4,8 @@
 #' @param ... Unused.
 #' @return `x` invisibly.
 #' @examples
-#' q <- priority_queue("a", "b", "c", priorities = c(2, 1, 3))
-#' q
+#' x <- priority_queue("a", "b", "c", priorities = c(2, 1, 3))
+#' x
 #' @export
 # Runtime: O(log n) for min/max summary lookups.
 print.priority_queue <- function(x, ...) {

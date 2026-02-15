@@ -20,6 +20,6 @@ p <- predicate(function(v) v >= 3)
 p(2)
 p(3)
 
-t <- as_flexseq(letters[1:5])
-locate(t, p, ".size")
+x <- as_flexseq(letters[1:5])
+locate(x, p, ".size")
 }

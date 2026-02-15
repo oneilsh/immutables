@@ -9,8 +9,8 @@
 #' @param t FingerTree.
 #' @return `TRUE` invisibly; errors if invariant violations are found.
 #' @examples
-#' t <- as_flexseq(letters[1:10])
-#' validate_tree(t)
+#' x <- as_flexseq(letters[1:10])
+#' validate_tree(x)
 #' @export
 # Runtime: O(n) full traversal. Intended for debugging/tests.
 validate_tree <- function(t) {
@@ -29,8 +29,8 @@ validate_tree <- function(t) {
 #' @param t FingerTree.
 #' @return `TRUE` invisibly; errors if name invariants are violated.
 #' @examples
-#' t <- as_flexseq(setNames(as.list(letters[1:4]), letters[1:4]))
-#' validate_name_state(t)
+#' x <- as_flexseq(setNames(as.list(letters[1:4]), letters[1:4]))
+#' validate_name_state(x)
 #' @export
 # Runtime: O(n) when tree is named (name collection and uniqueness checks).
 validate_name_state <- function(t) {

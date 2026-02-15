@@ -60,12 +60,15 @@ fold_right_impl(t, r) %as% {
 #' @param monoid A `measure_monoid` specification.
 #' @return Reduced value.
 #' @examples
-#' t <- as_flexseq(1:5)
-#' sum_m <- measure_monoid(`+`, 0, as.numeric)
-#' fold_right(t, sum_m)
+#' x <- as_flexseq(1:5)
+#' x
 #'
+#' sum_m <- measure_monoid(`+`, 0, as.numeric)
+#' fold_right(x, sum_m)
+#'
+#' x2 <- as_flexseq(letters[1:4])
 #' cat_m <- measure_monoid(paste0, "", as.character)
-#' fold_right(as_flexseq(letters[1:4]), cat_m)
+#' fold_right(x2, cat_m)
 #' @export
 # Runtime: O(n) over number of elements.
 fold_right <- function(x, monoid) {

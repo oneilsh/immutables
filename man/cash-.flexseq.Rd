@@ -18,6 +18,6 @@ The matched element.
 Exact-name lookup on named trees, equivalent to `x[[\"name\"]]`.
 }
 \examples{
-t <- as_flexseq(setNames(as.list(1:3), c("a", "b", "c")))
-t$b
+x <- as_flexseq(setNames(as.list(1:3), c("a", "b", "c")))
+x$b
 }

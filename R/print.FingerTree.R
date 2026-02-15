@@ -62,11 +62,11 @@
 #' @param ... Passed through to `print()` for preview elements.
 #' @return `x`, invisibly.
 #' @examples
-#' t <- as_flexseq(letters[1:10])
-#' t
+#' x <- as_flexseq(letters[1:10])
+#' x
 #'
-#' tn <- as_flexseq(setNames(as.list(1:5), paste0("k", 1:5)))
-#' tn
+#' x2 <- as_flexseq(setNames(as.list(1:5), paste0("k", 1:5)))
+#' x2
 #' @keywords internal
 # Runtime: O(min(n, max_elements) + h) for preview extraction where h is
 # traversed structural overhead; avoids full-tree flattening.

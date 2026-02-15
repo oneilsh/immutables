@@ -15,41 +15,41 @@ library(immutables)
 ## Creating a priority queue
 
 ```{r}
-q <- priority_queue("task_a", "task_b", "task_c", priorities = c(3, 1, 2))
-q
+x <- priority_queue("task_a", "task_b", "task_c", priorities = c(3, 1, 2))
+x
 ```
 
 ## Peeking at extremes
 
 ```{r}
-peek_min(q)
-peek_max(q)
+peek_min(x)
+peek_max(x)
 ```
 
 ## Extracting elements
 
-`extract_min()` and `extract_max()` return both the element and the updated
-queue, since priority queues are persistent.
+`extract_min()` and `extract_max()` return both the element and the updated queue.
 
 ```{r}
-result <- extract_min(q)
-result$element
-result$priority
-result$queue
+x2 <- extract_min(x)
+x2$element
+x2$priority
+x2$queue
 ```
 
 ## Inserting elements
 
 ```{r}
-q2 <- insert(q, "task_d", priority = 0)
-peek_min(q2)
+x3 <- insert(x, "task_d", priority = 0)
+x3
+peek_min(x3)
 ```
 
 ## Persistence
 
-The original queue is unchanged after extraction or insertion:
+The original queue is unchanged.
 
 ```{r}
-peek_min(q)
-is_empty(q)
+peek_min(x)
+is_empty(x)
 ```

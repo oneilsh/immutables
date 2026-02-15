@@ -16,6 +16,7 @@ Element with maximum priority (stable on ties).
 Peek maximum-priority element
 }
 \examples{
-q <- priority_queue("a", "b", "c", priorities = c(2, 3, 3))
-peek_max(q)
+x <- priority_queue("a", "b", "c", priorities = c(2, 3, 3))
+x
+peek_max(x)
 }

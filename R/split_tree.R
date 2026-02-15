@@ -6,13 +6,13 @@
 #' @param accumulator Optional starting measure (defaults to monoid identity).
 #' @return A list with `left`, `elem`, and `right`.
 #' @examples
-#' t <- as_flexseq(letters[1:6])
-#' s <- split_tree(t, function(v) v >= 4, ".size")
-#' s$elem
+#' x <- as_flexseq(letters[1:6])
+#' x
 #'
-#' cat_m <- measure_monoid(paste0, "", as.character)
-#' fold_left(s$left, cat_m)
-#' fold_left(s$right, cat_m)
+#' s <- split_tree(x, function(v) v >= 4, ".size")
+#' s$elem
+#' s$left
+#' s$right
 #' @export
 # Runtime: O(log n) near split point depth.
 split_tree <- function(t, predicate, monoid_name, accumulator = NULL) {

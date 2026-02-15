@@ -27,10 +27,10 @@
 #' @return A `flexseq` object.
 #' @examples
 #' x <- flexseq(1, 2, 3)
-#' x[[2]]
+#' x
 #'
-#' y <- flexseq(a = "x", b = "y")
-#' y$a
+#' x2 <- flexseq("a", "b", "c")
+#' x2
 #' @export
 # Runtime: O(n log n) over element count.
 flexseq <- function(..., monoids = NULL) {
@@ -44,8 +44,11 @@ flexseq <- function(..., monoids = NULL) {
 #' @param monoids Optional named list of measure monoids.
 #' @return A `flexseq` object.
 #' @examples
-#' as_flexseq(1:5)
-#' as_flexseq(setNames(as.list(letters[1:3]), c("k1", "k2", "k3")))
+#' x <- as_flexseq(1:5)
+#' x
+#'
+#' x2 <- as_flexseq(list(one = 1, two = 2, three = 3))
+#' x2
 #' @export
 # Runtime: O(n log n) over element count.
 as_flexseq <- function(x, monoids = NULL) {

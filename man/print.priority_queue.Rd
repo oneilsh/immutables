@@ -18,6 +18,6 @@
 Print a Priority Queue
 }
 \examples{
-q <- priority_queue("a", "b", "c", priorities = c(2, 1, 3))
-q
+x <- priority_queue("a", "b", "c", priorities = c(2, 1, 3))
+x
 }

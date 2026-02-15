@@ -16,8 +16,9 @@ List with `element`, `priority`, and updated `queue`.
 Extract minimum-priority element
 }
 \examples{
-q <- priority_queue("a", "b", "c", priorities = c(2, 1, 1))
-out <- extract_min(q)
+x <- priority_queue("a", "b", "c", priorities = c(2, 1, 1))
+out <- extract_min(x)
 out$element
 out$priority
+out$queue
 }

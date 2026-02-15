@@ -18,6 +18,9 @@ A `flexseq` object.
 Coerce to a Persistent Flexible Sequence
 }
 \examples{
-as_flexseq(1:5)
-as_flexseq(setNames(as.list(letters[1:3]), c("k1", "k2", "k3")))
+x <- as_flexseq(1:5)
+x
+
+x2 <- as_flexseq(list(one = 1, two = 2, three = 3))
+x2
 }

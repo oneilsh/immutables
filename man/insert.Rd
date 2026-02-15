@@ -22,7 +22,10 @@ Updated `priority_queue`.
 Insert an element into a priority queue
 }
 \examples{
-q <- priority_queue("a", "b", priorities = c(2, 1))
-q2 <- insert(q, "c", priority = 1)
-peek_min(q2)
+x <- priority_queue("a", "b", priorities = c(2, 1))
+x
+
+x2 <- insert(x, "c", priority = 1)
+x2
+peek_min(x2)
 }

@@ -21,6 +21,6 @@ Performs expensive full-tree auditing of:
 Intended for debugging and tests, not hot runtime paths.
 }
 \examples{
-t <- as_flexseq(letters[1:10])
-validate_tree(t)
+x <- as_flexseq(letters[1:10])
+validate_tree(x)
 }

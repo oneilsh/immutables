@@ -28,14 +28,22 @@ append.default <- function(x, values, after = length(x), ...) {
 #' @param ... Unused.
 #' @return Updated `flexseq`.
 #' @examples
-#' t <- as_flexseq(letters[1:3])
-#' t2 <- append(t, "d")
-#' t2[[4]]
+#' x <- as_flexseq(letters[1:4])
+#' x
 #'
-#' # Append to a named sequence
-#' tn <- as_flexseq(setNames(as.list(1:2), c("a", "b")))
-#' tn2 <- append(tn, stats::setNames(3, "c"))
-#' tn2[["c"]]
+#' x2 <- append(x, "p")
+#' x2
+#'
+#' # flexseqs can also hold nested or mixed types
+#' x3 <- append(x2, c(8, 9))
+#' x3
+#'
+#' # appending to a named sequence requires a named element
+#' x4 <- as_flexseq(list(one = 1, two = 2, three = 3))
+#' new_el <- 4
+#' names(new_el) <- "four"
+#' x5 <- append(x4, new_el)
+#' x5
 #' @export
 # Runtime: O(log n) tree update, with O(1) local name-state checks.
 append.flexseq <- function(x, values, ...) {

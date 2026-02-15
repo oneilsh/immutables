@@ -16,6 +16,7 @@ Element with minimum priority (stable on ties).
 Peek minimum-priority element
 }
 \examples{
-q <- priority_queue("a", "b", "c", priorities = c(2, 1, 1))
-peek_min(q)
+x <- priority_queue("a", "b", "c", priorities = c(2, 1, 1))
+x
+peek_min(x)
 }

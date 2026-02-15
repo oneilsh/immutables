@@ -6,13 +6,14 @@
 #' @return An object of class `measure_monoid`.
 #' @examples
 #' sum_m <- measure_monoid(`+`, 0, as.numeric)
-#' t <- as_flexseq(1:5)
-#' fold_left(t, sum_m)
+#' x <- as_flexseq(1:5)
+#' fold_left(x, sum_m)
 #'
-#' # Add a custom monoid after construction
+#' # create a second monoid and add it to a sequence
 #' nchar_sum <- measure_monoid(`+`, 0, function(el) nchar(as.character(el)))
-#' t2 <- add_monoids(as_flexseq(letters[1:3]), list(nchar_sum = nchar_sum))
-#' attr(t2, "measures")$nchar_sum
+#' x2 <- as_flexseq(letters[1:3])
+#' x3 <- add_monoids(x2, list(nchar_sum = nchar_sum))
+#' attr(x3, "measures")$nchar_sum
 #' @export
 # Runtime: O(1).
 measure_monoid <- function(f, i, measure) {

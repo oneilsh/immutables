@@ -20,8 +20,8 @@ measured finger-tree internals.
 }
 \examples{
 x <- flexseq(1, 2, 3)
-x[[2]]
+x
 
-y <- flexseq(a = "x", b = "y")
-y$a
+x2 <- flexseq("a", "b", "c")
+x2
 }

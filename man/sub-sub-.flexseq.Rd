@@ -20,9 +20,9 @@ The extracted element (internal name metadata is removed).
 Extract one element by position or unique name
 }
 \examples{
-t <- as_flexseq(letters[1:5])
-t[[3]]
+x <- as_flexseq(letters[1:5])
+x[[3]]
 
-tn <- as_flexseq(setNames(as.list(letters[1:3]), c("a1", "a2", "a3")))
-tn[["a2"]]
+x2 <- as_flexseq(setNames(as.list(letters[1:3]), c("a1", "a2", "a3")))
+x2[["a2"]]
 }

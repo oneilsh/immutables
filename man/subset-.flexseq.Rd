@@ -20,18 +20,20 @@ A new `flexseq` with selected elements replaced.
 Replace selected elements by position or name
 }
 \examples{
-t <- as_flexseq(1:6)
-t[c(2, 5)] <- list(20, 50)
-sum_m <- measure_monoid(`+`, 0, as.numeric)
-fold_left(t, sum_m)
+x <- as_flexseq(1:6)
+x
 
-# Replacement length must match
-try(t[c(1, 2)] <- list(999))
+x2 <- x
+x2[c(2, 5)] <- list(20, 50)
+x2
 
-# Character replacement by element names (missing names error)
-tn <- as_flexseq(setNames(as.list(1:4), c("a", "b", "c", "d")))
-tn[c("d", "a")] <- list(40, 10)
+# character replacement uses element names
+x3 <- as_flexseq(setNames(as.list(1:4), c("a", "b", "c", "d")))
+x3[c("d", "a")] <- list(40, 10)
+x3
 
-# Logical replacement with recycling
-t[c(TRUE, FALSE, TRUE, FALSE, TRUE, FALSE)] <- list(1)
+# logical replacement supports recycling
+x4 <- x
+x4[c(TRUE, FALSE, TRUE, FALSE, TRUE, FALSE)] <- list(1)
+x4
 }

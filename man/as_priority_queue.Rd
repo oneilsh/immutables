@@ -22,7 +22,8 @@ A `priority_queue`.
 Build a Priority Queue from elements and priorities
 }
 \examples{
-q <- as_priority_queue(letters[1:4], priorities = c(3, 1, 2, 1))
-peek_min(q)
-peek_max(q)
+x <- as_priority_queue(letters[1:4], priorities = c(3, 1, 2, 1))
+x
+peek_min(x)
+peek_max(x)
 }

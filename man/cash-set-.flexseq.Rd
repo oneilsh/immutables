@@ -20,7 +20,7 @@ Updated tree.
 Exact-name replacement on named trees, equivalent to `x[[\"name\"]] <- value`.
 }
 \examples{
-t <- as_flexseq(setNames(as.list(1:3), c("a", "b", "c")))
-t$b <- 20
-t$b
+x <- as_flexseq(setNames(as.list(1:3), c("a", "b", "c")))
+x$b <- 20
+x$b
 }

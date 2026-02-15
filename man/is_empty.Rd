@@ -16,6 +16,9 @@ Logical scalar.
 Check whether a priority queue is empty
 }
 \examples{
-q <- priority_queue()
-is_empty(q)
+x <- priority_queue()
+is_empty(x)
+
+x2 <- priority_queue("a", priorities = 1)
+is_empty(x2)
 }

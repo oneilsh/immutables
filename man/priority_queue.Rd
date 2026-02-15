@@ -22,6 +22,7 @@ A `priority_queue`.
 Construct a Priority Queue
 }
 \examples{
-q <- priority_queue("a", "b", "c", priorities = c(2, 1, 2))
-peek_min(q)
+x <- priority_queue("a", "b", "c", priorities = c(2, 1, 2))
+x
+peek_min(x)
 }

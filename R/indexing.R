@@ -409,21 +409,19 @@
 #' @return A new `flexseq` containing selected elements in query order.
 #'   For character indexing, missing names are represented as `NULL` elements.
 #' @examples
-#' t <- as_flexseq(letters[1:6])
-#' s <- t[c(2, 4, 6)]
-#' cat_m <- measure_monoid(paste0, "", as.character)
-#' fold_left(s, cat_m)
+#' x <- as_flexseq(letters[1:6])
+#' x
 #'
-#' # Empty index returns empty tree
-#' attr(t[integer(0)], "measures")$.size
+#' x2 <- x[c(2, 4, 6)]
+#' x2
 #'
-#' # Character indexing by element names
-#' tn <- as_flexseq(setNames(as.list(letters[1:4]), c("w", "x", "y", "z")))
-#' out <- tn[c("y", "missing", "w")]
-#' fold_left(out, measure_monoid(paste0, "", function(el) if(is.null(el)) "_" else el))
+#' # named lookups return NULL for missing names
+#' x3 <- as_flexseq(setNames(as.list(letters[1:4]), c("w", "x", "y", "z")))
+#' x4 <- x3[c("y", "missing", "w")]
+#' x4
 #'
-#' # Logical indexing with recycling
-#' t[c(TRUE, FALSE)]
+#' # logical indexing supports recycling
+#' x[c(TRUE, FALSE)]
 #' @export
 # Runtime: integer/logical reads O(m log n), where m = selected positions;
 # character reads are adaptive: O(m * n_lookup) for short queries, O(n + m)
@@ -479,11 +477,11 @@
 #' @param ... Unused.
 #' @return The extracted element (internal name metadata is removed).
 #' @examples
-#' t <- as_flexseq(letters[1:5])
-#' t[[3]]
+#' x <- as_flexseq(letters[1:5])
+#' x[[3]]
 #'
-#' tn <- as_flexseq(setNames(as.list(letters[1:3]), c("a1", "a2", "a3")))
-#' tn[["a2"]]
+#' x2 <- as_flexseq(setNames(as.list(letters[1:3]), c("a1", "a2", "a3")))
+#' x2[["a2"]]
 #' @export
 # Runtime: O(log n) for integer lookup; O(n) for name lookup.
 `[[.flexseq` <- function(x, i, ...) {
@@ -509,20 +507,22 @@
 #' @param value Replacement values; must have exactly same length as `i`.
 #' @return A new `flexseq` with selected elements replaced.
 #' @examples
-#' t <- as_flexseq(1:6)
-#' t[c(2, 5)] <- list(20, 50)
-#' sum_m <- measure_monoid(`+`, 0, as.numeric)
-#' fold_left(t, sum_m)
+#' x <- as_flexseq(1:6)
+#' x
 #'
-#' # Replacement length must match
-#' try(t[c(1, 2)] <- list(999))
+#' x2 <- x
+#' x2[c(2, 5)] <- list(20, 50)
+#' x2
 #'
-#' # Character replacement by element names (missing names error)
-#' tn <- as_flexseq(setNames(as.list(1:4), c("a", "b", "c", "d")))
-#' tn[c("d", "a")] <- list(40, 10)
+#' # character replacement uses element names
+#' x3 <- as_flexseq(setNames(as.list(1:4), c("a", "b", "c", "d")))
+#' x3[c("d", "a")] <- list(40, 10)
+#' x3
 #'
-#' # Logical replacement with recycling
-#' t[c(TRUE, FALSE, TRUE, FALSE, TRUE, FALSE)] <- list(1)
+#' # logical replacement supports recycling
+#' x4 <- x
+#' x4[c(TRUE, FALSE, TRUE, FALSE, TRUE, FALSE)] <- list(1)
+#' x4
 #' @export
 # Runtime: sparse replacement path O(k log n); dense path O(n + k), where
 # n = tree size and k = number of replaced positions.
@@ -645,19 +645,19 @@
 #' @param value Replacement element.
 #' @return A new `flexseq` with one element replaced.
 #' @examples
-#' t <- as_flexseq(letters[1:4])
-#' t[[2]] <- "ZZ"
-#' cat_m <- measure_monoid(paste0, "", as.character)
-#' fold_left(t, cat_m)
+#' x <- as_flexseq(letters[1:4])
+#' x2 <- x
+#' x2[[2]] <- "ZZ"
+#' x2
 #'
-#' tn <- as_flexseq(setNames(as.list(1:3), c("x", "y", "z")))
-#' tn[["y"]] <- 99
+#' x3 <- as_flexseq(setNames(as.list(1:3), c("x", "y", "z")))
+#' x3[["y"]] <- 99
+#' x3
 #'
-#' # Assigning NULL removes an element (by index or name)
-#' t <- as_flexseq(letters[1:4])
-#' t[[2]] <- NULL
-#' tn <- as_flexseq(setNames(as.list(1:3), c("a", "b", "c")))
-#' tn[["b"]] <- NULL
+#' # assigning NULL removes one element
+#' x4 <- as_flexseq(letters[1:4])
+#' x4[[2]] <- NULL
+#' x4
 #' @export
 # Runtime: O(n) via split + append + concat.
 `[[<-.flexseq` <- function(x, i, value) {

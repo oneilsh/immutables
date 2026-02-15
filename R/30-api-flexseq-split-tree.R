@@ -1,6 +1,6 @@
 #' Split tree around first predicate flip
 #'
-#' @param t FingerTree.
+#' @param t A `flexseq`.
 #' @param predicate Function on measure values.
 #' @param monoid_name Name of monoid from `attr(t, "monoids")`.
 #' @param accumulator Optional starting measure (defaults to monoid identity).

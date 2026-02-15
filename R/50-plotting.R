@@ -167,25 +167,3 @@ plot_tree <- function(t1, vertex.size = 4, edge.width = 1, label_edges = FALSE, 
        ...
   )
 }
-
-
-# convert a flat list into measured Node2/Node3 list for concatenation.
-# Runtime: O(k), where k = length(l).
-measured_nodes(l, monoids) %::% list : list : list
-measured_nodes(l, monoids) %as% {
-  if(length(l) == 2) { return(list(
-    measured_node2( l[[1]], l[[2]], monoids )
-  ))}
-  if(length(l) == 3) { return(list(
-    measured_node3( l[[1]], l[[2]], l[[3]], monoids )
-  ))}
-  if(length(l) == 4) { return(list(
-    measured_node2( l[[1]], l[[2]], monoids ),
-    measured_node2( l[[3]], l[[4]], monoids )
-  ))}
-  
-  first = measured_node3( l[[1]], l[[2]], l[[3]], monoids )
-  rest = measured_nodes(l[4:length(l)], monoids)
-  rest = c(list(first), rest)
-  return(rest)
-}

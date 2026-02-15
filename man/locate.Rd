@@ -7,7 +7,7 @@
 locate(t, predicate, monoid_name, accumulator = NULL, include_metadata = FALSE)
 }
 \arguments{
-\item{t}{FingerTree.}
+\item{t}{A `flexseq`.}
 
 \item{predicate}{Function on accumulated measure values.}
 

@@ -7,7 +7,7 @@
 split_tree(t, predicate, monoid_name, accumulator = NULL)
 }
 \arguments{
-\item{t}{FingerTree.}
+\item{t}{A `flexseq`.}
 
 \item{predicate}{Function on measure values.}
 

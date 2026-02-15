@@ -1,33 +1,20 @@
-# Monoid-annotated 2-3 Finger Trees in R
+# immutables
 
-Alpha tests on monoid-annotated fingertrees in R. Please note that this repository is very much an alpha work-in-progress; code is 
-inefficient, functionality is missing. 
+The `immutables` R package implements sequence objects (`flexseq()`) supporting indexed and named access, appending and prepending, concatenation, splitting, fast push and pop from either end, item removal, and more.
 
-## Reference
+Also implemented are priority queues (`priority_queue()`) 
+supporting all of the above in addition to min and max
+peeking and popping by priority value.
 
-Core structure and semantics are based on:
+Backed by monoid-annotated 2-3 fingertrees as described by
+[Hinze and Paterson](https://doi.org/10.1017/S0956796805005769), all structures are persistent (operations return effective modified copies), and most operations are constant time, amortized constant time, or $O(\log(n))$ (indexing $k$ elements is $O(k\log(n))$). 
+Core functions are implemented in C++ (via Rcpp) for speed,
+and parallel R implementations using `lambda.r` match their
+counterparts in the paper.
+
+The developer API supports the addition of custom structures 
+via combinations of monoids and measures; see vignettes for
+details.
 
 - Hinze, R. and Paterson, R. (2006), *Finger trees: a simple general-purpose data structure*.
   <https://www.cs.ox.ac.uk/ralf.hinze/publications/FingerTrees.pdf>
-
-See `docs/architecture.md` for the reference-vs-fast backend contract and file-family layout.
-
-## Runtime Options
-
-Two options are useful when benchmarking/debugging internals:
-
-- `options(immutables.use_cpp = TRUE/FALSE)`
-  - Enables/disables C++ fast paths for append/prepend/indexing/split/locate/concat.
-  - Default is `TRUE`.
-- `options(immutables.validate_monoids = TRUE/FALSE)`
-  - Enables extra monoid normalization checks inside hot-path monoid resolution.
-  - Useful for debugging hand-mutated trees.
-  - Default is `FALSE` (fast path).
-
-`R/` - implementation files for the 2-3 finger tree and monoids.
-
-`scripts/monoids_demo.R` - demo/exploration of monoid-annotated binary trees (not 2-3 finger trees).
-
-`scripts/monoids_typed.R` - typed monoid/tree implementation using `lambda.r`.
-
-`scripts/` - demo/experiment scripts for finger trees and plotting.

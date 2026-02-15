@@ -7,7 +7,7 @@
 prepend(t, x)
 }
 \arguments{
-\item{t}{FingerTree.}
+\item{t}{A `flexseq`.}
 
 \item{x}{Element to prepend.}
 }

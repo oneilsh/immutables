@@ -30,7 +30,7 @@ Backend gate functions and C++ wrappers live in `R/20-backend-cpp.R`.
 
 - `R/00-core-ref-*.R`: reference core internals (lambda.r style).
 - `R/10-core-fast-r-*.R`: pure-R fast helpers (`*_fast`, hot-path helpers).
-- `R/20-backend-cpp-*.R`: `.Call` wrappers and backend capability checks.
+- `R/20-backend-cpp.R`: `.Call` wrappers and backend capability checks.
 - `R/30-api-flexseq-*.R`: flexseq-facing API and supporting wrappers.
 - `R/40-priority_queue-*.R`: priority queue API and print/monoid helpers.
 - `R/90-devtools-*.R`: internal developer/debug helpers.

@@ -1,6 +1,6 @@
 #' Prepend an element
 #'
-#' @param t FingerTree.
+#' @param t A `flexseq`.
 #' @param x Element to prepend.
 #' @return Updated tree.
 #'   If `t` is name-indexed, prepending unnamed elements is invalid.

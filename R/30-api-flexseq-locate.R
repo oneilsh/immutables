@@ -3,7 +3,7 @@
 #' Read-only analogue of `split_tree()`: finds the distinguished element where
 #' the scan predicate flips, but does not rebuild left/right trees.
 #'
-#' @param t FingerTree.
+#' @param t A `flexseq`.
 #' @param predicate Function on accumulated measure values.
 #' @param monoid_name Name of monoid from `attr(t, "monoids")`.
 #' @param accumulator Optional starting measure (defaults to monoid identity).

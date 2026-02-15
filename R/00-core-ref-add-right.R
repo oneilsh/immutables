@@ -24,7 +24,7 @@ add_right(d, el, monoids) %as% {
   set_measure(newd, monoids)
 }
 
-# symmetric case for add_right. Only new nodes get measures.
+# symmetric to add_left. Only new nodes get measures.
 # Runtime: O(log n) worst-case.
 add_right(d, el, monoids) %::% Deep : . : list : Deep
 add_right(d, el, monoids) %as% {

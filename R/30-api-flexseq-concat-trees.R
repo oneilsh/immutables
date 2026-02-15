@@ -3,8 +3,8 @@
 #' Same-name monoids are assumed equivalent; left-tree definitions win.
 #' Missing monoids are added to each side before concatenation.
 #'
-#' @param x Left tree.
-#' @param y Right tree.
+#' @param x A `flexseq` (left side).
+#' @param y A `flexseq` (right side).
 #' @return Concatenated tree.
 #' @examples
 #' \dontrun{

@@ -14,8 +14,8 @@
 #' attr(x2, "measures")$sum
 #'
 #' # replace an existing monoid definition
-#' sum2 <- measure_monoid(function(a, b) a + 2 * b, 0, as.numeric)
-#' x3 <- add_monoids(x2, list(sum = sum2), overwrite = TRUE)
+#' prod_m <- measure_monoid(`*`, 1, as.numeric)
+#' x3 <- add_monoids(x2, list(sum = prod_m), overwrite = TRUE)
 #' attr(x3, "measures")$sum
 #' @export
 # Runtime: O(n) over tree size for any non-trivial update (rebind/recompute pass).

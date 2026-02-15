@@ -27,10 +27,10 @@ add_left(d, el, monoids) %as% {
   set_measure(newd, monoids)
 }
 
-# this is where the magic happens;
-# if the prefix digit has 4 elements: then we push off the last to
-# be stored deeper along inside a Node3, and just store the new el and the remaining 1 from the digit in the prefix as a digit.
-# otherwise: it's a simple add to the prefix digit.
+# if the prefix has 4 elements [p1, p2, p3, p4]: keep el and p1 as the
+# new 2-element prefix, pack p2, p3, p4 into a Node3 pushed into the
+# middle tree.
+# otherwise: simple add to the prefix digit.
 # Runtime: O(log n) worst-case.
 add_left(d, el, monoids) %::% Deep : . : list : Deep
 add_left(d, el, monoids) %as% {

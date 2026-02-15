@@ -13,8 +13,8 @@
 #'
 #' Exact-name lookup on named trees, equivalent to `x[[\"name\"]]`.
 #'
-#' @method $ FingerTree
-#' @param x FingerTree.
+#' @method $ flexseq
+#' @param x A `flexseq`.
 #' @param name Element name.
 #' @return The matched element.
 #' @examples
@@ -23,7 +23,7 @@
 #' @export
 # Runtime: O(1) for structural-field fallback on unnamed trees; O(n) worst-case
 # for name lookup (single-name locate with early exit).
-`$.FingerTree` <- function(x, name) {
+`$.flexseq` <- function(x, name) {
   nm <- .ft_dollar_name(substitute(name))
   # Preserve structural-field `$` access on unnamed trees for internal traversal
   # and developer ergonomics. Use actual list-field names instead of hard-coding.
@@ -34,15 +34,15 @@
       return(.subset2(x, nm))
     }
   }
-  `[[.FingerTree`(x, nm)
+  `[[.flexseq`(x, nm)
 }
 
 #' Replace a named element with `$<-`
 #'
 #' Exact-name replacement on named trees, equivalent to `x[[\"name\"]] <- value`.
 #'
-#' @method $<- FingerTree
-#' @param x FingerTree.
+#' @method $<- flexseq
+#' @param x A `flexseq`.
 #' @param name Element name.
 #' @param value Replacement element.
 #' @return Updated tree.
@@ -51,8 +51,8 @@
 #' t$b <- 20
 #' t$b
 #' @export
-# Runtime: O(n), delegated to `[[<-.FingerTree`.
-`$<-.FingerTree` <- function(x, name, value) {
+# Runtime: O(n), delegated to `[[<-.flexseq`.
+`$<-.flexseq` <- function(x, name, value) {
   nm <- .ft_dollar_name(substitute(name))
-  `[[<-.FingerTree`(x, nm, value)
+  `[[<-.flexseq`(x, nm, value)
 }

@@ -400,12 +400,13 @@
   list(name_to_pos = name_to_pos, name_vec = name_vec)
 }
 
-#' Subset a finger tree by position or element name
+#' Subset a flexseq by position or element name
 #'
-#' @param x FingerTree.
+#' @method [ flexseq
+#' @param x A `flexseq`.
 #' @param i Positive integer indices, character element names, or logical mask.
 #' @param ... Unused.
-#' @return A new FingerTree containing selected elements in query order.
+#' @return A new `flexseq` containing selected elements in query order.
 #'   For character indexing, missing names are represented as `NULL` elements.
 #' @examples
 #' t <- as_flexseq(letters[1:6])
@@ -427,7 +428,7 @@
 # Runtime: integer/logical reads O(m log n), where m = selected positions;
 # character reads are adaptive: O(m * n_lookup) for short queries, O(n + m)
 # with name-map path for wider queries.
-`[.FingerTree` <- function(x, i, ...) {
+`[.flexseq` <- function(x, i, ...) {
   if(missing(i)) {
     return(x)
   }
@@ -470,15 +471,10 @@
   tree_from(out, monoids = ms)
 }
 
-#' @export
-# Runtime: Delegates to `[.FingerTree`.
-`[.flexseq` <- function(x, i, ...) {
-  .as_flexseq(`[.FingerTree`(x, i, ...))
-}
-
 #' Extract one element by position or unique name
 #'
-#' @param x FingerTree.
+#' @method [[ flexseq
+#' @param x A `flexseq`.
 #' @param i Positive scalar integer index, or scalar character element name.
 #' @param ... Unused.
 #' @return The extracted element (internal name metadata is removed).
@@ -490,7 +486,7 @@
 #' tn[["a2"]]
 #' @export
 # Runtime: O(log n) for integer lookup; O(n) for name lookup.
-`[[.FingerTree` <- function(x, i, ...) {
+`[[.flexseq` <- function(x, i, ...) {
   if(is.character(i) && length(i) == 1L && !is.na(i)) {
     pos <- .ft_match_name_indices(x, i, strict_missing = TRUE)
     return(.ft_strip_name(.ft_get_elem_at(x, pos)))
@@ -505,18 +501,13 @@
   .ft_strip_name(.ft_get_elem_at(x, idx))
 }
 
-#' @export
-# Runtime: Delegates to `[[.FingerTree`.
-`[[.flexseq` <- function(x, i, ...) {
-  `[[.FingerTree`(x, i, ...)
-}
-
 #' Replace selected elements by position or name
 #'
-#' @param x FingerTree.
+#' @method [<- flexseq
+#' @param x A `flexseq`.
 #' @param i Positive integer indices, character names, or logical mask.
 #' @param value Replacement values; must have exactly same length as `i`.
-#' @return A new FingerTree with selected elements replaced.
+#' @return A new `flexseq` with selected elements replaced.
 #' @examples
 #' t <- as_flexseq(1:6)
 #' t[c(2, 5)] <- list(20, 50)
@@ -535,7 +526,7 @@
 #' @export
 # Runtime: sparse replacement path O(k log n); dense path O(n + k), where
 # n = tree size and k = number of replaced positions.
-`[<-.FingerTree` <- function(x, i, value) {
+`[<-.flexseq` <- function(x, i, value) {
   ms <- resolve_tree_monoids(x, required = TRUE)
   vals <- as.list(value)
   n <- as.integer(node_measure(x, ".size"))
@@ -544,7 +535,7 @@
     mask <- .ft_assert_lgl_indices(i, n)
     idx <- .ft_true_positions(mask)
     vals2 <- .ft_recycle_values(vals, length(idx))
-    return(`[<-.FingerTree`(x, idx, vals2))
+    return(`[<-.flexseq`(x, idx, vals2))
   }
 
   if(is.character(i)) {
@@ -646,18 +637,13 @@
   tree_from(xs, monoids = ms)
 }
 
-#' @export
-# Runtime: Delegates to `[<-.FingerTree`.
-`[<-.flexseq` <- function(x, i, value) {
-  .as_flexseq(`[<-.FingerTree`(x, i, value))
-}
-
 #' Replace one element by position or unique name
 #'
-#' @param x FingerTree.
+#' @method [[<- flexseq
+#' @param x A `flexseq`.
 #' @param i Positive scalar integer index, or scalar character element name.
 #' @param value Replacement element.
-#' @return A new FingerTree with one element replaced.
+#' @return A new `flexseq` with one element replaced.
 #' @examples
 #' t <- as_flexseq(letters[1:4])
 #' t[[2]] <- "ZZ"
@@ -674,18 +660,18 @@
 #' tn[["b"]] <- NULL
 #' @export
 # Runtime: O(n) via split + append + concat.
-`[[<-.FingerTree` <- function(x, i, value) {
+`[[<-.flexseq` <- function(x, i, value) {
   if(is.character(i) && length(i) == 1L && !is.na(i)) {
     pos <- .ft_match_name_indices(x, i, strict_missing = TRUE)
     if(is.null(value)) {
-      return(`[[<-.FingerTree`(x, pos, NULL))
+      return(`[[<-.flexseq`(x, pos, NULL))
     }
     nm <- .ft_effective_name(value)
     if(is.null(nm)) {
       nm <- i
     }
     v <- .ft_set_name(value, nm)
-    return(`[[<-.FingerTree`(x, pos, v))
+    return(`[[<-.flexseq`(x, pos, v))
   }
   ms <- resolve_tree_monoids(x, required = TRUE)
   n <- as.integer(node_measure(x, ".size"))
@@ -695,7 +681,7 @@
   }
   if(is.null(value)) {
     s <- split_tree(x, function(v) v >= idx, ".size")
-    return(concat(s$left, s$right, ms))
+    return(.as_flexseq(concat(s$left, s$right, ms)))
   }
   old <- NULL
   nm <- .ft_effective_name(value)
@@ -723,11 +709,5 @@
 
   s <- split_tree(x, function(v) v >= idx, ".size")
   left_plus <- append(s$left, value)
-  concat(left_plus, s$right, ms)
-}
-
-#' @export
-# Runtime: Delegates to `[[<-.FingerTree`.
-`[[<-.flexseq` <- function(x, i, value) {
-  .as_flexseq(`[[<-.FingerTree`(x, i, value))
+  .as_flexseq(concat(left_plus, s$right, ms))
 }

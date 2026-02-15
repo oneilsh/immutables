@@ -20,6 +20,6 @@ Config/testthat/edition: 3
 VignetteBuilder: knitr
 RoxygenNote: 7.3.2
 NeedsCompilation: yes
-Packaged: 2026-02-15 01:55:30 UTC; oneilsh
+Packaged: 2026-02-15 01:56:17 UTC; oneilsh
 Author: Shawn T. O'Neil [aut, cre]
 Maintainer: Shawn T. O'Neil <shawn@tislab.org>

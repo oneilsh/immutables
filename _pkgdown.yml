@@ -20,12 +20,12 @@ reference:
       - "length.flexseq"
       - fold_left
       - fold_right
-      - "[.FingerTree"
-      - "[[.FingerTree"
-      - "[<-.FingerTree"
-      - "[[<-.FingerTree"
-      - "$.FingerTree"
-      - "$<-.FingerTree"
+      - "[.flexseq"
+      - "[[.flexseq"
+      - "[<-.flexseq"
+      - "[[<-.flexseq"
+      - "$.flexseq"
+      - "$<-.flexseq"
       - "split.flexseq"
       - "plot.flexseq"
 

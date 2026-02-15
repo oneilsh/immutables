@@ -16,11 +16,7 @@
 * checking if this is a source package ... OK
 * checking if there is a namespace ... OK
 * checking for executable files ... OK
-* checking for hidden files and directories ... NOTE
-Found the following hidden files and directories:
-  .claude
-These were most likely included in error. See section ‘Package
-structure’ in the ‘Writing R Extensions’ manual.
+* checking for hidden files and directories ... OK
 * checking for portable file names ... OK
 * checking for sufficient/correct file permissions ... OK
 * checking whether package ‘immutables’ can be installed ... OK
@@ -68,4 +64,4 @@ structure’ in the ‘Writing R Extensions’ manual.
 * checking package vignettes ... OK
 * checking re-building of vignette outputs ... OK
 * DONE
-Status: 1 NOTE
+Status: OK

@@ -1,0 +1,22 @@
+* installing *source* package ‘immutables’ ...
+** using staged installation
+** libs
+using C compiler: ‘Apple clang version 17.0.0 (clang-1700.4.4.1)’
+using C++ compiler: ‘Apple clang version 17.0.0 (clang-1700.4.4.1)’
+using SDK: ‘’
+clang++ -arch arm64 -std=gnu++17 -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG  -I'/Library/Frameworks/R.framework/Versions/4.4-arm64/Resources/library/Rcpp/include' -I/opt/R/arm64/include    -fPIC  -falign-functions=64 -Wall -g -O2   -c ft_cpp.cpp -o ft_cpp.o
+clang -arch arm64 -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG  -I'/Library/Frameworks/R.framework/Versions/4.4-arm64/Resources/library/Rcpp/include' -I/opt/R/arm64/include    -fPIC  -falign-functions=64 -Wall -g -O2  -c init.c -o init.o
+clang++ -arch arm64 -std=gnu++17 -dynamiclib -Wl,-headerpad_max_install_names -undefined dynamic_lookup -L/Library/Frameworks/R.framework/Resources/lib -L/opt/R/arm64/lib -o immutables.so ft_cpp.o init.o -F/Library/Frameworks/R.framework/.. -framework R -Wl,-framework -Wl,CoreFoundation
+installing to /Users/oneilsh/Documents/projects/r_stuff/functional_stuff/immutables/immutables.Rcheck/00LOCK-immutables/00new/immutables/libs
+** R
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+** building package indices
+** installing vignettes
+** testing if installed package can be loaded from temporary location
+** checking absolute paths in shared objects and dynamic libraries
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (immutables)

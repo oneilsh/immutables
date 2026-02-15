@@ -1,0 +1,63 @@
+---
+title: "Getting Started with flexseq"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting Started with flexseq}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(immutables)
+```
+
+## Creating sequences
+
+`flexseq` objects are persistent (immutable) sequences. Every modification
+returns a new sequence, leaving the original unchanged.
+
+```{r}
+x <- flexseq(1, 2, 3)
+x
+
+y <- as_flexseq(letters[1:5])
+y
+```
+
+## Indexing
+
+```{r}
+y[[3]]
+y[c(1, 3, 5)]
+```
+
+## Appending and prepending
+
+```{r}
+z <- append(y, "f")
+z2 <- prepend(z, "start")
+length(z2)
+```
+
+## Named sequences
+
+```{r}
+named <- as_flexseq(setNames(as.list(1:3), c("a", "b", "c")))
+named[["b"]]
+named$c
+```
+
+## Concatenation
+
+```{r}
+combined <- c(x, as_flexseq(4:6))
+length(combined)
+```
+
+## Folding
+
+```{r}
+sum_m <- measure_monoid(`+`, 0, as.numeric)
+fold_left(as_flexseq(1:10), sum_m)
+```

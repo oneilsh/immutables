@@ -26,6 +26,7 @@ reference:
       - "[[<-.FingerTree"
       - "$.FingerTree"
       - "$<-.FingerTree"
+      - "split.flexseq"
       - "plot.flexseq"
 
   - title: "priority_queue API"
@@ -46,10 +47,8 @@ reference:
     contents:
       - add_monoids
       - locate
-      - split
       - split_tree
       - measure_monoid
       - predicate
       - validate_tree
       - validate_name_state
-      - get_graph_df

@@ -2,6 +2,7 @@ Package: immutables
 Type: Package
 Title: Fast and Functional Data Structures
 URL: https://github.com/oneilsh/immutables
+BugReports: https://github.com/oneilsh/immutables/issues
 Version: 0.0.1
 Authors@R: c(
     person(given = "Shawn T.", family = "O'Neil", email = "shawn@tislab.org", role = c("aut", "cre"))
@@ -12,16 +13,17 @@ Description: Provides fast, side-effect free data structures, including
     by Hinze and Paterson.
 License: MIT + file LICENSE
 Encoding: UTF-8
-LazyData: true
 Imports:
     Rcpp,
-    lambda.r,
-    rlist,
-    igraph
+    lambda.r
 LinkingTo:
     Rcpp
 Suggests:
+    igraph,
+    knitr,
     pkgdown,
+    rmarkdown,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+VignetteBuilder: knitr
 RoxygenNote: 7.3.2

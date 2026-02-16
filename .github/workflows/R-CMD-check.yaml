@@ -25,8 +25,8 @@ jobs:
 
       - name: Install R dependencies
         run: |
-          Rscript -e 'install.packages(c("Rcpp","lambda.r","knitr","testthat","rcmdcheck"), repos = "https://cloud.r-project.org")'
+          Rscript -e 'install.packages(c("Rcpp","lambda.r","knitr","rmarkdown","testthat","rcmdcheck"), repos = "https://cloud.r-project.org")'
 
       - name: Check
-        run: rcmdcheck::rcmdcheck(args = c("--no-manual", "--no-build-vignettes", "--ignore-vignettes"), error_on = "warning")
+        run: rcmdcheck::rcmdcheck(build_args = c("--no-build-vignettes"), args = c("--no-manual", "--ignore-vignettes"), error_on = "warning")
         shell: Rscript {0}

@@ -336,7 +336,7 @@
   if(.ft_cpp_enabled()) {
     return(.ft_cpp_get_by_index(x, idx))
   }
-  hit <- locate(x, function(v) v >= idx, ".size")
+  hit <- locate_by_predicate(x, function(v) v >= idx, ".size")
   if(!isTRUE(hit$found)) {
     stop("Index out of bounds.")
   }
@@ -680,7 +680,7 @@
     stop("[[<- expects exactly one index.")
   }
   if(is.null(value)) {
-    s <- split_tree(x, function(v) v >= idx, ".size")
+    s <- split_around_by_predicate(x, function(v) v >= idx, ".size")
     return(.as_flexseq(concat(s$left, s$right, ms)))
   }
   old <- NULL
@@ -707,7 +707,7 @@
   }
   value <- .ft_set_name(value, nm)
 
-  s <- split_tree(x, function(v) v >= idx, ".size")
+  s <- split_around_by_predicate(x, function(v) v >= idx, ".size")
   left_plus <- append(s$left, value)
   .as_flexseq(concat(left_plus, s$right, ms))
 }

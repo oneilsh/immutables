@@ -8,7 +8,7 @@
 #' p(3)
 #'
 #' x <- as_flexseq(letters[1:5])
-#' locate(x, p, ".size")
+#' locate_by_predicate(x, p, ".size")
 #' @export
 # Runtime: O(1).
 predicate <- function(f) {

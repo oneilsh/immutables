@@ -83,7 +83,7 @@ testthat::test_that("structural invariants hold after concat and split", {
   t <- c(t1, t2)
   validate_fingertree_invariants(t)
 
-  s <- split(t, function(v) v >= 10, ".size")
+  s <- split_by_predicate(t, function(v) v >= 10, ".size")
   validate_fingertree_invariants(s$left)
   validate_fingertree_invariants(s$right)
 })

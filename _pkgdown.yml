@@ -27,7 +27,7 @@ reference:
       - "[[<-.flexseq"
       - "$.flexseq"
       - "$<-.flexseq"
-      - "split.flexseq"
+      - split_at
       - "plot.flexseq"
 
   - title: "priority_queue API"
@@ -47,8 +47,9 @@ reference:
     desc: "Lower-level constructors, query primitives, and tooling"
     contents:
       - add_monoids
-      - locate
-      - split_tree
+      - locate_by_predicate
+      - split_around_by_predicate
+      - split_by_predicate
       - measure_monoid
       - predicate
       - validate_tree

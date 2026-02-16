@@ -1,17 +1,17 @@
-testthat::test_that("locate finds same distinguished element as split_tree", {
+testthat::test_that("locate_by_predicate finds same distinguished element as split_around_by_predicate", {
   t <- as_flexseq(letters[1:8])
 
-  l <- locate(t, function(v) v >= 5, ".size")
-  s <- split_tree(t, function(v) v >= 5, ".size")
+  l <- locate_by_predicate(t, function(v) v >= 5, ".size")
+  s <- split_around_by_predicate(t, function(v) v >= 5, ".size")
 
   testthat::expect_true(l$found)
   testthat::expect_identical(l$elem, s$elem)
 })
 
-testthat::test_that("locate metadata for .size is symmetric", {
+testthat::test_that("locate_by_predicate metadata for .size is symmetric", {
   t <- as_flexseq(letters[1:6])
 
-  l <- locate(t, function(v) v >= 4, ".size", include_metadata = TRUE)
+  l <- locate_by_predicate(t, function(v) v >= 4, ".size", include_metadata = TRUE)
 
   testthat::expect_true(l$found)
   testthat::expect_identical(l$elem, "d")
@@ -21,11 +21,11 @@ testthat::test_that("locate metadata for .size is symmetric", {
   testthat::expect_identical(l$metadata$index, 4L)
 })
 
-testthat::test_that("locate metadata works with non-size monoid and .size index", {
+testthat::test_that("locate_by_predicate metadata works with non-size monoid and .size index", {
   sum_m <- measure_monoid(`+`, 0, as.numeric)
   t <- as_flexseq(1:6, monoids = list(sum = sum_m))
 
-  l <- locate(t, function(v) v >= 10, "sum", include_metadata = TRUE)
+  l <- locate_by_predicate(t, function(v) v >= 10, "sum", include_metadata = TRUE)
 
   testthat::expect_true(l$found)
   testthat::expect_identical(l$elem, 4L)
@@ -35,14 +35,14 @@ testthat::test_that("locate metadata works with non-size monoid and .size index"
   testthat::expect_identical(l$metadata$index, 4L)
 })
 
-testthat::test_that("locate returns not-found without reconstruction", {
+testthat::test_that("locate_by_predicate returns not-found without reconstruction", {
   t <- as_flexseq(letters[1:5])
 
-  l <- locate(t, function(v) v >= 99, ".size")
+  l <- locate_by_predicate(t, function(v) v >= 99, ".size")
   testthat::expect_false(l$found)
   testthat::expect_null(l$elem)
 
-  lm <- locate(t, function(v) v >= 99, ".size", include_metadata = TRUE)
+  lm <- locate_by_predicate(t, function(v) v >= 99, ".size", include_metadata = TRUE)
   testthat::expect_false(lm$found)
   testthat::expect_null(lm$elem)
   testthat::expect_identical(lm$metadata$left_measure, 5)

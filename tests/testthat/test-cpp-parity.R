@@ -82,9 +82,9 @@ parity_scenarios <- c(
   "concat_trees",
   "reduce_left",
   "reduce_right",
-  "split_tree",
-  "split",
-  "locate",
+  "split_around_by_predicate",
+  "split_by_predicate",
+  "locate_by_predicate",
   "[ read (integer/logical/name)",
   "[[ read (integer/name)",
   "[<- replacement (integer/logical/name)",
@@ -105,8 +105,8 @@ cpp_wrapper_coverage <- list(
   .ft_cpp_tree_from = c("tree_from unnamed"),
   .ft_cpp_tree_from_prepared = c("tree_from"),
   .ft_cpp_concat = c("concat_trees"),
-  .ft_cpp_locate = c("locate"),
-  .ft_cpp_split_tree = c("split_tree", "split"),
+  .ft_cpp_locate = c("locate_by_predicate"),
+  .ft_cpp_split_tree = c("split_around_by_predicate", "split_by_predicate"),
   .ft_cpp_find_name_position = c("$ read", "[ read (integer/logical/name)"),
   .ft_cpp_get_by_index = c("[[ read (integer/name)"),
   .ft_cpp_get_many_by_index = c("[ read (integer/logical/name)"),
@@ -141,7 +141,7 @@ testthat::test_that("backend parity: predicate constructor/use", {
   expect_backend_identical({
     p <- predicate(function(v) v >= 3)
     t <- as_flexseq(letters[1:6])
-    loc <- locate(t, p, ".size", include_metadata = TRUE)
+    loc <- locate_by_predicate(t, p, ".size", include_metadata = TRUE)
     snapshot_locate(loc)
   })
 })
@@ -230,25 +230,25 @@ testthat::test_that("backend parity: reduce_right", {
   })
 })
 
-testthat::test_that("backend parity: split_tree", {
+testthat::test_that("backend parity: split_around_by_predicate", {
   expect_backend_identical({
     t <- as_flexseq(letters[1:20])
-    snapshot_split(split_tree(t, function(v) v >= 8, ".size"))
+    snapshot_split(split_around_by_predicate(t, function(v) v >= 8, ".size"))
   })
 })
 
-testthat::test_that("backend parity: split", {
+testthat::test_that("backend parity: split_by_predicate", {
   expect_backend_identical({
     t <- as_flexseq(letters[1:20])
-    s <- split(t, function(v) v >= 8, ".size")
+    s <- split_by_predicate(t, function(v) v >= 8, ".size")
     list(left = snapshot_tree(s$left), right = snapshot_tree(s$right))
   })
 })
 
-testthat::test_that("backend parity: locate", {
+testthat::test_that("backend parity: locate_by_predicate", {
   expect_backend_identical({
     t <- as_flexseq(letters[1:20])
-    snapshot_locate(locate(t, function(v) v >= 10, ".size", include_metadata = TRUE))
+    snapshot_locate(locate_by_predicate(t, function(v) v >= 10, ".size", include_metadata = TRUE))
   })
 })
 

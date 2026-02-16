@@ -120,10 +120,10 @@ testthat::test_that("size measure is available by default for indexing even if n
   testthat::expect_equal(t[[2]], 2)
 })
 
-testthat::test_that("single-element read indexing follows locate(.size) semantics", {
+testthat::test_that("single-element read indexing follows locate_by_predicate(.size) semantics", {
   t <- as_flexseq(letters[1:8])
   for(i in 1:8) {
-    hit <- locate(t, function(v) v >= i, ".size")
+    hit <- locate_by_predicate(t, function(v) v >= i, ".size")
     testthat::expect_true(hit$found)
     testthat::expect_identical(t[[i]], hit$elem)
   }

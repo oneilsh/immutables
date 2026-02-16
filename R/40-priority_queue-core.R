@@ -196,7 +196,7 @@ is_empty <- function(q) {
 
   target <- node_measure(q, monoid_name)
   pred <- function(v) .pq_measure_equal(v, target)
-  loc <- locate(q, pred, monoid_name)
+  loc <- locate_by_predicate(q, pred, monoid_name)
   loc$elem[["item"]]
 }
 
@@ -209,7 +209,7 @@ is_empty <- function(q) {
 
   target <- node_measure(q, monoid_name)
   pred <- function(v) .pq_measure_equal(v, target)
-  s <- split_tree(q, pred, monoid_name)
+  s <- split_around_by_predicate(q, pred, monoid_name)
 
   rest <- concat_trees(s$left, s$right)
   rest <- .as_priority_queue(rest, next_seq = .pq_next_seq(q))

@@ -53,45 +53,16 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="monoid-annotated-2-3-finger-trees-in-r">Monoid-annotated 2-3 Finger Trees in R<a class="anchor" aria-label="anchor" href="#monoid-annotated-2-3-finger-trees-in-r"></a>
+<div class="page-header"><h1 id="immutables">immutables<a class="anchor" aria-label="anchor" href="#immutables"></a>
 </h1></div>
-<p>Alpha tests on monoid-annotated fingertrees in R. Please note that this repository is very much an alpha work-in-progress; code is inefficient, functionality is missing.</p>
-<div class="section level2">
-<h2 id="reference">Reference<a class="anchor" aria-label="anchor" href="#reference"></a>
-</h2>
-<p>Core structure and semantics are based on:</p>
+<p>The <code>immutables</code> R package implements sequence objects (<code><a href="reference/flexseq.html">flexseq()</a></code>) supporting indexed and named access, appending and prepending, concatenation, splitting, fast push and pop from either end, item removal, and more.</p>
+<p>Also implemented are priority queues (<code><a href="reference/priority_queue.html">priority_queue()</a></code>) supporting all of the above in addition to min and max peeking and popping by priority value.</p>
+<p>Backed by monoid-annotated 2-3 fingertrees as described by <a href="https://doi.org/10.1017/S0956796805005769" class="external-link">Hinze and Paterson</a>, all structures are persistent (operations return effective modified copies), and most operations are constant time, amortized constant time, or <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>n</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(\log(n))</annotation></semantics></math> (indexing <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math> elements is <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><mi>k</mi><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>n</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(k\log(n))</annotation></semantics></math>). Core functions are implemented in C++ (via Rcpp) for speed, and parallel R implementations using <code>lambda.r</code> match their counterparts in the paper.</p>
+<p>The developer API supports the addition of custom structures via combinations of monoids and measures; see vignettes for details.</p>
 <ul>
 <li>Hinze, R. and Paterson, R. (2006), <em>Finger trees: a simple general-purpose data structure</em>. <a href="https://www.cs.ox.ac.uk/ralf.hinze/publications/FingerTrees.pdf" class="external-link uri">https://www.cs.ox.ac.uk/ralf.hinze/publications/FingerTrees.pdf</a>
 </li>
 </ul>
-<p>See <code>docs/architecture.md</code> for the reference-vs-fast backend contract and file-family layout.</p>
-</div>
-<div class="section level2">
-<h2 id="runtime-options">Runtime Options<a class="anchor" aria-label="anchor" href="#runtime-options"></a>
-</h2>
-<p>Two options are useful when benchmarking/debugging internals:</p>
-<ul>
-<li>
-<code>options(immutables.use_cpp = TRUE/FALSE)</code>
-<ul>
-<li>Enables/disables C++ fast paths for append/prepend/indexing/split/locate/concat.</li>
-<li>Default is <code>TRUE</code>.</li>
-</ul>
-</li>
-<li>
-<code>options(immutables.validate_monoids = TRUE/FALSE)</code>
-<ul>
-<li>Enables extra monoid normalization checks inside hot-path monoid resolution.</li>
-<li>Useful for debugging hand-mutated trees.</li>
-<li>Default is <code>FALSE</code> (fast path).</li>
-</ul>
-</li>
-</ul>
-<p><code>R/</code> - implementation files for the 2-3 finger tree and monoids.</p>
-<p><code>scripts/monoids_demo.R</code> - demo/exploration of monoid-annotated binary trees (not 2-3 finger trees).</p>
-<p><code>scripts/monoids_typed.R</code> - typed monoid/tree implementation using <code>lambda.r</code>.</p>
-<p><code>scripts/</code> - demo/experiment scripts for finger trees and plotting.</p>
-</div>
 </div>
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>

@@ -1,7 +1,8 @@
-#' Locate first predicate flip without reconstructing context trees
+#' Locate First Predicate Flip Without Reconstructing Context Trees
 #'
-#' Read-only analogue of `split_tree()`: finds the distinguished element where
-#' the scan predicate flips, but does not rebuild left/right trees.
+#' Read-only analogue of [split_around_by_predicate()]: finds the distinguished
+#' element where the scan predicate flips, but does not rebuild left/right
+#' trees.
 #'
 #' @param t A `flexseq`.
 #' @param predicate Function on accumulated measure values.
@@ -15,17 +16,17 @@
 #' x <- as_flexseq(letters[1:6])
 #' x
 #'
-#' loc <- locate(x, function(v) v >= 4, ".size")
+#' loc <- locate_by_predicate(x, function(v) v >= 4, ".size")
 #' loc
 #'
 #' # include metadata with a custom monoid
 #' sum_m <- measure_monoid(`+`, 0, as.numeric)
 #' x2 <- as_flexseq(1:6, monoids = list(sum = sum_m))
-#' loc2 <- locate(x2, function(v) v >= 10, "sum", include_metadata = TRUE)
+#' loc2 <- locate_by_predicate(x2, function(v) v >= 10, "sum", include_metadata = TRUE)
 #' loc2
 #' @export
 # Runtime: O(log n) near locate point depth.
-locate <- function(t, predicate, monoid_name, accumulator = NULL, include_metadata = FALSE) {
+locate_by_predicate <- function(t, predicate, monoid_name, accumulator = NULL, include_metadata = FALSE) {
   ctx <- resolve_named_monoid(t, monoid_name)
   ms <- ctx$monoids
   mr <- ctx$monoid

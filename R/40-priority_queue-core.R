@@ -141,14 +141,35 @@ priority_queue <- function(..., priorities = NULL, names = NULL, monoids = NULL)
   as_priority_queue(xs, priorities = priorities, monoids = monoids)
 }
 
+# Runtime: O(1).
+#' Insert an element
+#'
+#' Generic `insert()` dispatches by class.
+#'
+#' @title Insert an element
+#' @param x Object to insert into.
+#' @param ... Method-specific arguments.
+#' @return Updated object.
+#' @export
+insert <- function(x, ...) {
+  UseMethod("insert")
+}
+
+#' @export
+#' @noRd
+insert.default <- function(x, ...) {
+  cls <- class(x)
+  cls_txt <- if(length(cls) == 0L) "unknown" else paste(cls, collapse = "/")
+  stop(sprintf("No `insert()` method for class '%s'.", cls_txt))
+}
+
 # Runtime: O(log n) near right edge.
 #' Insert an element into a priority queue
 #'
-#' @param q A `priority_queue`.
+#' @rdname insert
 #' @param element Element to insert.
 #' @param priority Numeric scalar priority.
 #' @param name Optional element name.
-#' @return Updated `priority_queue`.
 #' @examples
 #' x <- priority_queue("a", "b", priorities = c(2, 1))
 #' x
@@ -157,7 +178,8 @@ priority_queue <- function(..., priorities = NULL, names = NULL, monoids = NULL)
 #' x2
 #' peek_min(x2)
 #' @export
-insert <- function(q, element, priority, name = NULL) {
+insert.priority_queue <- function(x, element, priority, name = NULL, ...) {
+  q <- x
   .pq_assert_queue(q)
   seq_id <- .pq_next_seq(q)
   entry <- .pq_make_entry(element, priority, seq_id)

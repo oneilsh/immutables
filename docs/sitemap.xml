@@ -26,9 +26,9 @@
 <url><loc>https://oneilsh.github.io/immutables/reference/count_key.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/delete_all.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/delete_one.html</loc></url>
-<url><loc>https://oneilsh.github.io/immutables/reference/difference_ms.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/elements_between.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/empty_tree.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/extract_key.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/extract_max.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/extract_min.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/fingertree-package.html</loc></url>
@@ -39,8 +39,6 @@
 <url><loc>https://oneilsh.github.io/immutables/reference/immutables-package.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/index.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/insert.html</loc></url>
-<url><loc>https://oneilsh.github.io/immutables/reference/insert_ms.html</loc></url>
-<url><loc>https://oneilsh.github.io/immutables/reference/intersection_ms.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/is_empty.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/length.flexseq.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/length.priority_queue.html</loc></url>
@@ -48,6 +46,7 @@
 <url><loc>https://oneilsh.github.io/immutables/reference/lower_bound.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/measure_monoid.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/ordered_multiset.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/peek_key.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/peek_max.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/peek_min.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/plot.flexseq.html</loc></url>
@@ -76,7 +75,7 @@
 <url><loc>https://oneilsh.github.io/immutables/reference/subset-.FingerTree.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/subset-.flexseq.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/tree_from.html</loc></url>
-<url><loc>https://oneilsh.github.io/immutables/reference/union_ms.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/union.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/upper_bound.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/validate_name_state.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/validate_tree.html</loc></url>

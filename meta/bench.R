@@ -482,7 +482,7 @@ bench_oms_build <- function(n = 40000, key_space = 1000, use_cpp = TRUE, merge_e
 }
 
 bench_oms_insert <- function(n = 20000, inserts = 2000, key_space = 1000, use_cpp = TRUE, merge_engine = "auto") {
-  message("== ordered_multiset insert_ms ==")
+  message("== ordered_multiset insert ==")
   base <- .bench_oms_keys(n, key_space = key_space)
   ins <- sample.int(as.integer(key_space), as.integer(inserts), replace = TRUE)
   timing <- system.time({
@@ -490,7 +490,7 @@ bench_oms_insert <- function(n = 20000, inserts = 2000, key_space = 1000, use_cp
     .bench_with_oms_engine(merge_engine, {
       ms <- as_ordered_multiset(base, keys = base)
       for(i in seq_len(inserts)) {
-        ms <- insert_ms(ms, ins[[i]], key = ins[[i]])
+        ms <- insert(ms, ins[[i]], key = ins[[i]])
         if(i %% 100 == 0) print(i)
       }
     })
@@ -500,7 +500,7 @@ bench_oms_insert <- function(n = 20000, inserts = 2000, key_space = 1000, use_cp
 }
 
 bench_oms_union <- function(n = 20000, reps = 200, key_space = 1000, use_cpp = TRUE, merge_engine = "auto") {
-  message("== ordered_multiset union_ms ==")
+  message("== ordered_multiset union ==")
   x_vals <- .bench_oms_keys(n, key_space = key_space)
   y_vals <- .bench_oms_keys(n, key_space = key_space)
   x <- as_ordered_multiset(x_vals, keys = x_vals)
@@ -509,7 +509,7 @@ bench_oms_union <- function(n = 20000, reps = 200, key_space = 1000, use_cpp = T
     options(immutables.use_cpp = use_cpp)
     .bench_with_oms_engine(merge_engine, {
       for(i in seq_len(reps)) {
-        z <- union_ms(x, y)
+        z <- union(x, y)
         if(i %% 50 == 0) print(i)
       }
     })
@@ -519,7 +519,7 @@ bench_oms_union <- function(n = 20000, reps = 200, key_space = 1000, use_cpp = T
 }
 
 bench_oms_intersection <- function(n = 20000, reps = 200, key_space = 1000, use_cpp = TRUE, merge_engine = "auto") {
-  message("== ordered_multiset intersection_ms ==")
+  message("== ordered_multiset intersect ==")
   x_vals <- .bench_oms_keys(n, key_space = key_space)
   y_vals <- .bench_oms_keys(n, key_space = key_space)
   x <- as_ordered_multiset(x_vals, keys = x_vals)
@@ -528,7 +528,7 @@ bench_oms_intersection <- function(n = 20000, reps = 200, key_space = 1000, use_
     options(immutables.use_cpp = use_cpp)
     .bench_with_oms_engine(merge_engine, {
       for(i in seq_len(reps)) {
-        z <- intersection_ms(x, y)
+        z <- intersect(x, y)
         if(i %% 50 == 0) print(i)
       }
     })
@@ -538,7 +538,7 @@ bench_oms_intersection <- function(n = 20000, reps = 200, key_space = 1000, use_
 }
 
 bench_oms_difference <- function(n = 20000, reps = 200, key_space = 1000, use_cpp = TRUE, merge_engine = "auto") {
-  message("== ordered_multiset difference_ms ==")
+  message("== ordered_multiset setdiff ==")
   x_vals <- .bench_oms_keys(n, key_space = key_space)
   y_vals <- .bench_oms_keys(n, key_space = key_space)
   x <- as_ordered_multiset(x_vals, keys = x_vals)
@@ -547,7 +547,7 @@ bench_oms_difference <- function(n = 20000, reps = 200, key_space = 1000, use_cp
     options(immutables.use_cpp = use_cpp)
     .bench_with_oms_engine(merge_engine, {
       for(i in seq_len(reps)) {
-        z <- difference_ms(x, y)
+        z <- setdiff(x, y)
         if(i %% 50 == 0) print(i)
       }
     })

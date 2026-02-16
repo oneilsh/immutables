@@ -328,7 +328,7 @@ testthat::test_that("backend parity: $<- replacement", {
 testthat::test_that("backend parity: ordered_multiset insert", {
   expect_backend_identical({
     x <- as_ordered_multiset(list("aa", "bb", "c", "ddd"), keys = c(2, 2, 1, 3))
-    out <- insert_ms(x, "qq", key = 2)
+    out <- insert(x, "qq", key = 2)
     list(values = as.list(out), next_seq = attr(out, "oms_next_seq", exact = TRUE))
   })
 })
@@ -349,9 +349,9 @@ testthat::test_that("backend parity: ordered_multiset set ops", {
     y <- as_ordered_multiset(list("xx", "z", "qq", "rrrr"), keys = c(2, 1, 2, 4))
 
     list(
-      union = as.list(union_ms(x, y)),
-      intersection = as.list(intersection_ms(x, y)),
-      difference = as.list(difference_ms(x, y))
+      union = as.list(union(x, y)),
+      intersection = as.list(intersect(x, y)),
+      difference = as.list(setdiff(x, y))
     )
   })
 })

@@ -396,7 +396,7 @@
 #' @examples
 #' ms <- as_ordered_multiset(c(4, 1, 2, 1), keys = c(4, 1, 2, 1))
 #' ms
-#' count_key(ms, 1)
+#' length(elements_between(ms, 1, 1))
 #' @export
 as_ordered_multiset <- function(x, keys = NULL, monoids = NULL) {
   .oms_build_from_items(as.list(x), keys = keys, monoids = monoids)
@@ -419,14 +419,8 @@ ordered_multiset <- function(..., keys = NULL, monoids = NULL) {
 }
 
 # Runtime: O(log n) near insertion/split point depth.
-#' Insert an element into an ordered multiset
-#'
-#' @param x An `ordered_multiset`.
-#' @param element Element to insert.
-#' @param key Scalar key for `element`.
-#' @return Updated `ordered_multiset`.
-#' @export
-insert_ms <- function(x, element, key) {
+#' @noRd
+.oms_insert_impl <- function(x, element, key) {
   .oms_assert_set(x)
   norm <- .oms_normalize_key(key)
   key_type <- .oms_validate_key_type(.oms_key_type_state(x), norm$key_type)
@@ -449,6 +443,15 @@ insert_ms <- function(x, element, key) {
   }
 
   .oms_wrap_tree(x, out, next_seq = seq_id + 1L, key_type = key_type)
+}
+
+# Runtime: O(log n) near insertion/split point depth.
+#' @rdname insert
+#' @param key Scalar key for `element`.
+#' @return Updated `ordered_multiset`.
+#' @export
+insert.ordered_multiset <- function(x, element, key, ...) {
+  .oms_insert_impl(x, element, key)
 }
 
 # Runtime: O(log n) near split points.
@@ -541,37 +544,62 @@ upper_bound <- function(x, key_value) {
 }
 
 # Runtime: O(log n).
-#' Count multiplicity of one key
+#' Peek first element for one key
+#'
+#' Returns the earliest inserted element among entries whose key equals
+#' `key_value`.
 #'
 #' @param x An `ordered_multiset`.
 #' @param key_value Query key.
-#' @return Integer count.
+#' @return Raw stored element.
 #' @export
-count_key <- function(x, key_value) {
+peek_key <- function(x, key_value) {
   .oms_assert_set(x)
-  l <- .oms_bound_index(x, key_value, strict = FALSE)
-  u <- .oms_bound_index(x, key_value, strict = TRUE)
-  as.integer(max(0L, u - l))
+  norm <- .oms_normalize_key(key_value)
+  key_type <- .oms_validate_key_type(.oms_key_type_state(x), norm$key_type)
+
+  idx <- .oms_bound_index(x, norm$key, strict = FALSE)
+  n <- length(x)
+  if(idx > n) {
+    stop("Key not found in ordered_multiset.")
+  }
+
+  s <- split_around_by_predicate(x, function(v) v >= idx, ".size")
+  if(.oms_compare_key(s$elem$key, norm$key, key_type) != 0L) {
+    stop("Key not found in ordered_multiset.")
+  }
+  s$elem$item
 }
 
-# Runtime: O(log n).
-#' Count elements in a key range
+# Runtime: O(log n) near split point depth.
+#' Extract first element for one key
+#'
+#' Removes and returns the earliest inserted element among entries whose key
+#' equals `key_value`.
 #'
 #' @param x An `ordered_multiset`.
-#' @param lo Lower bound key.
-#' @param hi Upper bound key.
-#' @param include_lo Include lower bound when `TRUE`.
-#' @param include_hi Include upper bound when `TRUE`.
-#' @return Integer count.
+#' @param key_value Query key.
+#' @return List with `element`, `key`, and updated `multiset`.
 #' @export
-count_between <- function(x, lo, hi, include_lo = TRUE, include_hi = TRUE) {
+extract_key <- function(x, key_value) {
   .oms_assert_set(x)
-  include_lo <- .oms_coerce_lgl_scalar(include_lo, "include_lo")
-  include_hi <- .oms_coerce_lgl_scalar(include_hi, "include_hi")
+  norm <- .oms_normalize_key(key_value)
+  key_type <- .oms_validate_key_type(.oms_key_type_state(x), norm$key_type)
 
-  start <- .oms_range_start_index(x, lo, include_lo)
-  end_excl <- .oms_range_end_exclusive_index(x, hi, include_hi)
-  as.integer(max(0L, end_excl - start))
+  idx <- .oms_bound_index(x, norm$key, strict = FALSE)
+  n <- length(x)
+  if(idx > n) {
+    stop("Key not found in ordered_multiset.")
+  }
+
+  s <- split_around_by_predicate(x, function(v) v >= idx, ".size")
+  if(.oms_compare_key(s$elem$key, norm$key, key_type) != 0L) {
+    stop("Key not found in ordered_multiset.")
+  }
+
+  out <- concat_trees(s$left, s$right)
+  ms <- .oms_wrap_tree(x, out, next_seq = .oms_next_seq(x))
+  list(element = s$elem$item, key = s$elem$key, multiset = ms)
 }
 
 # Runtime: O(log n + k), where k is output size.
@@ -603,33 +631,33 @@ elements_between <- function(x, lo, hi, include_lo = TRUE, include_hi = TRUE) {
 # Runtime: O(n + m) key merge scan + O(n + m) bulk build.
 #' Multiset union (bag semantics)
 #'
-#' @param x Left `ordered_multiset`.
-#' @param y Right `ordered_multiset`.
+#' @rdname union
+#' @method union ordered_multiset
 #' @return `ordered_multiset` where multiplicity is `max(count_x, count_y)`.
 #' @export
-union_ms <- function(x, y) {
+union.ordered_multiset <- function(x, y, ...) {
   .oms_set_merge(x, y, mode = "union")
 }
 
 # Runtime: O(n + m) key merge scan + O(n + m) bulk build.
 #' Multiset intersection (bag semantics)
 #'
-#' @param x Left `ordered_multiset`.
-#' @param y Right `ordered_multiset`.
+#' @rdname union
+#' @method intersect ordered_multiset
 #' @return `ordered_multiset` where multiplicity is `min(count_x, count_y)`.
 #' @export
-intersection_ms <- function(x, y) {
+intersect.ordered_multiset <- function(x, y, ...) {
   .oms_set_merge(x, y, mode = "intersection")
 }
 
 # Runtime: O(n + m) key merge scan + O(n + m) bulk build.
 #' Multiset difference (bag semantics)
 #'
-#' @param x Left `ordered_multiset`.
-#' @param y Right `ordered_multiset`.
+#' @rdname union
+#' @method setdiff ordered_multiset
 #' @return `ordered_multiset` where multiplicity is `pmax(count_x - count_y, 0)`.
 #' @export
-difference_ms <- function(x, y) {
+setdiff.ordered_multiset <- function(x, y, ...) {
   .oms_set_merge(x, y, mode = "difference")
 }
 

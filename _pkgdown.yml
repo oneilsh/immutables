@@ -51,17 +51,17 @@ reference:
     contents:
       - ordered_multiset
       - as_ordered_multiset
-      - insert_ms
+      - insert
+      - peek_key
+      - extract_key
       - delete_one
       - delete_all
       - lower_bound
       - upper_bound
-      - count_key
-      - count_between
       - elements_between
-      - union_ms
-      - intersection_ms
-      - difference_ms
+      - union
+      - intersect
+      - setdiff
       - "print.ordered_multiset"
 
   - title: "developer API"

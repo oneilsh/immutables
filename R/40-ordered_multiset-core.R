@@ -92,7 +92,7 @@
   list(key = norm$key, key_type = key_type)
 }
 
-# Runtime: O(n log n) from tree construction after O(n log n) ordering.
+# Runtime: O(n log n) for sorting + O(n) bulk build.
 .oms_build_from_items <- function(items, key, monoids = NULL) {
   key <- .oms_assert_key_fun(key)
   n <- length(items)
@@ -125,7 +125,8 @@
   }
   entries <- entries[ord]
 
-  base <- as_flexseq(entries, monoids = .oms_merge_monoids(monoids))
+  merged_monoids <- .oms_merge_monoids(monoids)
+  base <- .oms_tree_from_ordered_entries(entries, merged_monoids)
   .as_ordered_multiset(
     base,
     key = key,
@@ -149,28 +150,12 @@
   .as_flexseq(measured_empty(ms))
 }
 
-# Runtime: O(log n) near split points.
-.oms_slice_tree <- function(x, start, end_incl) {
-  n <- length(x)
-  start <- as.integer(start)
-  end_incl <- as.integer(end_incl)
-  if(start > end_incl || start > n) {
-    return(.oms_empty_tree_like(x))
+# Runtime: O(n) for ordered entries.
+.oms_tree_from_ordered_entries <- function(entries, monoids) {
+  if(.ft_cpp_can_use(monoids)) {
+    return(.as_flexseq(.ft_cpp_tree_from_sorted(entries, monoids)))
   }
-  if(start < 1L) {
-    start <- 1L
-  }
-  if(end_incl > n) {
-    end_incl <- n
-  }
-  if(start == 1L && end_incl == n) {
-    return(.as_flexseq(x))
-  }
-
-  s1 <- split_by_predicate(x, function(v) v >= start, ".size")
-  span_len <- as.integer(end_incl - start + 1L)
-  s2 <- split_by_predicate(s1$right, function(v) v >= (span_len + 1L), ".size")
-  s2$left
+  .ft_tree_from_list_linear(entries, monoids)
 }
 
 # Runtime: O(1).
@@ -274,7 +259,130 @@
   as.integer(j - 1L)
 }
 
-# Runtime: O(n + m) key merge scan + O(g log n) tree slicing/concats, where g is selected key-group count.
+# Runtime: O(1).
+.oms_merge_engine <- function() {
+  engine <- getOption("immutables.oms.merge_engine", "auto")
+  if(is.null(engine)) {
+    engine <- "auto"
+  }
+  if(!is.character(engine) || length(engine) != 1L || is.na(engine)) {
+    stop("`options(immutables.oms.merge_engine=...)` must be one of: 'auto', 'cpp', 'legacy_r'.")
+  }
+  engine <- as.character(engine)
+  if(!engine %in% c("auto", "cpp", "legacy_r")) {
+    stop("`options(immutables.oms.merge_engine=...)` must be one of: 'auto', 'cpp', 'legacy_r'.")
+  }
+  engine
+}
+
+# Runtime: O(n + m) key merge scan + O(n + m) bulk build.
+.oms_set_merge_legacy_r <- function(x, y, mode, result_key_type) {
+  ex <- .oms_entries(x)
+  ey <- .oms_entries(y)
+  nx <- length(ex)
+  ny <- length(ey)
+  key_type <- .oms_key_type_state(x)
+  ms <- attr(x, "monoids", exact = TRUE)
+
+  out <- vector("list", nx + ny)
+  out_len <- 0L
+  i <- 1L
+  j <- 1L
+
+  append_entries <- function(src, start, end_incl) {
+    if(start <= end_incl) {
+      for(k in start:end_incl) {
+        out_len <<- out_len + 1L
+        out[[out_len]] <<- src[[k]]
+      }
+    }
+  }
+
+  while(i <= nx || j <= ny) {
+    if(i > nx) {
+      if(mode == "union") {
+        append_entries(ey, j, ny)
+      }
+      break
+    }
+    if(j > ny) {
+      if(mode %in% c("union", "difference")) {
+        append_entries(ex, i, nx)
+      }
+      break
+    }
+
+    cmp <- .oms_compare_key(ex[[i]]$key, ey[[j]]$key, key_type)
+
+    if(cmp < 0L) {
+      if(mode %in% c("union", "difference")) {
+        ie <- .oms_group_end(ex, i, key_type)
+        append_entries(ex, i, ie)
+        i <- ie + 1L
+      } else {
+        i <- .oms_group_end(ex, i, key_type) + 1L
+      }
+      next
+    }
+
+    if(cmp > 0L) {
+      if(mode == "union") {
+        je <- .oms_group_end(ey, j, key_type)
+        append_entries(ey, j, je)
+        j <- je + 1L
+      } else {
+        j <- .oms_group_end(ey, j, key_type) + 1L
+      }
+      next
+    }
+
+    ie <- .oms_group_end(ex, i, key_type)
+    je <- .oms_group_end(ey, j, key_type)
+
+    gx <- ex[i:ie]
+    gy <- ey[j:je]
+    cx <- length(gx)
+    cy <- length(gy)
+
+    if(mode == "intersection") {
+      k <- min(cx, cy)
+      if(k > 0L) {
+        append_entries(ex, i, i + k - 1L)
+      }
+    } else if(mode == "difference") {
+      k <- min(cx, cy)
+      if(cx > k) {
+        append_entries(ex, i + k, ie)
+      }
+    } else {
+      append_entries(ex, i, ie)
+      if(cy > cx) {
+        append_entries(ey, j, j + (cy - cx) - 1L)
+      }
+    }
+
+    i <- ie + 1L
+    j <- je + 1L
+  }
+
+  if(out_len == 0L) {
+    return(.oms_wrap_tree(x, .oms_empty_tree_like(x), next_seq = 1L, key_type = result_key_type))
+  }
+  out <- out[seq_len(out_len)]
+  out_tree <- .oms_tree_from_ordered_entries(out, ms)
+  .oms_wrap_tree(x, out_tree, next_seq = out_len + 1L, key_type = result_key_type)
+}
+
+# Runtime: O(n + m) key merge + O(n + m) bulk build.
+.oms_set_merge_cpp <- function(x, y, mode, result_key_type) {
+  ms <- attr(x, "monoids", exact = TRUE)
+  key_type <- .oms_key_type_state(x)
+  out_tree <- .as_flexseq(.ft_cpp_oms_set_merge(x, y, mode, ms, key_type))
+  out_n <- as.integer(node_measure(out_tree, ".size"))
+  .oms_wrap_tree(x, out_tree, next_seq = out_n + 1L, key_type = result_key_type)
+}
+
+# Runtime: O(n + m) in the selected engine.
 .oms_set_merge <- function(x, y, mode = c("union", "intersection", "difference")) {
   mode <- match.arg(mode)
   .oms_assert_compat(x, y)
@@ -298,95 +406,22 @@
     return(.oms_wrap_tree(x, .as_flexseq(x), next_seq = nx + 1L, key_type = result_key_type))
   }
 
-  ex <- .oms_entries(x)
-  ey <- .oms_entries(y)
-  key_type <- .oms_key_type_state(x)
+  engine <- .oms_merge_engine()
+  ms <- attr(x, "monoids", exact = TRUE)
+  can_cpp <- .ft_cpp_can_use(ms)
 
-  out_tree <- .oms_empty_tree_like(x)
-  out_len <- 0L
-  i <- 1L
-  j <- 1L
-
-  append_range <- function(src_tree, start, end_incl) {
-    if(start <= end_incl) {
-      piece <- .oms_slice_tree(src_tree, start, end_incl)
-      if(out_len == 0L) {
-        out_tree <<- piece
-      } else {
-        out_tree <<- concat_trees(out_tree, piece)
-      }
-      out_len <<- as.integer(out_len + (end_incl - start + 1L))
+  if(identical(engine, "cpp")) {
+    if(!can_cpp) {
+      stop("Ordered multiset merge engine 'cpp' requested, but C++ backend is unavailable.")
     }
+    return(.oms_set_merge_cpp(x, y, mode, result_key_type))
   }
 
-  while(i <= nx || j <= ny) {
-    if(i > nx) {
-      if(mode == "union") {
-        append_range(y, j, ny)
-      }
-      break
-    }
-    if(j > ny) {
-      if(mode %in% c("union", "difference")) {
-        append_range(x, i, nx)
-      }
-      break
-    }
-
-    cmp <- .oms_compare_key(ex[[i]]$key, ey[[j]]$key, key_type)
-
-    if(cmp < 0L) {
-      if(mode %in% c("union", "difference")) {
-        ie <- .oms_group_end(ex, i, key_type)
-        append_range(x, i, ie)
-        i <- ie + 1L
-      } else {
-        i <- .oms_group_end(ex, i, key_type) + 1L
-      }
-      next
-    }
-
-    if(cmp > 0L) {
-      if(mode == "union") {
-        je <- .oms_group_end(ey, j, key_type)
-        append_range(y, j, je)
-        j <- je + 1L
-      } else {
-        j <- .oms_group_end(ey, j, key_type) + 1L
-      }
-      next
-    }
-
-    ie <- .oms_group_end(ex, i, key_type)
-    je <- .oms_group_end(ey, j, key_type)
-
-    gx <- ex[i:ie]
-    gy <- ey[j:je]
-    cx <- length(gx)
-    cy <- length(gy)
-
-    if(mode == "intersection") {
-      k <- min(cx, cy)
-      if(k > 0L) {
-        append_range(x, i, i + k - 1L)
-      }
-    } else if(mode == "difference") {
-      k <- min(cx, cy)
-      if(cx > k) {
-        append_range(x, i + k, ie)
-      }
-    } else {
-      append_range(x, i, ie)
-      if(cy > cx) {
-        append_range(y, j, j + (cy - cx) - 1L)
-      }
-    }
-
-    i <- ie + 1L
-    j <- je + 1L
+  if(identical(engine, "auto") && can_cpp) {
+    return(.oms_set_merge_cpp(x, y, mode, result_key_type))
   }
 
-  .oms_wrap_tree(x, out_tree, next_seq = out_len + 1L, key_type = result_key_type)
+  .oms_set_merge_legacy_r(x, y, mode, result_key_type)
 }
 
 # Runtime: O(n log n) from build and ordering.
@@ -590,7 +625,7 @@ elements_between <- function(x, lo, hi, include_lo = TRUE, include_hi = TRUE) {
   .oms_extract_items(entries)
 }
 
-# Runtime: O(n + m) key merge scan + O(g log n) tree slicing/concats, where g is selected key-group count.
+# Runtime: O(n + m) key merge scan + O(n + m) bulk build.
 #' Multiset union (bag semantics)
 #'
 #' @param x Left `ordered_multiset`.
@@ -601,7 +636,7 @@ union_ms <- function(x, y) {
   .oms_set_merge(x, y, mode = "union")
 }
 
-# Runtime: O(n + m) key merge scan + O(g log n) tree slicing/concats, where g is selected key-group count.
+# Runtime: O(n + m) key merge scan + O(n + m) bulk build.
 #' Multiset intersection (bag semantics)
 #'
 #' @param x Left `ordered_multiset`.
@@ -612,7 +647,7 @@ intersection_ms <- function(x, y) {
   .oms_set_merge(x, y, mode = "intersection")
 }
 
-# Runtime: O(n + m) key merge scan + O(g log n) tree slicing/concats, where g is selected key-group count.
+# Runtime: O(n + m) key merge scan + O(n + m) bulk build.
 #' Multiset difference (bag semantics)
 #'
 #' @param x Left `ordered_multiset`.

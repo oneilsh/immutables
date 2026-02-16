@@ -36,19 +36,29 @@
   .Call("ft_cpp_prepend_left_named", t, el, name, monoids, PACKAGE = "immutables")
 }
 
-# Runtime: O(n log n), n = number of elements.
+# Runtime: O(n), n = number of elements.
 .ft_cpp_tree_from <- function(elements, monoids) {
   .Call("ft_cpp_tree_from", elements, monoids, PACKAGE = "immutables")
 }
 
-# Runtime: O(n log n), n = number of elements.
+# Runtime: O(n), n = number of elements.
 .ft_cpp_tree_from_prepared <- function(elements, names, monoids) {
   .Call("ft_cpp_tree_from_prepared", elements, names, monoids, PACKAGE = "immutables")
+}
+
+# Runtime: O(n) over ordered element count.
+.ft_cpp_tree_from_sorted <- function(elements, monoids) {
+  .Call("ft_cpp_tree_from_sorted", elements, monoids, PACKAGE = "immutables")
 }
 
 # Runtime: O(log n) typical spine depth for balanced trees.
 .ft_cpp_concat <- function(x, y, monoids) {
   .Call("ft_cpp_concat", x, y, monoids, PACKAGE = "immutables")
+}
+
+# Runtime: O(n + m) key merge + O(n + m) bulk build.
+.ft_cpp_oms_set_merge <- function(x, y, mode, monoids, key_type) {
+  .Call("ft_cpp_oms_set_merge", x, y, mode, monoids, key_type, PACKAGE = "immutables")
 }
 
 # Runtime: O(log n) near locate point depth.

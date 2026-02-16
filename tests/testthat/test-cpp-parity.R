@@ -91,6 +91,7 @@ parity_scenarios <- c(
   "[[<- replacement and deletion",
   "$ read",
   "$<- replacement",
+  "ordered_multiset set ops",
   "print.FingerTree output",
   "get_graph_df",
   "validate_tree",
@@ -104,7 +105,9 @@ cpp_wrapper_coverage <- list(
   .ft_cpp_add_left_named = c("prepend named"),
   .ft_cpp_tree_from = c("tree_from unnamed"),
   .ft_cpp_tree_from_prepared = c("tree_from"),
+  .ft_cpp_tree_from_sorted = c("ordered_multiset set ops"),
   .ft_cpp_concat = c("concat_trees"),
+  .ft_cpp_oms_set_merge = c("ordered_multiset set ops"),
   .ft_cpp_locate = c("locate_by_predicate"),
   .ft_cpp_split_tree = c("split_around_by_predicate", "split_by_predicate"),
   .ft_cpp_find_name_position = c("$ read", "[ read (integer/logical/name)"),
@@ -309,6 +312,29 @@ testthat::test_that("backend parity: $<- replacement", {
     t <- as_flexseq(setNames(as.list(letters[1:8]), LETTERS[1:8]))
     t$B <- "bbb"
     snapshot_tree(t)
+  })
+})
+
+testthat::test_that("backend parity: ordered_multiset set ops", {
+  expect_backend_identical({
+    old_engine <- getOption("immutables.oms.merge_engine")
+    on.exit({
+      if(is.null(old_engine)) {
+        options(immutables.oms.merge_engine = NULL)
+      } else {
+        options(immutables.oms.merge_engine = old_engine)
+      }
+    }, add = TRUE)
+    options(immutables.oms.merge_engine = "auto")
+
+    x <- as_ordered_multiset(list("aa", "bb", "c", "ddd"), key = nchar)
+    y <- as_ordered_multiset(list("xx", "z", "qq", "rrrr"), key = nchar)
+
+    list(
+      union = as.list(union_ms(x, y)),
+      intersection = as.list(intersection_ms(x, y)),
+      difference = as.list(difference_ms(x, y))
+    )
   })
 })
 

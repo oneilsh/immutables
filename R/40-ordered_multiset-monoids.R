@@ -111,5 +111,5 @@ oms_max_key_monoid <- function() {
       stop(paste0("Reserved monoid names cannot be supplied for ordered_multiset: ", paste(bad, collapse = ", ")))
     }
   }
-  c(user, .oms_required_monoids())
+  ensure_size_monoids(c(user, .oms_required_monoids()))
 }

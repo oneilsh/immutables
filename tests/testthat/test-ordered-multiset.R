@@ -118,3 +118,41 @@ testthat::test_that("ordered_multiset validates key outputs", {
     "numeric, character, or logical"
   )
 })
+
+testthat::test_that("set operations support merge engine toggle", {
+  old_engine <- getOption("immutables.oms.merge_engine")
+  on.exit({
+    if(is.null(old_engine)) {
+      options(immutables.oms.merge_engine = NULL)
+    } else {
+      options(immutables.oms.merge_engine = old_engine)
+    }
+  }, add = TRUE)
+
+  x <- as_ordered_multiset(list("aa", "bb", "c", "ddd"), key = nchar)
+  y <- as_ordered_multiset(list("xx", "z", "qq", "rrrr"), key = nchar)
+
+  options(immutables.oms.merge_engine = "legacy_r")
+  u_legacy <- union_ms(x, y)
+
+  options(immutables.oms.merge_engine = "auto")
+  u_auto <- union_ms(x, y)
+
+  testthat::expect_equal(as.list(u_auto), as.list(u_legacy))
+})
+
+testthat::test_that("merge engine option validates values", {
+  old_engine <- getOption("immutables.oms.merge_engine")
+  on.exit({
+    if(is.null(old_engine)) {
+      options(immutables.oms.merge_engine = NULL)
+    } else {
+      options(immutables.oms.merge_engine = old_engine)
+    }
+  }, add = TRUE)
+
+  x <- as_ordered_multiset(list("aa", "bb"), key = nchar)
+  y <- as_ordered_multiset(list("cc", "d"), key = nchar)
+  options(immutables.oms.merge_engine = "bogus")
+  testthat::expect_error(union_ms(x, y), "merge_engine")
+})

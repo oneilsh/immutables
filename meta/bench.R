@@ -455,73 +455,96 @@ bench_index_name_vector_replace <- function(n = 600, queries = 8, width = 5, use
   as.list(sample.int(as.integer(key_space), as.integer(n), replace = TRUE))
 }
 
-bench_oms_build <- function(n = 40000, key_space = 1000, use_cpp = TRUE) {
+.bench_with_oms_engine <- function(engine, expr) {
+  old <- getOption("immutables.oms.merge_engine")
+  on.exit({
+    if(is.null(old)) {
+      options(immutables.oms.merge_engine = NULL)
+    } else {
+      options(immutables.oms.merge_engine = old)
+    }
+  }, add = TRUE)
+  options(immutables.oms.merge_engine = engine)
+  force(expr)
+}
+
+bench_oms_build <- function(n = 40000, key_space = 1000, use_cpp = TRUE, merge_engine = "auto") {
   message("== ordered_multiset build (as_ordered_multiset) ==")
   keys <- .bench_oms_keys(n, key_space = key_space)
   timing <- system.time({
     options(immutables.use_cpp = use_cpp)
-    ms <- as_ordered_multiset(keys, key = identity)
+    .bench_with_oms_engine(merge_engine, {
+      ms <- as_ordered_multiset(keys, key = identity)
+    })
   })
   print(timing)
   timing
 }
 
-bench_oms_insert <- function(n = 20000, inserts = 2000, key_space = 1000, use_cpp = TRUE) {
+bench_oms_insert <- function(n = 20000, inserts = 2000, key_space = 1000, use_cpp = TRUE, merge_engine = "auto") {
   message("== ordered_multiset insert_ms ==")
   base <- .bench_oms_keys(n, key_space = key_space)
   ins <- sample.int(as.integer(key_space), as.integer(inserts), replace = TRUE)
   timing <- system.time({
     options(immutables.use_cpp = use_cpp)
-    ms <- as_ordered_multiset(base, key = identity)
-    for(i in seq_len(inserts)) {
-      ms <- insert_ms(ms, ins[[i]])
-      if(i %% 100 == 0) print(i)
-    }
+    .bench_with_oms_engine(merge_engine, {
+      ms <- as_ordered_multiset(base, key = identity)
+      for(i in seq_len(inserts)) {
+        ms <- insert_ms(ms, ins[[i]])
+        if(i %% 100 == 0) print(i)
+      }
+    })
   })
   print(timing)
   timing
 }
 
-bench_oms_union <- function(n = 20000, reps = 200, key_space = 1000, use_cpp = TRUE) {
+bench_oms_union <- function(n = 20000, reps = 200, key_space = 1000, use_cpp = TRUE, merge_engine = "auto") {
   message("== ordered_multiset union_ms ==")
   x <- as_ordered_multiset(.bench_oms_keys(n, key_space = key_space), key = identity)
   y <- as_ordered_multiset(.bench_oms_keys(n, key_space = key_space), key = identity)
   timing <- system.time({
     options(immutables.use_cpp = use_cpp)
-    for(i in seq_len(reps)) {
-      z <- union_ms(x, y)
-      if(i %% 50 == 0) print(i)
-    }
+    .bench_with_oms_engine(merge_engine, {
+      for(i in seq_len(reps)) {
+        z <- union_ms(x, y)
+        if(i %% 50 == 0) print(i)
+      }
+    })
   })
   print(timing)
   timing
 }
 
-bench_oms_intersection <- function(n = 20000, reps = 200, key_space = 1000, use_cpp = TRUE) {
+bench_oms_intersection <- function(n = 20000, reps = 200, key_space = 1000, use_cpp = TRUE, merge_engine = "auto") {
   message("== ordered_multiset intersection_ms ==")
   x <- as_ordered_multiset(.bench_oms_keys(n, key_space = key_space), key = identity)
   y <- as_ordered_multiset(.bench_oms_keys(n, key_space = key_space), key = identity)
   timing <- system.time({
     options(immutables.use_cpp = use_cpp)
-    for(i in seq_len(reps)) {
-      z <- intersection_ms(x, y)
-      if(i %% 50 == 0) print(i)
-    }
+    .bench_with_oms_engine(merge_engine, {
+      for(i in seq_len(reps)) {
+        z <- intersection_ms(x, y)
+        if(i %% 50 == 0) print(i)
+      }
+    })
   })
   print(timing)
   timing
 }
 
-bench_oms_difference <- function(n = 20000, reps = 200, key_space = 1000, use_cpp = TRUE) {
+bench_oms_difference <- function(n = 20000, reps = 200, key_space = 1000, use_cpp = TRUE, merge_engine = "auto") {
   message("== ordered_multiset difference_ms ==")
   x <- as_ordered_multiset(.bench_oms_keys(n, key_space = key_space), key = identity)
   y <- as_ordered_multiset(.bench_oms_keys(n, key_space = key_space), key = identity)
   timing <- system.time({
     options(immutables.use_cpp = use_cpp)
-    for(i in seq_len(reps)) {
-      z <- difference_ms(x, y)
-      if(i %% 50 == 0) print(i)
-    }
+    .bench_with_oms_engine(merge_engine, {
+      for(i in seq_len(reps)) {
+        z <- difference_ms(x, y)
+        if(i %% 50 == 0) print(i)
+      }
+    })
   })
   print(timing)
   timing
@@ -537,11 +560,11 @@ run_all_benches <- function(n = 2000, use_cpp = TRUE) {
     oms_build = bench_oms_build(n = 20000, key_space = 1000, use_cpp = use_cpp),
     oms_insert = bench_oms_insert(n = 5000, inserts = 2000, key_space = 1000, use_cpp = use_cpp),
     oms_intersection = bench_oms_intersection(n = 5000, reps = 1, key_space = 1000, use_cpp = use_cpp),
-    oms_difference = bench_oms_difference(n = 5000, reps = 1, key_space = 1000, use_cpp = use_cpp),
-    from_default = bench_tree_from_default(n = 40000, use_cpp = use_cpp),
-    from_custom = bench_tree_from_custom_monoid(n = 40000, use_cpp = use_cpp),
-    from_named = bench_tree_from_named(n = 40000, use_cpp = use_cpp),
-    from_named_custom = bench_tree_from_named_custom_monoid(n = 40000, use_cpp = use_cpp)
+    oms_difference = bench_oms_difference(n = 5000, reps = 1, key_space = 1000, use_cpp = use_cpp)
+    # from_default = bench_tree_from_default(n = 40000, use_cpp = use_cpp),
+    # from_custom = bench_tree_from_custom_monoid(n = 40000, use_cpp = use_cpp),
+    # from_named = bench_tree_from_named(n = 40000, use_cpp = use_cpp),
+    # from_named_custom = bench_tree_from_named_custom_monoid(n = 40000, use_cpp = use_cpp)
     # concat_default = bench_concat_default(n = max(100L, as.integer(n / 2L)), reps = 500, use_cpp = use_cpp),
     # concat_custom = bench_concat_custom_monoid(n = max(100L, as.integer(n / 2L)), reps = 500, use_cpp = use_cpp),
     # concat_named = bench_concat_named(n = max(100L, as.integer(n / 2L)), reps = 500, use_cpp = use_cpp),

@@ -8,20 +8,21 @@
 #' @param ... Method-specific arguments.
 #' @return Updated object.
 #' @export
+#' @noRd
 append <- function(x, ...) {
   UseMethod("append")
 }
 
-#' @rdname append
-#' @param values Values to append (for default method, passed to [base::append()]).
-#' @param after Position after which to insert (for default method).
 #' @export
+#' @noRd
 append.default <- function(x, values, after = length(x), ...) {
   base::append(x, values, after)
 }
 
 #' Append an element to a flexseq
 #'
+#' @name append.flexseq
+#' @aliases append
 #' @method append flexseq
 #' @param x A `flexseq`.
 #' @param values Element to append.

@@ -26,6 +26,7 @@ details.
 \seealso{
 Useful links:
 \itemize{
+  \item \url{https://oneilsh.github.io/immutables}
   \item \url{https://github.com/oneilsh/immutables}
   \item Report bugs at \url{https://github.com/oneilsh/immutables/issues}
 }

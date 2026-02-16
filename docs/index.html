@@ -44,7 +44,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
 </form></li>
-<li class="nav-item"><a class="nav-link" href="https://github.com/oneilsh/immutables/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/oneilsh/immutables/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -55,20 +55,20 @@
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header"><h1 id="immutables">immutables<a class="anchor" aria-label="anchor" href="#immutables"></a>
 </h1></div>
+<p><a href="https://github.com/oneilsh/immutables/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/oneilsh/immutables/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a> <a href="https://github.com/oneilsh/immutables/actions/workflows/pkgdown.yaml" class="external-link"><img src="https://github.com/oneilsh/immutables/actions/workflows/pkgdown.yaml/badge.svg" alt="pkgdown"></a> <a href="https://oneilsh.github.io/immutables/"><img src="https://img.shields.io/badge/docs-pkgdown-blue" alt="docs"></a></p>
 <p>The <code>immutables</code> R package implements sequence objects (<code><a href="reference/flexseq.html">flexseq()</a></code>) supporting indexed and named access, appending and prepending, concatenation, splitting, fast push and pop from either end, item removal, and more.</p>
 <p>Also implemented are priority queues (<code><a href="reference/priority_queue.html">priority_queue()</a></code>) supporting all of the above in addition to min and max peeking and popping by priority value.</p>
-<p>Backed by monoid-annotated 2-3 fingertrees as described by <a href="https://doi.org/10.1017/S0956796805005769" class="external-link">Hinze and Paterson</a>, all structures are persistent (operations return effective modified copies), and most operations are constant time, amortized constant time, or <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>n</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(\log(n))</annotation></semantics></math> (indexing <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math> elements is <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><mi>k</mi><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>n</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(k\log(n))</annotation></semantics></math>). Core functions are implemented in C++ (via Rcpp) for speed, and parallel R implementations using <code>lambda.r</code> match their counterparts in the paper.</p>
+<p>Backed by monoid-annotated 2-3 fingertrees as described by <a href="https://doi.org/10.1017/S0956796805005769" class="external-link">Hinze and Paterson</a>, all structures are persistent (operations return effective modified copies), and most operations are constant time, amortized constant time, or <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>n</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(\log(n))</annotation></semantics></math> (indexing <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math> elements is <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><mi>k</mi><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>n</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(k \log(n))</annotation></semantics></math>). Core functions are implemented in C++ (via Rcpp) for speed, and parallel R implementations using <code>lambda.r</code> match their counterparts in the paper.</p>
 <p>The developer API supports the addition of custom structures via combinations of monoids and measures; see vignettes for details.</p>
 <ul>
-<li>Hinze, R. and Paterson, R. (2006), <em>Finger trees: a simple general-purpose data structure</em>. <a href="https://www.cs.ox.ac.uk/ralf.hinze/publications/FingerTrees.pdf" class="external-link uri">https://www.cs.ox.ac.uk/ralf.hinze/publications/FingerTrees.pdf</a>
-</li>
+<li>Hinze, R. and Paterson, R. (2006), <em>Finger trees: a simple general-purpose data structure</em>.</li>
 </ul>
 </div>
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li><a href="https://github.com/oneilsh/immutables/">Browse source code</a></li>
-<li><a href="https://github.com/oneilsh/immutables/issues">Report a bug</a></li>
+<li><a href="https://github.com/oneilsh/immutables/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/oneilsh/immutables/issues" class="external-link">Report a bug</a></li>
 </ul>
 </div>
 

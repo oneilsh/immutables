@@ -2,6 +2,7 @@
 % Please edit documentation in R/30-api-flexseq-append.R
 \name{append.flexseq}
 \alias{append.flexseq}
+\alias{append}
 \title{Append an element to a flexseq}
 \usage{
 \method{append}{flexseq}(x, values, ...)

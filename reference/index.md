@@ -1,0 +1,92 @@
+# Package index
+
+## flexseq API
+
+User-facing persistent sequence API
+
+- [`flexseq()`](https://oneilsh.github.io/immutables/reference/flexseq.md)
+  : Construct a Persistent Flexible Sequence
+- [`as_flexseq()`](https://oneilsh.github.io/immutables/reference/as_flexseq.md)
+  : Coerce to a Persistent Flexible Sequence
+- [`prepend()`](https://oneilsh.github.io/immutables/reference/prepend.md)
+  : Prepend an element
+- [`append(`*`<flexseq>`*`)`](https://oneilsh.github.io/immutables/reference/append.flexseq.md)
+  : Append an element to a flexseq
+- [`c(`*`<flexseq>`*`)`](https://oneilsh.github.io/immutables/reference/c.flexseq.md)
+  : Concatenate Sequences
+- [`print(`*`<flexseq>`*`)`](https://oneilsh.github.io/immutables/reference/print.flexseq.md)
+  : Print a flexseq
+- [`length(`*`<flexseq>`*`)`](https://oneilsh.github.io/immutables/reference/length.flexseq.md)
+  : Sequence Length
+- [`fold_left()`](https://oneilsh.github.io/immutables/reference/fold_left.md)
+  : Fold Left Over a Sequence
+- [`fold_right()`](https://oneilsh.github.io/immutables/reference/fold_right.md)
+  : Fold Right Over a Sequence
+- [`` `[`( ``*`<flexseq>`*`)`](https://oneilsh.github.io/immutables/reference/sub-.flexseq.md)
+  : Subset a flexseq by position or element name
+- [`` `[[`( ``*`<flexseq>`*`)`](https://oneilsh.github.io/immutables/reference/sub-sub-.flexseq.md)
+  : Extract one element by position or unique name
+- [`` `[<-`( ``*`<flexseq>`*`)`](https://oneilsh.github.io/immutables/reference/subset-.flexseq.md)
+  : Replace selected elements by position or name
+- [`` `[[<-`( ``*`<flexseq>`*`)`](https://oneilsh.github.io/immutables/reference/sub-subset-.flexseq.md)
+  : Replace one element by position or unique name
+- [`` `$`( ``*`<flexseq>`*`)`](https://oneilsh.github.io/immutables/reference/cash-.flexseq.md)
+  : Extract a named element with \`\$\`
+- [`` `$<-`( ``*`<flexseq>`*`)`](https://oneilsh.github.io/immutables/reference/cash-set-.flexseq.md)
+  : Replace a named element with \`\$\<-\`
+- [`as.list(`*`<flexseq>`*`)`](https://oneilsh.github.io/immutables/reference/as.list.flexseq.md)
+  : Coerce a Sequence to Base List
+- [`split_at()`](https://oneilsh.github.io/immutables/reference/split_at.md)
+  : Split by Scalar Index or Name
+- [`seq_apply()`](https://oneilsh.github.io/immutables/reference/seq_apply.md)
+  : Apply a Function to Each Sequence Element
+- [`seq_walk()`](https://oneilsh.github.io/immutables/reference/seq_walk.md)
+  : Walk a Function Over Sequence Elements
+- [`plot(`*`<flexseq>`*`)`](https://oneilsh.github.io/immutables/reference/plot.flexseq.md)
+  : Plot a Sequence Tree
+
+## priority_queue API
+
+Persistent priority queue API
+
+- [`priority_queue()`](https://oneilsh.github.io/immutables/reference/priority_queue.md)
+  : Construct a Priority Queue
+- [`as_priority_queue()`](https://oneilsh.github.io/immutables/reference/as_priority_queue.md)
+  : Build a Priority Queue from elements and priorities
+- [`insert()`](https://oneilsh.github.io/immutables/reference/insert.md)
+  : Insert an element into a priority queue
+- [`is_empty()`](https://oneilsh.github.io/immutables/reference/is_empty.md)
+  : Check whether a priority queue is empty
+- [`peek_min()`](https://oneilsh.github.io/immutables/reference/peek_min.md)
+  : Peek minimum-priority element
+- [`peek_max()`](https://oneilsh.github.io/immutables/reference/peek_max.md)
+  : Peek maximum-priority element
+- [`extract_min()`](https://oneilsh.github.io/immutables/reference/extract_min.md)
+  : Extract minimum-priority element
+- [`extract_max()`](https://oneilsh.github.io/immutables/reference/extract_max.md)
+  : Extract maximum-priority element
+- [`pq_apply()`](https://oneilsh.github.io/immutables/reference/pq_apply.md)
+  : Apply a Function Over Priority Queue Entries
+- [`print(`*`<priority_queue>`*`)`](https://oneilsh.github.io/immutables/reference/print.priority_queue.md)
+  : Print a Priority Queue
+
+## developer API
+
+Lower-level constructors, query primitives, and tooling
+
+- [`add_monoids()`](https://oneilsh.github.io/immutables/reference/add_monoids.md)
+  : Add/merge monoids on an existing tree
+- [`locate_by_predicate()`](https://oneilsh.github.io/immutables/reference/locate_by_predicate.md)
+  : Locate First Predicate Flip Without Reconstructing Context Trees
+- [`split_around_by_predicate()`](https://oneilsh.github.io/immutables/reference/split_around_by_predicate.md)
+  : Split Around First Predicate Flip
+- [`split_by_predicate()`](https://oneilsh.github.io/immutables/reference/split_by_predicate.md)
+  : Split a flexseq into Left and Right Parts by Predicate
+- [`measure_monoid()`](https://oneilsh.github.io/immutables/reference/measure_monoid.md)
+  : Construct a Measure Monoid Specification
+- [`predicate()`](https://oneilsh.github.io/immutables/reference/Predicate.md)
+  : Construct a Predicate Function
+- [`validate_tree()`](https://oneilsh.github.io/immutables/reference/validate_tree.md)
+  : Validate full tree invariants (debug/test utility)
+- [`validate_name_state()`](https://oneilsh.github.io/immutables/reference/validate_name_state.md)
+  : Validate name-state invariants only (debug/test utility)

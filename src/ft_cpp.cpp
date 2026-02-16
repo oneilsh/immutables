@@ -527,6 +527,28 @@ SEXP clone_with_attrs(SEXP el, SEXP name_) {
   return out;
 }
 
+List prepare_elements_with_names_cpp(const List& elements, SEXP names_) {
+  if(Rf_isNull(names_)) {
+    return elements;
+  }
+  if(TYPEOF(names_) != STRSXP) {
+    stop("`names` must be a character vector.");
+  }
+
+  CharacterVector names(names_);
+  if(names.size() != elements.size()) {
+    stop("`names` length must match elements length.");
+  }
+
+  List prepared(elements.size());
+  for(int i = 0; i < elements.size(); ++i) {
+    Shield<SEXP> name(Rf_ScalarString(STRING_ELT(names_, i)));
+    Shield<SEXP> el(clone_with_attrs(elements[i], name));
+    prepared[i] = el;
+  }
+  return prepared;
+}
+
 SEXP add_all_right_cpp(SEXP t, const List& els, const List& monoids) {
   ReprotectSEXP cur(t);
   for(int i = 0; i < els.size(); ++i) {
@@ -1247,11 +1269,7 @@ extern "C" SEXP ft_cpp_tree_from(SEXP elements_, SEXP monoids_) {
   BEGIN_RCPP
   List elements(elements_);
   List monoids(monoids_);
-  ReprotectSEXP t(make_empty(monoids));
-  for(int i = 0; i < elements.size(); ++i) {
-    t.set(add_right_cpp(t.get(), elements[i], monoids));
-  }
-  return t.get();
+  return tree_from_sorted_list_cpp(elements, monoids);
   END_RCPP
 }
 
@@ -1259,24 +1277,8 @@ extern "C" SEXP ft_cpp_tree_from_prepared(SEXP elements_, SEXP names_, SEXP mono
   BEGIN_RCPP
   List elements(elements_);
   List monoids(monoids_);
-  const bool has_names = !Rf_isNull(names_);
-  CharacterVector names;
-  if(has_names) {
-    names = as<CharacterVector>(names_);
-    if(names.size() != elements.size()) {
-      stop("`names` length must match elements length.");
-    }
-  }
-
-  ReprotectSEXP t(make_empty(monoids));
-  for(int i = 0; i < elements.size(); ++i) {
-    Shield<SEXP> name(
-      has_names ? static_cast<SEXP>(CharacterVector::create(names[i])) : R_NilValue
-    );
-    Shield<SEXP> el(clone_with_attrs(elements[i], name));
-    t.set(add_right_cpp(t.get(), el, monoids));
-  }
-  return t.get();
+  List prepared = prepare_elements_with_names_cpp(elements, names_);
+  return tree_from_sorted_list_cpp(prepared, monoids);
   END_RCPP
 }
 

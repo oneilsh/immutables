@@ -16,19 +16,47 @@ testthat::test_that("C++ core tree operations survive GC torture", {
 
   base_plain <- as_flexseq(as.list(1:8))
   ms <- attr(base_plain, "monoids", exact = TRUE)
+  base_names <- paste0("k", seq_len(8))
+
+  x_oms <- as_ordered_multiset(list("aa", "bb", "c", "ddd"), key = nchar)
+  y_oms <- as_ordered_multiset(list("xx", "z", "qq", "rrrr"), key = nchar)
+  ms_oms <- attr(x_oms, "monoids", exact = TRUE)
+  key_type_oms <- attr(x_oms, "oms_key_type", exact = TRUE)
 
   options(immutables.use_cpp = TRUE)
+  old_merge_engine <- getOption("immutables.oms.merge_engine")
+  options(immutables.oms.merge_engine = "auto")
+  on.exit({
+    if(is.null(old_merge_engine)) {
+      options(immutables.oms.merge_engine = NULL)
+    } else {
+      options(immutables.oms.merge_engine = old_merge_engine)
+    }
+  }, add = TRUE)
 
   old_torture <- gctorture2(1, inhibit_release = FALSE)
   on.exit(gctorture2(old_torture, inhibit_release = FALSE), add = TRUE)
 
-  testthat::expect_no_error({
-    t <- .ft_cpp_tree_from(as.list(1:8), ms)
-    t <- .ft_cpp_add_right(t, 9, ms)
-    t <- .ft_cpp_add_left(t, 0, ms)
+  step <- function(label, expr) {
+    tryCatch(
+      force(expr),
+      error = function(e) {
+        stop(sprintf("%s failed: %s", label, conditionMessage(e)), call. = FALSE)
+      }
+    )
+  }
 
-    .ft_cpp_concat(base_plain, base_plain, ms)
-    .ft_cpp_locate(base_plain, function(v) v >= 4, ms, ".size", 0)
-    .ft_cpp_split_tree(base_plain, function(v) v >= 4, ms, ".size", 0)
+  testthat::expect_no_error({
+    t <- NULL
+    step("ft_cpp_tree_from", t <- .ft_cpp_tree_from(as.list(1:8), ms))
+    step("ft_cpp_tree_from_prepared", .ft_cpp_tree_from_prepared(as.list(1:8), base_names, ms))
+    step("ft_cpp_tree_from_sorted", .ft_cpp_tree_from_sorted(as.list(1:8), ms))
+    step("ft_cpp_add_right", t <- .ft_cpp_add_right(t, 9, ms))
+    step("ft_cpp_add_left", t <- .ft_cpp_add_left(t, 0, ms))
+    step("ft_cpp_concat", .ft_cpp_concat(base_plain, base_plain, ms))
+    step("ft_cpp_locate", .ft_cpp_locate(base_plain, function(v) v >= 4, ms, ".size", 0))
+    step("ft_cpp_split_tree", .ft_cpp_split_tree(base_plain, function(v) v >= 4, ms, ".size", 0))
+    step("ft_cpp_oms_set_merge", .ft_cpp_oms_set_merge(x_oms, y_oms, "union", ms_oms, key_type_oms))
+    step("union_ms", union_ms(x_oms, y_oms))
   })
 })

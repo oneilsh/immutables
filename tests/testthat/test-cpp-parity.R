@@ -169,6 +169,14 @@ testthat::test_that("backend parity: tree_from unnamed", {
   })
 })
 
+testthat::test_that("backend parity: tree_from prepared names type check", {
+  ms <- ensure_size_monoids(list(.size = size_measure_monoid()))
+  testthat::expect_error(
+    .ft_cpp_tree_from_prepared(as.list(1:2), list("a", "b"), ms),
+    "character vector"
+  )
+})
+
 testthat::test_that("backend parity: add_monoids", {
   expect_backend_identical({
     t <- as_flexseq(1:8)

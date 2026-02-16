@@ -11,9 +11,10 @@
 #' t[[2]]
 #' }
 #' @keywords internal
-# Runtime: O(n log n) by repeated right-add without full-tree validation scans.
+# Runtime: O(n) for validation + linear bulk build.
 tree_from <- function(x, monoids = NULL) {
   ms <- if(is.null(monoids)) ensure_size_monoids(list(.size = size_measure_monoid())) else ensure_size_monoids(monoids)
+  can_cpp <- .ft_cpp_can_use(ms)
 
   x_list <- as.list(x)
   n <- length(x_list)
@@ -26,19 +27,26 @@ tree_from <- function(x, monoids = NULL) {
   }
 
   if(use_names) {
-    norm_list <- lapply(in_names, .ft_normalize_name)
-    has_any <- any(vapply(norm_list, function(nm) !is.null(nm), logical(1)))
+    norm_names <- as.character(in_names)
+    missing_name <- is.na(norm_names) | norm_names == ""
+    has_any <- any(!missing_name)
     if(has_any) {
-      if(any(vapply(norm_list, is.null, logical(1)))) {
+      if(any(missing_name)) {
         stop("Mixed named and unnamed elements are not allowed.")
       }
-      norm_names <- unlist(norm_list, use.names = FALSE)
       if(anyDuplicated(norm_names) > 0L) {
         stop("Element names must be unique.")
       }
       resolved_names <- norm_names
     }
   } else if(n > 0L) {
+    if(can_cpp) {
+      # Common fast path: unnamed plain elements cannot carry inline ft names.
+      if(!any(vapply(x_list, function(el) !is.null(attributes(el)), logical(1)))) {
+        return(.as_flexseq(.ft_cpp_tree_from(x_list, ms)))
+      }
+    }
+
     # Preserve existing behavior: when outer names are absent, derive names
     # from each element payload (ft_name attr or inline scalar names()).
     # Fast local path avoids lambda dispatch in hot construction workloads.
@@ -87,7 +95,7 @@ tree_from <- function(x, monoids = NULL) {
     }
   }
 
-  if(.ft_cpp_can_use(ms)) {
+  if(can_cpp) {
     if(is.null(resolved_names)) {
       return(.as_flexseq(.ft_cpp_tree_from(x_list, ms)))
     }
@@ -107,9 +115,57 @@ tree_from <- function(x, monoids = NULL) {
     }
   }
 
-  t <- empty_tree(monoids = ms)
-  for(i in seq_along(x_list)) {
-    t <- .add_right_fast(t, x_list[[i]], ms)
+  .ft_tree_from_list_linear(x_list, ms)
+}
+
+# Runtime: O(n) in total elements across recursive levels.
+.ft_tree_from_ordered_fast <- function(xs, monoids) {
+  n <- length(xs)
+  if(n == 0L) {
+    return(.measured_empty_fast(monoids))
   }
-  .as_flexseq(t)
+  if(n == 1L) {
+    return(.measured_single_fast(xs[[1L]], monoids))
+  }
+  if(n == 2L) {
+    return(.measured_deep_fast(
+      .measured_digit_fast(list(xs[[1L]]), monoids),
+      .measured_empty_fast(monoids),
+      .measured_digit_fast(list(xs[[2L]]), monoids),
+      monoids
+    ))
+  }
+  if(n == 3L) {
+    return(.measured_deep_fast(
+      .measured_digit_fast(xs[1:2], monoids),
+      .measured_empty_fast(monoids),
+      .measured_digit_fast(list(xs[[3L]]), monoids),
+      monoids
+    ))
+  }
+  if(n == 4L) {
+    return(.measured_deep_fast(
+      .measured_digit_fast(xs[1:2], monoids),
+      .measured_empty_fast(monoids),
+      .measured_digit_fast(xs[3:4], monoids),
+      monoids
+    ))
+  }
+
+  # Avoid a 1-element middle segment (which cannot be packed into Node2/Node3).
+  prefix_len <- if(n == 5L) 1L else 2L
+  suffix_len <- 2L
+
+  prefix <- .measured_digit_fast(xs[seq_len(prefix_len)], monoids)
+  suffix <- .measured_digit_fast(xs[(n - suffix_len + 1L):n], monoids)
+  middle_elems <- xs[(prefix_len + 1L):(n - suffix_len)]
+  middle_nodes <- .measured_nodes_fast(middle_elems, monoids)
+  middle <- .ft_tree_from_ordered_fast(middle_nodes, monoids)
+
+  .measured_deep_fast(prefix, middle, suffix, monoids)
+}
+
+# Runtime: O(n).
+.ft_tree_from_list_linear <- function(x_list, monoids) {
+  .as_flexseq(.ft_tree_from_ordered_fast(x_list, monoids))
 }

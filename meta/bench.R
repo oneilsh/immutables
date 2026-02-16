@@ -184,13 +184,13 @@ bench_concat_named_custom_monoid <- function(n = 2000, reps = 500, use_cpp = TRU
 }
 
 bench_locate_default <- function(n = 3000, queries = 200, use_cpp = TRUE) {
-  message("== locate default monoids, unnamed elements ==")
+  message("== locate_by_predicate default monoids, unnamed elements ==")
   t <- as_flexseq(as.list(seq_len(n)))
   idx <- sample.int(n, queries, replace = TRUE)
   timing <- system.time({
     options(immutables.use_cpp = use_cpp)
     for(i in idx) {
-      x <- locate(t, function(v) v >= i, ".size")
+      x <- locate_by_predicate(t, function(v) v >= i, ".size")
     }
   })
   print(timing)
@@ -198,7 +198,7 @@ bench_locate_default <- function(n = 3000, queries = 200, use_cpp = TRUE) {
 }
 
 bench_locate_custom_monoid <- function(n = 3000, queries = 200, use_cpp = TRUE) {
-  message("== locate custom monoid, unnamed elements ==")
+  message("== locate_by_predicate custom monoid, unnamed elements ==")
   sum_m <- measure_monoid(function(a, b) a + b, 0, function(el) as.numeric(el))
   t <- as_flexseq(as.list(seq_len(n)), monoids = list(sum = sum_m))
   idx <- sample.int(n, queries, replace = TRUE)
@@ -206,7 +206,7 @@ bench_locate_custom_monoid <- function(n = 3000, queries = 200, use_cpp = TRUE) 
   timing <- system.time({
     options(immutables.use_cpp = use_cpp)
     for(target in targets) {
-      x <- locate(t, function(v) v >= target, "sum")
+      x <- locate_by_predicate(t, function(v) v >= target, "sum")
     }
   })
   print(timing)
@@ -214,7 +214,7 @@ bench_locate_custom_monoid <- function(n = 3000, queries = 200, use_cpp = TRUE) 
 }
 
 bench_locate_custom_monoid_named <- function(n = 3000, queries = 200, use_cpp = TRUE) {
-  message("== locate custom monoid, named elements ==")
+  message("== locate_by_predicate custom monoid, named elements ==")
   sum_m <- measure_monoid(function(a, b) a + b, 0, function(el) as.numeric(el))
   vals <- as.list(seq_len(n))
   names(vals) <- paste0("k", seq_len(n))
@@ -224,7 +224,7 @@ bench_locate_custom_monoid_named <- function(n = 3000, queries = 200, use_cpp = 
   timing <- system.time({
     options(immutables.use_cpp = use_cpp)
     for(target in targets) {
-      x <- locate(t, function(v) v >= target, "sum")
+      x <- locate_by_predicate(t, function(v) v >= target, "sum")
     }
   })
   print(timing)
@@ -232,13 +232,13 @@ bench_locate_custom_monoid_named <- function(n = 3000, queries = 200, use_cpp = 
 }
 
 bench_split_tree_default <- function(n = 3000, queries = 200, use_cpp = TRUE) {
-  message("== split_tree default monoids, unnamed elements ==")
+  message("== split_around_by_predicate default monoids, unnamed elements ==")
   t <- as_flexseq(as.list(seq_len(n)))
   idx <- sample.int(n, queries, replace = TRUE)
   timing <- system.time({
     options(immutables.use_cpp = use_cpp)
     for(i in idx) {
-      s <- split_tree(t, function(v) v >= i, ".size")
+      s <- split_around_by_predicate(t, function(v) v >= i, ".size")
     }
   })
   print(timing)
@@ -246,7 +246,7 @@ bench_split_tree_default <- function(n = 3000, queries = 200, use_cpp = TRUE) {
 }
 
 bench_split_tree_custom_monoid <- function(n = 3000, queries = 200, use_cpp = TRUE) {
-  message("== split_tree custom monoid, unnamed elements ==")
+  message("== split_around_by_predicate custom monoid, unnamed elements ==")
   sum_m <- measure_monoid(function(a, b) a + b, 0, function(el) as.numeric(el))
   t <- as_flexseq(as.list(seq_len(n)), monoids = list(sum = sum_m))
   idx <- sample.int(n, queries, replace = TRUE)
@@ -254,7 +254,7 @@ bench_split_tree_custom_monoid <- function(n = 3000, queries = 200, use_cpp = TR
   timing <- system.time({
     options(immutables.use_cpp = use_cpp)
     for(target in targets) {
-      s <- split_tree(t, function(v) v >= target, "sum")
+      s <- split_around_by_predicate(t, function(v) v >= target, "sum")
     }
   })
   print(timing)
@@ -262,7 +262,7 @@ bench_split_tree_custom_monoid <- function(n = 3000, queries = 200, use_cpp = TR
 }
 
 bench_split_tree_custom_monoid_named <- function(n = 3000, queries = 200, use_cpp = TRUE) {
-  message("== split_tree custom monoid, named elements ==")
+  message("== split_around_by_predicate custom monoid, named elements ==")
   sum_m <- measure_monoid(function(a, b) a + b, 0, function(el) as.numeric(el))
   vals <- as.list(seq_len(n))
   names(vals) <- paste0("k", seq_len(n))
@@ -272,7 +272,7 @@ bench_split_tree_custom_monoid_named <- function(n = 3000, queries = 200, use_cp
   timing <- system.time({
     options(immutables.use_cpp = use_cpp)
     for(target in targets) {
-      s <- split_tree(t, function(v) v >= target, "sum")
+      s <- split_around_by_predicate(t, function(v) v >= target, "sum")
     }
   })
   print(timing)
@@ -280,13 +280,13 @@ bench_split_tree_custom_monoid_named <- function(n = 3000, queries = 200, use_cp
 }
 
 bench_split_default <- function(n = 3000, queries = 200, use_cpp = TRUE) {
-  message("== split default monoids, unnamed elements ==")
+  message("== split_by_predicate default monoids, unnamed elements ==")
   t <- as_flexseq(as.list(seq_len(n)))
   idx <- sample.int(n, queries, replace = TRUE)
   timing <- system.time({
     options(immutables.use_cpp = use_cpp)
     for(i in idx) {
-      s <- split(t, function(v) v >= i, ".size")
+      s <- split_by_predicate(t, function(v) v >= i, ".size")
     }
   })
   print(timing)
@@ -294,7 +294,7 @@ bench_split_default <- function(n = 3000, queries = 200, use_cpp = TRUE) {
 }
 
 bench_split_custom_monoid <- function(n = 3000, queries = 200, use_cpp = TRUE) {
-  message("== split custom monoid, unnamed elements ==")
+  message("== split_by_predicate custom monoid, unnamed elements ==")
   sum_m <- measure_monoid(function(a, b) a + b, 0, function(el) as.numeric(el))
   t <- as_flexseq(as.list(seq_len(n)), monoids = list(sum = sum_m))
   idx <- sample.int(n, queries, replace = TRUE)
@@ -302,7 +302,7 @@ bench_split_custom_monoid <- function(n = 3000, queries = 200, use_cpp = TRUE) {
   timing <- system.time({
     options(immutables.use_cpp = use_cpp)
     for(target in targets) {
-      s <- split(t, function(v) v >= target, "sum")
+      s <- split_by_predicate(t, function(v) v >= target, "sum")
     }
   })
   print(timing)
@@ -310,7 +310,7 @@ bench_split_custom_monoid <- function(n = 3000, queries = 200, use_cpp = TRUE) {
 }
 
 bench_split_custom_monoid_named <- function(n = 3000, queries = 200, use_cpp = TRUE) {
-  message("== split custom monoid, named elements ==")
+  message("== split_by_predicate custom monoid, named elements ==")
   sum_m <- measure_monoid(function(a, b) a + b, 0, function(el) as.numeric(el))
   vals <- as.list(seq_len(n))
   names(vals) <- paste0("k", seq_len(n))
@@ -320,7 +320,7 @@ bench_split_custom_monoid_named <- function(n = 3000, queries = 200, use_cpp = T
   timing <- system.time({
     options(immutables.use_cpp = use_cpp)
     for(target in targets) {
-      s <- split(t, function(v) v >= target, "sum")
+      s <- split_by_predicate(t, function(v) v >= target, "sum")
     }
   })
   print(timing)
@@ -453,14 +453,14 @@ bench_index_name_vector_replace <- function(n = 600, queries = 8, width = 5, use
 
 run_all_benches <- function(n = 2000, use_cpp = TRUE) {
   out <- list(
-    #append_default = bench_default(n = n, use_cpp = use_cpp),
-    #append_custom = bench_custom_monoid(n = n, use_cpp = use_cpp),
-    #append_named = bench_named(n = n, use_cpp = use_cpp),
-    #append_named_custom = bench_named_custom_monoid(n = n, use_cpp = use_cpp),
-    #from_default = bench_tree_from_default(n = n, use_cpp = use_cpp),
-    #from_custom = bench_tree_from_custom_monoid(n = n, use_cpp = use_cpp),
-    #from_named = bench_tree_from_named(n = n, use_cpp = use_cpp),
-    #from_named_custom = bench_tree_from_named_custom_monoid(n = n, use_cpp = use_cpp),
+    # append_default = bench_default(n = n, use_cpp = use_cpp),
+    # append_custom = bench_custom_monoid(n = n, use_cpp = use_cpp),
+    # append_named = bench_named(n = n, use_cpp = use_cpp),
+    # append_named_custom = bench_named_custom_monoid(n = n, use_cpp = use_cpp),
+    from_default = bench_tree_from_default(n = 40000, use_cpp = use_cpp),
+    from_custom = bench_tree_from_custom_monoid(n = 40000, use_cpp = use_cpp),
+    from_named = bench_tree_from_named(n = 40000, use_cpp = use_cpp),
+    from_named_custom = bench_tree_from_named_custom_monoid(n = 40000, use_cpp = use_cpp)
     # concat_default = bench_concat_default(n = max(100L, as.integer(n / 2L)), reps = 500, use_cpp = use_cpp),
     # concat_custom = bench_concat_custom_monoid(n = max(100L, as.integer(n / 2L)), reps = 500, use_cpp = use_cpp),
     # concat_named = bench_concat_named(n = max(100L, as.integer(n / 2L)), reps = 500, use_cpp = use_cpp),
@@ -474,12 +474,12 @@ run_all_benches <- function(n = 2000, use_cpp = TRUE) {
     # split_default = bench_split_default(n = max(500L, as.integer(n)), queries = 200, use_cpp = use_cpp),
     # split_custom = bench_split_custom_monoid(n = max(500L, as.integer(n)), queries = 200, use_cpp = use_cpp),
     # split_custom_named = bench_split_custom_monoid_named(n = max(500L, as.integer(n)), queries = 200, use_cpp = use_cpp),
-    index_int_vec_read = bench_index_integer_vector_read(n = max(500L, as.integer(n) %/% 2L), queries = 20, width = 6, use_cpp = use_cpp),
-    index_int_single = bench_index_integer_single_read(n = max(500L, as.integer(n) %/% 2L), queries = 200, use_cpp = use_cpp),
-    index_name_vec_read = bench_index_name_vector_read(n = max(400L, as.integer(n) %/% 4L), queries = 8, width = 5, use_cpp = use_cpp),
-    index_name_single = bench_index_name_single_read(n = max(500L, as.integer(n) %/% 2L), queries = 200, use_cpp = use_cpp),
-    index_int_vec_replace = bench_index_integer_vector_replace(n = max(500L, as.integer(n) %/% 2L), queries = 20, width = 6, use_cpp = use_cpp),
-    index_name_vec_replace = bench_index_name_vector_replace(n = max(500L, as.integer(n) %/% 2L), queries = 8, width = 5, use_cpp = use_cpp)
+    # index_int_vec_read = bench_index_integer_vector_read(n = max(500L, as.integer(n) %/% 2L), queries = 20, width = 6, use_cpp = use_cpp),
+    # index_int_single = bench_index_integer_single_read(n = max(500L, as.integer(n) %/% 2L), queries = 200, use_cpp = use_cpp),
+    # index_name_vec_read = bench_index_name_vector_read(n = max(400L, as.integer(n) %/% 4L), queries = 8, width = 5, use_cpp = use_cpp),
+    # index_name_single = bench_index_name_single_read(n = max(500L, as.integer(n) %/% 2L), queries = 200, use_cpp = use_cpp),
+    # index_int_vec_replace = bench_index_integer_vector_replace(n = max(500L, as.integer(n) %/% 2L), queries = 20, width = 6, use_cpp = use_cpp),
+    # index_name_vec_replace = bench_index_name_vector_replace(n = max(500L, as.integer(n) %/% 2L), queries = 8, width = 5, use_cpp = use_cpp)
   )
   out
 }

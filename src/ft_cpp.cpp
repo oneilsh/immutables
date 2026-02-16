@@ -4,6 +4,31 @@ using namespace Rcpp;
 
 namespace {
 
+struct ReprotectSEXP {
+  SEXP value;
+  PROTECT_INDEX index;
+
+  explicit ReprotectSEXP(SEXP init) : value(R_NilValue) {
+    PROTECT_WITH_INDEX(value = init, &index);
+  }
+
+  ReprotectSEXP(const ReprotectSEXP&) = delete;
+  ReprotectSEXP& operator=(const ReprotectSEXP&) = delete;
+
+  ~ReprotectSEXP() {
+    UNPROTECT(1);
+  }
+
+  SEXP get() const {
+    return value;
+  }
+
+  SEXP set(SEXP next) {
+    REPROTECT(value = next, index);
+    return value;
+  }
+};
+
 SEXP class_sym = Rf_install("class");
 SEXP monoids_sym = Rf_install("monoids");
 SEXP measures_sym = Rf_install("measures");
@@ -209,7 +234,7 @@ List measures_from_children(const List& children, const List& monoids) {
     List r = as<List>(monoids[i]);
     Function f = as<Function>(r["f"]);
     Function measure = as<Function>(r["measure"]);
-    SEXP acc = r["i"];
+    ReprotectSEXP acc(static_cast<SEXP>(r["i"]));
     for(int j = 0; j < children.size(); ++j) {
       SEXP ch = children[j];
       SEXP mv = R_NilValue;
@@ -222,9 +247,9 @@ List measures_from_children(const List& children, const List& monoids) {
       if(Rf_isNull(mv)) {
         mv = measure(ch);
       }
-      acc = f(acc, mv);
+      acc.set(f(acc.get(), mv));
     }
-    out[i] = acc;
+    out[i] = acc.get();
   }
   return out;
 }
@@ -304,9 +329,9 @@ SEXP add_right_cpp(SEXP t, SEXP el, const List& monoids) {
   }
   if(has_class(t, "Single")) {
     List s(t);
-    SEXP prefix = make_digit(List::create(s[0]), monoids);
-    SEXP middle = make_empty(monoids);
-    SEXP suffix = make_digit(List::create(el), monoids);
+    Shield<SEXP> prefix(make_digit(List::create(s[0]), monoids));
+    Shield<SEXP> middle(make_empty(monoids));
+    Shield<SEXP> suffix(make_digit(List::create(el), monoids));
     return make_deep(prefix, middle, suffix, monoids);
   }
   if(has_class(t, "Digit")) {
@@ -320,12 +345,12 @@ SEXP add_right_cpp(SEXP t, SEXP el, const List& monoids) {
     List d(t);
     List suffix = d["suffix"];
     if(suffix.size() == 4) {
-      SEXP new_suffix = make_digit(List::create(suffix[3], el), monoids);
-      SEXP middle_node = make_node3(suffix[0], suffix[1], suffix[2], monoids);
-      SEXP new_middle = add_right_cpp(d["middle"], middle_node, monoids);
+      Shield<SEXP> new_suffix(make_digit(List::create(suffix[3], el), monoids));
+      Shield<SEXP> middle_node(make_node3(suffix[0], suffix[1], suffix[2], monoids));
+      Shield<SEXP> new_middle(add_right_cpp(d["middle"], middle_node, monoids));
       return make_deep(d["prefix"], new_middle, new_suffix, monoids);
     }
-    SEXP new_suffix = add_right_cpp(d["suffix"], el, monoids);
+    Shield<SEXP> new_suffix(add_right_cpp(d["suffix"], el, monoids));
     return make_deep(d["prefix"], d["middle"], new_suffix, monoids);
   }
   stop("Unsupported node type in ft_cpp_append_right.");
@@ -337,9 +362,9 @@ SEXP add_left_cpp(SEXP t, SEXP el, const List& monoids) {
   }
   if(has_class(t, "Single")) {
     List s(t);
-    SEXP prefix = make_digit(List::create(el), monoids);
-    SEXP middle = make_empty(monoids);
-    SEXP suffix = make_digit(List::create(s[0]), monoids);
+    Shield<SEXP> prefix(make_digit(List::create(el), monoids));
+    Shield<SEXP> middle(make_empty(monoids));
+    Shield<SEXP> suffix(make_digit(List::create(s[0]), monoids));
     return make_deep(prefix, middle, suffix, monoids);
   }
   if(has_class(t, "Digit")) {
@@ -353,12 +378,12 @@ SEXP add_left_cpp(SEXP t, SEXP el, const List& monoids) {
     List d(t);
     List prefix = d["prefix"];
     if(prefix.size() == 4) {
-      SEXP new_prefix = make_digit(List::create(el, prefix[0]), monoids);
-      SEXP middle_node = make_node3(prefix[1], prefix[2], prefix[3], monoids);
-      SEXP new_middle = add_left_cpp(d["middle"], middle_node, monoids);
+      Shield<SEXP> new_prefix(make_digit(List::create(el, prefix[0]), monoids));
+      Shield<SEXP> middle_node(make_node3(prefix[1], prefix[2], prefix[3], monoids));
+      Shield<SEXP> new_middle(add_left_cpp(d["middle"], middle_node, monoids));
       return make_deep(new_prefix, new_middle, d["suffix"], monoids);
     }
-    SEXP new_prefix = add_left_cpp(d["prefix"], el, monoids);
+    Shield<SEXP> new_prefix(add_left_cpp(d["prefix"], el, monoids));
     return make_deep(new_prefix, d["middle"], d["suffix"], monoids);
   }
   stop("Unsupported node type in ft_cpp_prepend_left.");
@@ -407,17 +432,19 @@ SEXP clone_with_attrs(SEXP el, SEXP name_) {
 }
 
 SEXP add_all_right_cpp(SEXP t, const List& els, const List& monoids) {
+  ReprotectSEXP cur(t);
   for(int i = 0; i < els.size(); ++i) {
-    t = add_right_cpp(t, els[i], monoids);
+    cur.set(add_right_cpp(cur.get(), els[i], monoids));
   }
-  return t;
+  return cur.get();
 }
 
 SEXP add_all_left_cpp(SEXP t, const List& els, const List& monoids) {
+  ReprotectSEXP cur(t);
   for(int i = els.size() - 1; i >= 0; --i) {
-    t = add_left_cpp(t, els[i], monoids);
+    cur.set(add_left_cpp(cur.get(), els[i], monoids));
   }
-  return t;
+  return cur.get();
 }
 
 List measured_nodes_cpp(const List& xs, const List& monoids) {
@@ -459,11 +486,13 @@ SEXP app3_cpp(SEXP xs, const List& ts, SEXP ys, const List& monoids) {
   }
   if(has_class(xs, "Single")) {
     List sx(xs);
-    return add_left_cpp(add_all_left_cpp(ys, ts, monoids), sx[0], monoids);
+    Shield<SEXP> with_ts(add_all_left_cpp(ys, ts, monoids));
+    return add_left_cpp(with_ts, sx[0], monoids);
   }
   if(has_class(ys, "Single")) {
     List sy(ys);
-    return add_right_cpp(add_all_right_cpp(xs, ts, monoids), sy[0], monoids);
+    Shield<SEXP> with_ts(add_all_right_cpp(xs, ts, monoids));
+    return add_right_cpp(with_ts, sy[0], monoids);
   }
   if(has_class(xs, "Deep") && has_class(ys, "Deep")) {
     List dx(xs);
@@ -478,7 +507,7 @@ SEXP app3_cpp(SEXP xs, const List& ts, SEXP ys, const List& monoids) {
     for(int i = 0; i < pry.size(); ++i) bridge[j++] = pry[i];
 
     List nts = measured_nodes_cpp(bridge, monoids);
-    SEXP m = app3_cpp(dx["middle"], nts, dy["middle"], monoids);
+    Shield<SEXP> m(app3_cpp(dx["middle"], nts, dy["middle"], monoids));
     return make_deep(dx["prefix"], m, dy["suffix"], monoids);
   }
 
@@ -509,12 +538,12 @@ int size_for_child(SEXP ch, const List& size_monoid) {
 
 SEXP measure_sequence(const List& xs, const std::string& monoid_name, const List& monoid_spec) {
   Function f = as<Function>(monoid_spec["f"]);
-  SEXP acc = monoid_spec["i"];
+  ReprotectSEXP acc(static_cast<SEXP>(monoid_spec["i"]));
   for(int i = 0; i < xs.size(); ++i) {
     SEXP m = monoid_measure_for_child(xs[i], monoid_name, monoid_spec);
-    acc = f(acc, m);
+    acc.set(f(acc.get(), m));
   }
-  return acc;
+  return acc.get();
 }
 
 bool predicate_true(const Function& predicate, SEXP x) {
@@ -555,19 +584,19 @@ List locate_digit_impl_cpp(
   }
 
   Function f = as<Function>(monoid_spec["f"]);
-  SEXP acc = i;
+  ReprotectSEXP acc(i);
   int size_before = i_size;
 
   for(int idx = 0; idx < digit.size(); ++idx) {
     SEXP el = digit[idx];
     SEXP m_el = monoid_measure_for_child(el, monoid_name, monoid_spec);
     int n_el = size_for_child(el, size_monoid);
-    SEXP acc_after = f(acc, m_el);
+    Shield<SEXP> acc_after(f(acc.get(), m_el));
 
     if(predicate_true(predicate, acc_after)) {
       if(is_structural_node_cpp(el)) {
         return locate_tree_impl_cpp(
-          predicate, acc, el, monoids, monoid_name, monoid_spec, size_monoid, size_before
+          predicate, acc.get(), el, monoids, monoid_name, monoid_spec, size_monoid, size_before
         );
       }
 
@@ -586,21 +615,21 @@ List locate_digit_impl_cpp(
       return List::create(
         _["found"] = true,
         _["elem"] = el,
-        _["left_measure"] = acc,
+        _["left_measure"] = acc.get(),
         _["hit_measure"] = acc_after,
         _["right_measure"] = right_measure,
         _["index"] = size_before + 1
       );
     }
 
-    acc = acc_after;
+    acc.set(acc_after);
     size_before += n_el;
   }
 
   return List::create(
     _["found"] = false,
     _["elem"] = R_NilValue,
-    _["left_measure"] = acc,
+    _["left_measure"] = acc.get(),
     _["hit_measure"] = R_NilValue,
     _["right_measure"] = R_NilValue,
     _["index"] = R_NilValue
@@ -658,8 +687,8 @@ List locate_tree_impl_cpp(
     SEXP msf = sm[monoid_name];
 
     Function f = as<Function>(monoid_spec["f"]);
-    SEXP vpr = f(i, mpr);
-    SEXP vm = f(vpr, mmid);
+    Shield<SEXP> vpr(f(i, mpr));
+    Shield<SEXP> vm(f(vpr, mmid));
 
     int npr = as<int>(pm[".size"]);
     int nm = as<int>(mm[".size"]);
@@ -669,8 +698,9 @@ List locate_tree_impl_cpp(
         predicate, i, prefix, monoids, monoid_name, monoid_spec, size_monoid, i_size
       );
       if(as<bool>(res["found"])) {
-        SEXP r = res["right_measure"];
-        res["right_measure"] = f(f(r, mmid), msf);
+        Shield<SEXP> r(static_cast<SEXP>(res["right_measure"]));
+        Shield<SEXP> rr(f(r, mmid));
+        res["right_measure"] = f(rr, msf);
       }
       return res;
     }
@@ -680,7 +710,7 @@ List locate_tree_impl_cpp(
         predicate, vpr, middle, monoids, monoid_name, monoid_spec, size_monoid, i_size + npr
       );
       if(as<bool>(res["found"])) {
-        SEXP r = res["right_measure"];
+        Shield<SEXP> r(static_cast<SEXP>(res["right_measure"]));
         res["right_measure"] = f(r, msf);
       }
       return res;
@@ -755,9 +785,9 @@ SEXP deepL_cpp(SEXP pr, SEXP m, SEXP sf, const List& monoids) {
     return digit_to_tree_cpp(List(sf), monoids);
   }
   List res = viewL_cpp(m, monoids);
-  SEXP node = res["elem"];
-  SEXP m_rest = res["rest"];
-  SEXP new_pr = node_to_digit_cpp(node, monoids);
+  Shield<SEXP> node(static_cast<SEXP>(res["elem"]));
+  Shield<SEXP> m_rest(static_cast<SEXP>(res["rest"]));
+  Shield<SEXP> new_pr(node_to_digit_cpp(node, monoids));
   return make_deep(new_pr, m_rest, sf, monoids);
 }
 
@@ -769,9 +799,9 @@ SEXP deepR_cpp(SEXP pr, SEXP m, SEXP sf, const List& monoids) {
     return digit_to_tree_cpp(List(pr), monoids);
   }
   List res = viewR_cpp(m, monoids);
-  SEXP node = res["elem"];
-  SEXP m_rest = res["rest"];
-  SEXP new_sf = node_to_digit_cpp(node, monoids);
+  Shield<SEXP> node(static_cast<SEXP>(res["elem"]));
+  Shield<SEXP> m_rest(static_cast<SEXP>(res["rest"]));
+  Shield<SEXP> new_sf(node_to_digit_cpp(node, monoids));
   return make_deep(pr, m_rest, new_sf, monoids);
 }
 
@@ -787,25 +817,25 @@ List viewL_cpp(SEXP t, const List& monoids) {
   List d(t);
   List pr = d["prefix"];
   if(pr.size() > 1) {
-    SEXP head = pr[0];
+    Shield<SEXP> head(static_cast<SEXP>(pr[0]));
     List tail(pr.size() - 1);
     for(int i = 1; i < pr.size(); ++i) tail[i - 1] = pr[i];
-    SEXP new_pr = build_digit_cpp(tail, monoids);
+    Shield<SEXP> new_pr(build_digit_cpp(tail, monoids));
     return List::create(
       _["elem"] = head,
       _["rest"] = make_deep(new_pr, d["middle"], d["suffix"], monoids)
     );
   }
 
-  SEXP head = pr[0];
-  SEXP m = d["middle"];
+  Shield<SEXP> head(static_cast<SEXP>(pr[0]));
+  Shield<SEXP> m(static_cast<SEXP>(d["middle"]));
   if(has_class(m, "Empty")) {
     return List::create(_["elem"] = head, _["rest"] = digit_to_tree_cpp(List(d["suffix"]), monoids));
   }
   List res = viewL_cpp(m, monoids);
-  SEXP node = res["elem"];
-  SEXP m_rest = res["rest"];
-  SEXP new_pr = node_to_digit_cpp(node, monoids);
+  Shield<SEXP> node(static_cast<SEXP>(res["elem"]));
+  Shield<SEXP> m_rest(static_cast<SEXP>(res["rest"]));
+  Shield<SEXP> new_pr(node_to_digit_cpp(node, monoids));
   return List::create(_["elem"] = head, _["rest"] = make_deep(new_pr, m_rest, d["suffix"], monoids));
 }
 
@@ -821,25 +851,25 @@ List viewR_cpp(SEXP t, const List& monoids) {
   List d(t);
   List sf = d["suffix"];
   if(sf.size() > 1) {
-    SEXP head = sf[sf.size() - 1];
+    Shield<SEXP> head(static_cast<SEXP>(sf[sf.size() - 1]));
     List tail(sf.size() - 1);
     for(int i = 0; i < sf.size() - 1; ++i) tail[i] = sf[i];
-    SEXP new_sf = build_digit_cpp(tail, monoids);
+    Shield<SEXP> new_sf(build_digit_cpp(tail, monoids));
     return List::create(
       _["elem"] = head,
       _["rest"] = make_deep(d["prefix"], d["middle"], new_sf, monoids)
     );
   }
 
-  SEXP head = sf[0];
-  SEXP m = d["middle"];
+  Shield<SEXP> head(static_cast<SEXP>(sf[0]));
+  Shield<SEXP> m(static_cast<SEXP>(d["middle"]));
   if(has_class(m, "Empty")) {
     return List::create(_["elem"] = head, _["rest"] = digit_to_tree_cpp(List(d["prefix"]), monoids));
   }
   List res = viewR_cpp(m, monoids);
-  SEXP node = res["elem"];
-  SEXP m_rest = res["rest"];
-  SEXP new_sf = node_to_digit_cpp(node, monoids);
+  Shield<SEXP> node(static_cast<SEXP>(res["elem"]));
+  Shield<SEXP> m_rest(static_cast<SEXP>(res["rest"]));
+  Shield<SEXP> new_sf(node_to_digit_cpp(node, monoids));
   return List::create(_["elem"] = head, _["rest"] = make_deep(d["prefix"], m_rest, new_sf, monoids));
 }
 
@@ -855,18 +885,19 @@ List split_digit_cpp(
   }
 
   Function f = as<Function>(monoid_spec["f"]);
-  SEXP acc = i;
+  ReprotectSEXP acc(i);
   for(int idx = 0; idx < digit.size(); ++idx) {
     SEXP el = digit[idx];
     SEXP m_el = monoid_measure_for_child(el, monoid_name, monoid_spec);
-    acc = f(acc, m_el);
-    if(predicate_true(predicate, acc)) {
+    Shield<SEXP> acc_after(f(acc.get(), m_el));
+    if(predicate_true(predicate, acc_after)) {
       List left(idx);
       for(int j = 0; j < idx; ++j) left[j] = digit[j];
       List right(digit.size() - idx - 1);
       for(int j = idx + 1; j < digit.size(); ++j) right[j - idx - 1] = digit[j];
       return List::create(_["left"] = left, _["elem"] = el, _["right"] = right);
     }
+    acc.set(acc_after);
   }
   stop("split_digit: predicate never became true; precondition violated");
 }
@@ -898,28 +929,32 @@ List split_tree_impl_cpp(
   SEXP middle = d["middle"];
   SEXP suffix = d["suffix"];
 
-  SEXP vpr = f(i, node_measure_named(prefix, monoid_name));
-  SEXP vm = f(vpr, node_measure_named(middle, monoid_name));
+  Shield<SEXP> vpr(f(i, node_measure_named(prefix, monoid_name)));
+  Shield<SEXP> vm(f(vpr, node_measure_named(middle, monoid_name)));
 
   if(predicate_true(predicate, vpr)) {
     List s = split_digit_cpp(predicate, i, List(prefix), monoid_name, monoid_spec);
-    SEXP left_tree = digit_to_tree_cpp(as<List>(s["left"]), monoids);
-    SEXP right_tree = deepL_cpp(build_digit_cpp(as<List>(s["right"]), monoids), middle, suffix, monoids);
+    Shield<SEXP> left_tree(digit_to_tree_cpp(as<List>(s["left"]), monoids));
+    Shield<SEXP> right_digit(build_digit_cpp(as<List>(s["right"]), monoids));
+    Shield<SEXP> right_tree(deepL_cpp(right_digit, middle, suffix, monoids));
     return List::create(_["left"] = left_tree, _["elem"] = s["elem"], _["right"] = right_tree);
   }
 
   if(predicate_true(predicate, vm)) {
     List sm = split_tree_impl_cpp(predicate, vpr, middle, monoids, monoid_name, monoid_spec);
-    SEXP inode = f(vpr, node_measure_named(sm["left"], monoid_name));
+    Shield<SEXP> inode(f(vpr, node_measure_named(sm["left"], monoid_name)));
     List sx = split_digit_cpp(predicate, inode, List(sm["elem"]), monoid_name, monoid_spec);
-    SEXP left_tree = deepR_cpp(prefix, sm["left"], build_digit_cpp(as<List>(sx["left"]), monoids), monoids);
-    SEXP right_tree = deepL_cpp(build_digit_cpp(as<List>(sx["right"]), monoids), sm["right"], suffix, monoids);
+    Shield<SEXP> left_digit(build_digit_cpp(as<List>(sx["left"]), monoids));
+    Shield<SEXP> right_digit(build_digit_cpp(as<List>(sx["right"]), monoids));
+    Shield<SEXP> left_tree(deepR_cpp(prefix, sm["left"], left_digit, monoids));
+    Shield<SEXP> right_tree(deepL_cpp(right_digit, sm["right"], suffix, monoids));
     return List::create(_["left"] = left_tree, _["elem"] = sx["elem"], _["right"] = right_tree);
   }
 
   List s = split_digit_cpp(predicate, vm, List(suffix), monoid_name, monoid_spec);
-  SEXP left_tree = deepR_cpp(prefix, middle, build_digit_cpp(as<List>(s["left"]), monoids), monoids);
-  SEXP right_tree = digit_to_tree_cpp(as<List>(s["right"]), monoids);
+  Shield<SEXP> left_digit(build_digit_cpp(as<List>(s["left"]), monoids));
+  Shield<SEXP> left_tree(deepR_cpp(prefix, middle, left_digit, monoids));
+  Shield<SEXP> right_tree(digit_to_tree_cpp(as<List>(s["right"]), monoids));
   return List::create(_["left"] = left_tree, _["elem"] = s["elem"], _["right"] = right_tree);
 }
 
@@ -942,7 +977,7 @@ extern "C" SEXP ft_cpp_prepend_left(SEXP t, SEXP el, SEXP monoids_) {
 extern "C" SEXP ft_cpp_append_right_named(SEXP t, SEXP el, SEXP name_, SEXP monoids_) {
   BEGIN_RCPP
   List monoids(monoids_);
-  SEXP named_el = clone_with_name(el, name_);
+  Shield<SEXP> named_el(clone_with_name(el, name_));
   return add_right_cpp(t, named_el, monoids);
   END_RCPP
 }
@@ -950,7 +985,7 @@ extern "C" SEXP ft_cpp_append_right_named(SEXP t, SEXP el, SEXP name_, SEXP mono
 extern "C" SEXP ft_cpp_prepend_left_named(SEXP t, SEXP el, SEXP name_, SEXP monoids_) {
   BEGIN_RCPP
   List monoids(monoids_);
-  SEXP named_el = clone_with_name(el, name_);
+  Shield<SEXP> named_el(clone_with_name(el, name_));
   return add_left_cpp(t, named_el, monoids);
   END_RCPP
 }
@@ -959,11 +994,11 @@ extern "C" SEXP ft_cpp_tree_from(SEXP elements_, SEXP monoids_) {
   BEGIN_RCPP
   List elements(elements_);
   List monoids(monoids_);
-  SEXP t = make_empty(monoids);
+  ReprotectSEXP t(make_empty(monoids));
   for(int i = 0; i < elements.size(); ++i) {
-    t = add_right_cpp(t, elements[i], monoids);
+    t.set(add_right_cpp(t.get(), elements[i], monoids));
   }
-  return t;
+  return t.get();
   END_RCPP
 }
 
@@ -980,13 +1015,15 @@ extern "C" SEXP ft_cpp_tree_from_prepared(SEXP elements_, SEXP names_, SEXP mono
     }
   }
 
-  SEXP t = make_empty(monoids);
+  ReprotectSEXP t(make_empty(monoids));
   for(int i = 0; i < elements.size(); ++i) {
-    SEXP name = has_names ? static_cast<SEXP>(CharacterVector::create(names[i])) : R_NilValue;
-    SEXP el = clone_with_attrs(elements[i], name);
-    t = add_right_cpp(t, el, monoids);
+    Shield<SEXP> name(
+      has_names ? static_cast<SEXP>(CharacterVector::create(names[i])) : R_NilValue
+    );
+    Shield<SEXP> el(clone_with_attrs(elements[i], name));
+    t.set(add_right_cpp(t.get(), el, monoids));
   }
-  return t;
+  return t.get();
   END_RCPP
 }
 

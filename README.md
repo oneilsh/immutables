@@ -11,7 +11,7 @@ supporting all of the above in addition to min and max
 peeking and popping by priority value.
 
 Backed by monoid-annotated 2-3 fingertrees as described by
-[Hinze and Paterson](https://doi.org/10.1017/S0956796805005769), all structures are persistent (operations return effective modified copies), and most operations are constant time, amortized constant time, or $O(\log(n))$ (indexing $k$ elements is $O(k\log(n))$). 
+[Hinze and Paterson](https://doi.org/10.1017/S0956796805005769), all structures are persistent (operations return effective modified copies), and most operations are constant time, amortized constant time, or $O(\log(n))$ (indexing $k$ elements is $O(k \log(n))$). 
 Core functions are implemented in C++ (via Rcpp) for speed,
 and parallel R implementations using `lambda.r` match their
 counterparts in the paper.

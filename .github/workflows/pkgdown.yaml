@@ -24,15 +24,9 @@ jobs:
           apt-get update
           apt-get install -y --no-install-recommends pandoc
 
-      - name: Install pak
+      - name: Install R dependencies
         run: |
-          Rscript -e 'install.packages("pak", repos = "https://cloud.r-project.org")'
-
-      - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          extra-packages: any::pkgdown
-          needs: website
-          cache: true
+          Rscript -e 'install.packages("pkgdown", repos = "https://cloud.r-project.org")'
 
       - name: Build site
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)

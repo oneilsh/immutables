@@ -23,18 +23,9 @@ jobs:
           apt-get update
           apt-get install -y --no-install-recommends pandoc
 
-      - name: Install pak
+      - name: Install R dependencies
         run: |
-          Rscript -e 'install.packages("pak", repos = "https://cloud.r-project.org")'
-
-      - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          extra-packages: |
-            any::knitr
-            any::testthat
-            any::rcmdcheck
-          needs: hard
-          cache: true
+          Rscript -e 'install.packages(c("knitr","testthat","rcmdcheck"), repos = "https://cloud.r-project.org")'
 
       - name: Check
         run: rcmdcheck::rcmdcheck(args = c("--no-manual", "--no-build-vignettes", "--ignore-vignettes"), error_on = "warning")

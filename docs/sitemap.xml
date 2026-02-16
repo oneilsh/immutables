@@ -14,6 +14,7 @@
 <url><loc>https://github.com/oneilsh/immutables/reference/add_monoids.html</loc></url>
 <url><loc>https://github.com/oneilsh/immutables/reference/append.flexseq.html</loc></url>
 <url><loc>https://github.com/oneilsh/immutables/reference/append.html</loc></url>
+<url><loc>https://github.com/oneilsh/immutables/reference/as.list.flexseq.html</loc></url>
 <url><loc>https://github.com/oneilsh/immutables/reference/as_flexseq.html</loc></url>
 <url><loc>https://github.com/oneilsh/immutables/reference/as_priority_queue.html</loc></url>
 <url><loc>https://github.com/oneilsh/immutables/reference/c.flexseq.html</loc></url>
@@ -42,6 +43,7 @@
 <url><loc>https://github.com/oneilsh/immutables/reference/peek_min.html</loc></url>
 <url><loc>https://github.com/oneilsh/immutables/reference/plot.flexseq.html</loc></url>
 <url><loc>https://github.com/oneilsh/immutables/reference/plot_tree.html</loc></url>
+<url><loc>https://github.com/oneilsh/immutables/reference/pq_apply.html</loc></url>
 <url><loc>https://github.com/oneilsh/immutables/reference/prepend.html</loc></url>
 <url><loc>https://github.com/oneilsh/immutables/reference/print.FingerTree.html</loc></url>
 <url><loc>https://github.com/oneilsh/immutables/reference/print.flexseq.html</loc></url>
@@ -49,6 +51,8 @@
 <url><loc>https://github.com/oneilsh/immutables/reference/priority_queue.html</loc></url>
 <url><loc>https://github.com/oneilsh/immutables/reference/reduce_left.html</loc></url>
 <url><loc>https://github.com/oneilsh/immutables/reference/reduce_right.html</loc></url>
+<url><loc>https://github.com/oneilsh/immutables/reference/seq_apply.html</loc></url>
+<url><loc>https://github.com/oneilsh/immutables/reference/seq_walk.html</loc></url>
 <url><loc>https://github.com/oneilsh/immutables/reference/split.html</loc></url>
 <url><loc>https://github.com/oneilsh/immutables/reference/split_around_by_predicate.html</loc></url>
 <url><loc>https://github.com/oneilsh/immutables/reference/split_at.html</loc></url>

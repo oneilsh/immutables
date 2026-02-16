@@ -14,7 +14,6 @@ reference:
       - flexseq
       - as_flexseq
       - prepend
-      - append
       - "append.flexseq"
       - "c.flexseq"
       - "print.flexseq"
@@ -27,7 +26,10 @@ reference:
       - "[[<-.flexseq"
       - "$.flexseq"
       - "$<-.flexseq"
+      - "as.list.flexseq"
       - split_at
+      - seq_apply
+      - seq_walk
       - "plot.flexseq"
 
   - title: "priority_queue API"
@@ -41,6 +43,7 @@ reference:
       - peek_max
       - extract_min
       - extract_max
+      - pq_apply
       - "print.priority_queue"
 
   - title: "developer API"

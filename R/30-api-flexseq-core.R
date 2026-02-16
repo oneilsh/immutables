@@ -100,3 +100,40 @@ plot.flexseq <- function(x, ...) {
 length.flexseq <- function(x) {
   as.integer(node_measure(x, ".size"))
 }
+
+#' Coerce a Sequence to Base List
+#'
+#' Returns elements in left-to-right sequence order.
+#'
+#' @method as.list flexseq
+#' @param x A `flexseq`.
+#' @param ... Unused.
+#' @return A base R list of sequence elements.
+#' @export
+# Runtime: O(n) over number of elements.
+as.list.flexseq <- function(x, ...) {
+  els <- .ft_to_list(x)
+  n <- length(els)
+  if(n == 0L) {
+    return(list())
+  }
+
+  out <- vector("list", n)
+  nms <- character(n)
+  has_names <- FALSE
+  for(i in seq_len(n)) {
+    el <- els[[i]]
+    out[[i]] <- .ft_strip_name(el)
+    nm <- .ft_get_name(el)
+    if(is.null(nm)) {
+      nms[[i]] <- ""
+    } else {
+      nms[[i]] <- nm
+      has_names <- TRUE
+    }
+  }
+  if(has_names) {
+    names(out) <- nms
+  }
+  out
+}

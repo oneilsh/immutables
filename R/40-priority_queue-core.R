@@ -280,3 +280,93 @@ extract_min <- function(q) {
 extract_max <- function(q) {
   .pq_extract(q, ".pq_max")
 }
+
+#' Apply a Function Over Priority Queue Entries
+#'
+#' Applies a per-entry transform and rebuilds a `priority_queue`.
+#'
+#' @param q A `priority_queue`.
+#' @param f Callback called as `f(item, priority, seq_id, name, ...)`.
+#'   It must return a named list using any subset of: `item`, `priority`,
+#'   `name`. Missing fields inherit original values.
+#' @param reset_ties Logical; if `TRUE`, refreshes tie-break `seq_id` by
+#'   current order. If `FALSE`, preserves existing `seq_id` values.
+#' @param ... Additional arguments passed to `f`.
+#' @return A rebuilt `priority_queue`.
+#' @examples
+#' q <- priority_queue("a", "bb", "ccc", priorities = c(1, 3, 2))
+#' q2 <- pq_apply(q, function(item, priority, seq_id, name) {
+#'   list(item = toupper(item))
+#' })
+#' peek_min(q2)
+#'
+#' q3 <- pq_apply(q, function(item, priority, seq_id, name) {
+#'   list(priority = priority + nchar(item))
+#' })
+#' peek_max(q3)
+#' @export
+# Runtime: O(n log n) total from entry traversal + queue rebuild.
+pq_apply <- function(q, f, reset_ties = TRUE, ...) {
+  .pq_assert_queue(q)
+  if(!is.function(f)) {
+    stop("`f` must be a function.")
+  }
+  if(!is.logical(reset_ties) || length(reset_ties) != 1L || is.na(reset_ties)) {
+    stop("`reset_ties` must be TRUE or FALSE.")
+  }
+
+  entries <- as.list(q)
+  n <- length(entries)
+  out <- vector("list", n)
+  out_names <- if(is.null(names(entries))) rep("", n) else names(entries)
+
+  for(i in seq_len(n)) {
+    e <- entries[[i]]
+    cur_name <- out_names[[i]]
+
+    upd <- f(e$item, e$priority, e$seq_id, cur_name, ...)
+    if(!is.list(upd)) {
+      stop("`f` must return a list.")
+    }
+    if(length(upd) > 0L) {
+      nm <- names(upd)
+      if(is.null(nm) || any(is.na(nm)) || any(nm == "")) {
+        stop("`f` must return a named list using only: item, priority, name.")
+      }
+      if(anyDuplicated(nm) > 0L) {
+        stop("`f` return list cannot contain duplicated field names.")
+      }
+      bad <- setdiff(nm, c("item", "priority", "name"))
+      if(length(bad) > 0L) {
+        stop("`f` returned unsupported field(s): ", paste(bad, collapse = ", "))
+      }
+    }
+
+    item2 <- if("item" %in% names(upd)) upd[["item"]] else e$item
+    pr2 <- if("priority" %in% names(upd)) .pq_assert_priority(upd[["priority"]]) else as.numeric(e$priority)
+    if("name" %in% names(upd)) {
+      nm2 <- .ft_normalize_name(upd[["name"]])
+      out_names[[i]] <- if(is.null(nm2)) "" else nm2
+    }
+
+    out[[i]] <- list(
+      item = item2,
+      priority = as.numeric(pr2),
+      seq_id = if(isTRUE(reset_ties)) as.numeric(i) else as.numeric(e$seq_id)
+    )
+  }
+
+  if(any(out_names != "")) {
+    names(out) <- out_names
+  }
+
+  all_monoids <- attr(q, "monoids", exact = TRUE)
+  user_monoids <- all_monoids[setdiff(names(all_monoids), c(".size", ".named_count", ".pq_min", ".pq_max"))]
+  if(length(user_monoids) == 0L) {
+    user_monoids <- NULL
+  }
+
+  q2 <- as_flexseq(out, monoids = .pq_merge_monoids(user_monoids))
+  next_seq <- if(isTRUE(reset_ties)) as.numeric(n + 1L) else .pq_next_seq(q)
+  .as_priority_queue(q2, next_seq = next_seq)
+}

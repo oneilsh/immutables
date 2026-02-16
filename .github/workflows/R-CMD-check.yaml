@@ -21,11 +21,16 @@ jobs:
       - name: Install system dependencies
         run: |
           apt-get update
-          apt-get install -y --no-install-recommends pandoc r-cran-pak
+          apt-get install -y --no-install-recommends pandoc
+
+      - name: Install pak
+        run: |
+          Rscript -e 'install.packages("pak", repos = "https://cloud.r-project.org")'
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: |
+            any::knitr
             any::testthat
             any::rcmdcheck
           needs: hard

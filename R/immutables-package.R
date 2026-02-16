@@ -11,7 +11,7 @@
 #' Backed by monoid-annotated 2-3 fingertrees, all structures are
 #' persistent (operations return effective modified copies), and
 #' most operations are constant time, amortized constant time, or
-#' $O(\log(n))$ (indexing $k$ elements is $O(k\log(n))$). The
+#' \eqn{O(\log n)} (indexing k elements is \eqn{O(k \log n)}). The
 #' developer API supports the addition of custom structures 
 #' via combinations of monoids and measures; see vignettes for
 #' details.

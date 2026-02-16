@@ -22,7 +22,7 @@ jobs:
       - name: Install system dependencies
         run: |
           apt-get update
-          apt-get install -y --no-install-recommends pandoc
+          apt-get install -y --no-install-recommends pandoc r-cran-pak
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:

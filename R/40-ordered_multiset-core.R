@@ -1,18 +1,4 @@
 # Runtime: O(1).
-.oms_assert_key_fun <- function(key) {
-  if(!is.function(key)) {
-    stop("`key` must be a function.")
-  }
-  key
-}
-
-# Runtime: O(1).
-.oms_key_id <- function(key) {
-  txt <- paste(capture.output(dput(key)), collapse = "")
-  paste0("oms_key:", txt)
-}
-
-# Runtime: O(1).
 .oms_assert_set <- function(x) {
   if(!inherits(x, "ordered_multiset") || !is_structural_node(x)) {
     stop("`x` must be an ordered_multiset.")
@@ -21,26 +7,8 @@
 }
 
 # Runtime: O(1).
-.oms_key_fun <- function(x) {
-  key <- attr(x, "oms_key_fun", exact = TRUE)
-  if(!is.function(key)) {
-    stop("ordered_multiset is missing a valid `oms_key_fun` attribute.")
-  }
-  key
-}
-
-# Runtime: O(1).
 .oms_key_type_state <- function(x) {
   attr(x, "oms_key_type", exact = TRUE)
-}
-
-# Runtime: O(1).
-.oms_key_id_state <- function(x) {
-  id <- attr(x, "oms_key_id", exact = TRUE)
-  if(!is.character(id) || length(id) != 1L || is.na(id) || id == "") {
-    stop("ordered_multiset is missing a valid `oms_key_id` attribute.")
-  }
-  id
 }
 
 # Runtime: O(1).
@@ -58,13 +26,11 @@
 }
 
 # Runtime: O(1).
-.as_ordered_multiset <- function(x, key, key_id, key_type, next_seq = NULL) {
+.as_ordered_multiset <- function(x, key_type, next_seq = NULL) {
   if(!is_structural_node(x)) {
     stop("Expected a structural tree node.")
   }
   class(x) <- unique(c("ordered_multiset", "flexseq", setdiff(class(x), "list")))
-  attr(x, "oms_key_fun") <- key
-  attr(x, "oms_key_id") <- key_id
   attr(x, "oms_key_type") <- key_type
   if(is.null(next_seq)) {
     next_seq <- as.numeric(node_measure(x, ".size")) + 1
@@ -85,35 +51,41 @@
 }
 
 # Runtime: O(1).
-.oms_apply_key <- function(key_fun, item, current_key_type = NULL) {
-  key_raw <- key_fun(item)
-  norm <- .oms_normalize_key(key_raw)
-  key_type <- .oms_validate_key_type(current_key_type, norm$key_type)
-  list(key = norm$key, key_type = key_type)
+.oms_as_key_list <- function(keys, n) {
+  key_list <- as.list(keys)
+  if(length(key_list) != n) {
+    stop("`keys` length must match elements length.")
+  }
+  key_list
 }
 
 # Runtime: O(n log n) for sorting + O(n) bulk build.
-.oms_build_from_items <- function(items, key, monoids = NULL) {
-  key <- .oms_assert_key_fun(key)
+.oms_build_from_items <- function(items, keys = NULL, monoids = NULL) {
   n <- length(items)
 
   if(n == 0L) {
+    if(!is.null(keys) && length(as.list(keys)) > 0L) {
+      stop("`keys` must be empty when no elements are supplied.")
+    }
     base <- as_flexseq(list(), monoids = .oms_merge_monoids(monoids))
     return(.as_ordered_multiset(
       base,
-      key = key,
-      key_id = .oms_key_id(key),
       key_type = NULL,
       next_seq = 1
     ))
   }
 
+  if(is.null(keys)) {
+    stop("`keys` is required when elements are supplied.")
+  }
+  keys <- .oms_as_key_list(keys, n)
+
   entries <- vector("list", n)
   key_type <- NULL
   for(i in seq_len(n)) {
-    k <- .oms_apply_key(key, items[[i]], current_key_type = key_type)
-    key_type <- k$key_type
-    entries[[i]] <- .oms_make_entry(items[[i]], k$key, i)
+    norm <- .oms_normalize_key(keys[[i]])
+    key_type <- .oms_validate_key_type(key_type, norm$key_type)
+    entries[[i]] <- .oms_make_entry(items[[i]], norm$key, i)
   }
 
   ord <- if(key_type == "numeric") {
@@ -129,8 +101,6 @@
   base <- .oms_tree_from_ordered_entries(entries, merged_monoids)
   .as_ordered_multiset(
     base,
-    key = key,
-    key_id = .oms_key_id(key),
     key_type = key_type,
     next_seq = n + 1
   )
@@ -138,10 +108,8 @@
 
 # Runtime: O(1).
 .oms_wrap_tree <- function(template, tree, next_seq = NULL, key_type = NULL) {
-  key <- .oms_key_fun(template)
-  key_id <- .oms_key_id_state(template)
   resolved_key_type <- if(is.null(key_type)) .oms_key_type_state(template) else key_type
-  .as_ordered_multiset(tree, key = key, key_id = key_id, key_type = resolved_key_type, next_seq = next_seq)
+  .as_ordered_multiset(tree, key_type = resolved_key_type, next_seq = next_seq)
 }
 
 # Runtime: O(1).
@@ -196,12 +164,6 @@
 .oms_assert_compat <- function(x, y) {
   .oms_assert_set(x)
   .oms_assert_set(y)
-
-  kx <- .oms_key_id_state(x)
-  ky <- .oms_key_id_state(y)
-  if(!identical(kx, ky)) {
-    stop("Ordered multiset key extractors are incompatible. Rebuild with the same `key` function.")
-  }
 
   tx <- .oms_key_type_state(x)
   ty <- .oms_key_type_state(y)
@@ -428,32 +390,32 @@
 #' Build an Ordered Multiset from elements
 #'
 #' @param x Elements to add.
-#' @param key Function extracting a scalar key from each element.
+#' @param keys Scalar key values matching `x` length.
 #' @param monoids Optional additional named list of `measure_monoid` objects.
 #' @return An `ordered_multiset`.
 #' @examples
-#' ms <- as_ordered_multiset(c(4, 1, 2, 1), key = identity)
+#' ms <- as_ordered_multiset(c(4, 1, 2, 1), keys = c(4, 1, 2, 1))
 #' ms
 #' count_key(ms, 1)
 #' @export
-as_ordered_multiset <- function(x, key = identity, monoids = NULL) {
-  .oms_build_from_items(as.list(x), key = key, monoids = monoids)
+as_ordered_multiset <- function(x, keys = NULL, monoids = NULL) {
+  .oms_build_from_items(as.list(x), keys = keys, monoids = monoids)
 }
 
 # Runtime: O(n log n) from build and ordering.
 #' Construct an Ordered Multiset
 #'
 #' @param ... Elements to add.
-#' @param key Function extracting a scalar key from each element.
+#' @param keys Scalar key values matching `...` length.
 #' @param monoids Optional additional named list of `measure_monoid` objects.
 #' @return An `ordered_multiset`.
 #' @examples
-#' ms <- ordered_multiset("bb", "a", "ccc", key = nchar)
+#' ms <- ordered_multiset("bb", "a", "ccc", keys = c(2, 1, 3))
 #' ms
 #' lower_bound(ms, 2)
 #' @export
-ordered_multiset <- function(..., key = identity, monoids = NULL) {
-  as_ordered_multiset(list(...), key = key, monoids = monoids)
+ordered_multiset <- function(..., keys = NULL, monoids = NULL) {
+  as_ordered_multiset(list(...), keys = keys, monoids = monoids)
 }
 
 # Runtime: O(log n) near insertion/split point depth.
@@ -461,23 +423,32 @@ ordered_multiset <- function(..., key = identity, monoids = NULL) {
 #'
 #' @param x An `ordered_multiset`.
 #' @param element Element to insert.
+#' @param key Scalar key for `element`.
 #' @return Updated `ordered_multiset`.
 #' @export
-insert_ms <- function(x, element) {
+insert_ms <- function(x, element, key) {
   .oms_assert_set(x)
-  key_fun <- .oms_key_fun(x)
-  key_type <- .oms_key_type_state(x)
-  k <- .oms_apply_key(key_fun, element, current_key_type = key_type)
+  norm <- .oms_normalize_key(key)
+  key_type <- .oms_validate_key_type(.oms_key_type_state(x), norm$key_type)
 
   seq_id <- .oms_next_seq(x)
-  entry <- .oms_make_entry(element, k$key, seq_id)
+  entry <- .oms_make_entry(element, norm$key, seq_id)
+  ms <- attr(x, "monoids", exact = TRUE)
 
-  idx <- .oms_bound_index(x, k$key, strict = TRUE)
-  s <- split_by_predicate(x, function(v) v >= idx, ".size")
-  left_plus <- append(s$left, entry)
-  out <- concat_trees(left_plus, s$right)
+  out <- if(.ft_cpp_can_use(ms)) {
+    .as_flexseq(.ft_cpp_oms_insert(x, entry, ms, key_type))
+  } else {
+    # One-pass split on max-key measure: left keeps <= key, right keeps > key.
+    s <- split_by_predicate(
+      x,
+      function(v) isTRUE(v$has) && .oms_compare_key(v$key, norm$key, v$key_type) > 0L,
+      ".oms_max_key"
+    )
+    left_plus <- append(s$left, entry)
+    concat_trees(left_plus, s$right)
+  }
 
-  .oms_wrap_tree(x, out, next_seq = seq_id + 1L, key_type = k$key_type)
+  .oms_wrap_tree(x, out, next_seq = seq_id + 1L, key_type = key_type)
 }
 
 # Runtime: O(log n) near split points.
@@ -530,7 +501,9 @@ delete_all <- function(x, key_value) {
 #'
 #' @param x An `ordered_multiset`.
 #' @param key_value Query key.
-#' @return `list(found, index, element, key, seq_id)`.
+#' @return Named list with fields `found`, `index`, `element`, `key`, and
+#'   `seq_id`. When no match exists, `found` is `FALSE` and the remaining fields
+#'   are `NULL`.
 #' @export
 lower_bound <- function(x, key_value) {
   .oms_assert_set(x)
@@ -550,7 +523,9 @@ lower_bound <- function(x, key_value) {
 #'
 #' @param x An `ordered_multiset`.
 #' @param key_value Query key.
-#' @return `list(found, index, element, key, seq_id)`.
+#' @return Named list with fields `found`, `index`, `element`, `key`, and
+#'   `seq_id`. When no match exists, `found` is `FALSE` and the remaining fields
+#'   are `NULL`.
 #' @export
 upper_bound <- function(x, key_value) {
   .oms_assert_set(x)

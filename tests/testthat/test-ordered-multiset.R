@@ -1,7 +1,7 @@
 testthat::test_that("constructor sorts by key and preserves stable duplicate order", {
   ms <- as_ordered_multiset(
     list("bbb", "a", "cc", "dd", "e"),
-    key = nchar
+    keys = c(3, 1, 2, 2, 1)
   )
 
   testthat::expect_s3_class(ms, "ordered_multiset")
@@ -11,15 +11,15 @@ testthat::test_that("constructor sorts by key and preserves stable duplicate ord
 })
 
 testthat::test_that("insert_ms appends after equal-key block and increments seq", {
-  ms <- as_ordered_multiset(list("bb", "aa", "c"), key = nchar)
-  ms2 <- insert_ms(ms, "dd")
+  ms <- as_ordered_multiset(list("bb", "aa", "c"), keys = c(2, 2, 1))
+  ms2 <- insert_ms(ms, "dd", key = 2)
 
   testthat::expect_equal(as.list(ms2), list("c", "bb", "aa", "dd"))
   testthat::expect_equal(attr(ms2, "oms_next_seq", exact = TRUE), attr(ms, "oms_next_seq", exact = TRUE) + 1)
 })
 
 testthat::test_that("lower_bound and upper_bound behave at boundaries", {
-  ms <- as_ordered_multiset(list("bbb", "a", "cc", "dddd"), key = nchar)
+  ms <- as_ordered_multiset(list("bbb", "a", "cc", "dddd"), keys = c(3, 1, 2, 4))
 
   lb1 <- lower_bound(ms, 2)
   ub1 <- upper_bound(ms, 2)
@@ -38,7 +38,7 @@ testthat::test_that("lower_bound and upper_bound behave at boundaries", {
 })
 
 testthat::test_that("count_key and delete operations follow multiplicities", {
-  ms <- as_ordered_multiset(list("aa", "bb", "c", "dd", "e"), key = nchar)
+  ms <- as_ordered_multiset(list("aa", "bb", "c", "dd", "e"), keys = c(2, 2, 1, 2, 1))
 
   testthat::expect_identical(count_key(ms, 2), 3L)
   testthat::expect_identical(count_key(ms, 1), 2L)
@@ -55,7 +55,7 @@ testthat::test_that("count_key and delete operations follow multiplicities", {
 })
 
 testthat::test_that("count_between and elements_between support inclusivity flags", {
-  ms <- as_ordered_multiset(list("a", "bb", "cc", "ddd", "eeee"), key = nchar)
+  ms <- as_ordered_multiset(list("a", "bb", "cc", "ddd", "eeee"), keys = c(1, 2, 2, 3, 4))
 
   testthat::expect_identical(count_between(ms, 2, 3), 3L)
   testthat::expect_identical(count_between(ms, 2, 3, include_hi = FALSE), 2L)
@@ -68,9 +68,8 @@ testthat::test_that("count_between and elements_between support inclusivity flag
 })
 
 testthat::test_that("union_ms uses bag max multiplicities with deterministic payload rules", {
-  key_fn <- nchar
-  x <- as_ordered_multiset(list("aa", "bb", "c", "ddd"), key = key_fn)
-  y <- as_ordered_multiset(list("xx", "z", "qq", "rrrr"), key = key_fn)
+  x <- as_ordered_multiset(list("aa", "bb", "c", "ddd"), keys = c(2, 2, 1, 3))
+  y <- as_ordered_multiset(list("xx", "z", "qq", "rrrr"), keys = c(2, 1, 2, 4))
 
   u <- union_ms(x, y)
 
@@ -82,9 +81,8 @@ testthat::test_that("union_ms uses bag max multiplicities with deterministic pay
 })
 
 testthat::test_that("intersection_ms and difference_ms follow bag semantics", {
-  key_fn <- nchar
-  x <- as_ordered_multiset(list("a", "bb", "cc", "ddd"), key = key_fn)
-  y <- as_ordered_multiset(list("z", "xx", "qq", "rrrr"), key = key_fn)
+  x <- as_ordered_multiset(list("a", "bb", "cc", "ddd"), keys = c(1, 2, 2, 3))
+  y <- as_ordered_multiset(list("z", "xx", "qq", "rrrr"), keys = c(1, 2, 2, 4))
 
   i <- intersection_ms(x, y)
   d <- difference_ms(x, y)
@@ -95,27 +93,35 @@ testthat::test_that("intersection_ms and difference_ms follow bag semantics", {
   testthat::expect_equal(as.list(d), list("ddd"))
 })
 
-testthat::test_that("set operations require compatible key extractors", {
-  x <- as_ordered_multiset(list("aa", "b"), key = nchar)
-  y <- as_ordered_multiset(list("aa", "b"), key = identity)
+testthat::test_that("set operations require compatible key types", {
+  x <- as_ordered_multiset(list("aa", "b"), keys = c(2, 1))
+  y <- as_ordered_multiset(list("aa", "b"), keys = c("2", "1"))
 
   testthat::expect_error(union_ms(x, y), "incompatible")
   testthat::expect_error(intersection_ms(x, y), "incompatible")
   testthat::expect_error(difference_ms(x, y), "incompatible")
 })
 
-testthat::test_that("ordered_multiset validates key outputs", {
+testthat::test_that("ordered_multiset validates keys input", {
   testthat::expect_error(
-    as_ordered_multiset(list(1, 2), key = function(x) c(x, x)),
+    as_ordered_multiset(list(1, 2), keys = list(c(1, 1), 2)),
     "scalar"
   )
   testthat::expect_error(
-    as_ordered_multiset(list(1), key = function(x) NA_real_),
+    as_ordered_multiset(list(1), keys = list(NA_real_)),
     "non-missing"
   )
   testthat::expect_error(
-    as_ordered_multiset(list(1), key = function(x) list(1)),
+    as_ordered_multiset(list(1), keys = list(list(1))),
     "numeric, character, or logical"
+  )
+  testthat::expect_error(
+    as_ordered_multiset(list(1, 2), keys = 1),
+    "length must match"
+  )
+  testthat::expect_error(
+    as_ordered_multiset(list(1, 2)),
+    "`keys` is required"
   )
 })
 
@@ -129,8 +135,8 @@ testthat::test_that("set operations support merge engine toggle", {
     }
   }, add = TRUE)
 
-  x <- as_ordered_multiset(list("aa", "bb", "c", "ddd"), key = nchar)
-  y <- as_ordered_multiset(list("xx", "z", "qq", "rrrr"), key = nchar)
+  x <- as_ordered_multiset(list("aa", "bb", "c", "ddd"), keys = c(2, 2, 1, 3))
+  y <- as_ordered_multiset(list("xx", "z", "qq", "rrrr"), keys = c(2, 1, 2, 4))
 
   options(immutables.oms.merge_engine = "legacy_r")
   u_legacy <- union_ms(x, y)
@@ -151,8 +157,13 @@ testthat::test_that("merge engine option validates values", {
     }
   }, add = TRUE)
 
-  x <- as_ordered_multiset(list("aa", "bb"), key = nchar)
-  y <- as_ordered_multiset(list("cc", "d"), key = nchar)
+  x <- as_ordered_multiset(list("aa", "bb"), keys = c(2, 2))
+  y <- as_ordered_multiset(list("cc", "d"), keys = c(2, 1))
   options(immutables.oms.merge_engine = "bogus")
   testthat::expect_error(union_ms(x, y), "merge_engine")
+})
+
+testthat::test_that("insert_ms requires an explicit key", {
+  ms <- as_ordered_multiset(list("a"), keys = 1)
+  testthat::expect_error(insert_ms(ms, "b"), "argument \"key\" is missing")
 })

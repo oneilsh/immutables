@@ -1233,6 +1233,136 @@ List split_tree_impl_cpp(
   return List::create(_["left"] = left_tree, _["elem"] = s["elem"], _["right"] = right_tree);
 }
 
+bool oms_measure_has_gt_key(SEXP measure, SEXP key, const std::string& key_type) {
+  if(TYPEOF(measure) != VECSXP || XLENGTH(measure) < 2) {
+    stop("Invalid .oms_max_key measure payload.");
+  }
+  List m(measure);
+  SEXP has = m[0];
+  if(TYPEOF(has) != LGLSXP || XLENGTH(has) != 1 || LOGICAL(has)[0] == NA_LOGICAL) {
+    stop("Invalid .oms_max_key `has` flag.");
+  }
+  if(LOGICAL(has)[0] == FALSE) {
+    return false;
+  }
+  SEXP max_key = m[1];
+  if(Rf_isNull(max_key)) {
+    stop("Invalid .oms_max_key payload: missing key.");
+  }
+  return oms_compare_keys(max_key, key, key_type) > 0;
+}
+
+bool oms_child_has_gt_key(SEXP child, SEXP key, const std::string& key_type) {
+  if(is_structural_node_cpp(child)) {
+    List measures = Rf_getAttrib(child, measures_sym);
+    if(Rf_isNull(measures)) {
+      stop("Missing cached measures on structural node.");
+    }
+    SEXP mk = measures[".oms_max_key"];
+    if(Rf_isNull(mk)) {
+      stop("Missing .oms_max_key measure on ordered_multiset tree.");
+    }
+    return oms_measure_has_gt_key(mk, key, key_type);
+  }
+  return oms_compare_keys(oms_entry_key(child), key, key_type) > 0;
+}
+
+bool oms_tree_has_gt_key(SEXP t, SEXP key, const std::string& key_type) {
+  if(has_class(t, "Empty")) {
+    return false;
+  }
+  return oms_child_has_gt_key(t, key, key_type);
+}
+
+List oms_split_digit_gt_key(const List& digit, SEXP key, const std::string& key_type) {
+  if(digit.size() == 0) {
+    stop("oms_split_digit_gt_key called with empty digit");
+  }
+
+  for(int idx = 0; idx < digit.size(); ++idx) {
+    SEXP el = digit[idx];
+    if(oms_child_has_gt_key(el, key, key_type)) {
+      List left(idx);
+      for(int j = 0; j < idx; ++j) {
+        left[j] = digit[j];
+      }
+      List right(digit.size() - idx - 1);
+      for(int j = idx + 1; j < digit.size(); ++j) {
+        right[j - idx - 1] = digit[j];
+      }
+      return List::create(_["left"] = left, _["elem"] = el, _["right"] = right);
+    }
+  }
+
+  stop("oms_split_digit_gt_key precondition violated: no element with key > target.");
+}
+
+List oms_split_tree_gt_key(
+  SEXP t,
+  SEXP key,
+  const std::string& key_type,
+  const List& monoids
+) {
+  if(has_class(t, "Empty")) {
+    stop("oms_split_tree_gt_key requires a non-empty tree");
+  }
+
+  if(has_class(t, "Single")) {
+    List s(t);
+    return List::create(
+      _["left"] = make_empty(monoids),
+      _["elem"] = s[0],
+      _["right"] = make_empty(monoids)
+    );
+  }
+
+  List d(t);
+  SEXP prefix = d["prefix"];
+  SEXP middle = d["middle"];
+  SEXP suffix = d["suffix"];
+
+  if(oms_tree_has_gt_key(prefix, key, key_type)) {
+    List s = oms_split_digit_gt_key(List(prefix), key, key_type);
+    Shield<SEXP> left_tree(digit_to_tree_cpp(as<List>(s["left"]), monoids));
+    Shield<SEXP> right_digit(build_digit_cpp(as<List>(s["right"]), monoids));
+    Shield<SEXP> right_tree(deepL_cpp(right_digit, middle, suffix, monoids));
+    return List::create(_["left"] = left_tree, _["elem"] = s["elem"], _["right"] = right_tree);
+  }
+
+  if(oms_tree_has_gt_key(middle, key, key_type)) {
+    List sm = oms_split_tree_gt_key(middle, key, key_type, monoids);
+    List sx = oms_split_digit_gt_key(List(sm["elem"]), key, key_type);
+    Shield<SEXP> left_digit(build_digit_cpp(as<List>(sx["left"]), monoids));
+    Shield<SEXP> right_digit(build_digit_cpp(as<List>(sx["right"]), monoids));
+    Shield<SEXP> left_tree(deepR_cpp(prefix, sm["left"], left_digit, monoids));
+    Shield<SEXP> right_tree(deepL_cpp(right_digit, sm["right"], suffix, monoids));
+    return List::create(_["left"] = left_tree, _["elem"] = sx["elem"], _["right"] = right_tree);
+  }
+
+  if(oms_tree_has_gt_key(suffix, key, key_type)) {
+    List s = oms_split_digit_gt_key(List(suffix), key, key_type);
+    Shield<SEXP> left_digit(build_digit_cpp(as<List>(s["left"]), monoids));
+    Shield<SEXP> left_tree(deepR_cpp(prefix, middle, left_digit, monoids));
+    Shield<SEXP> right_tree(digit_to_tree_cpp(as<List>(s["right"]), monoids));
+    return List::create(_["left"] = left_tree, _["elem"] = s["elem"], _["right"] = right_tree);
+  }
+
+  stop("oms_split_tree_gt_key precondition violated: no element with key > target.");
+}
+
+SEXP oms_insert_cpp_impl(SEXP x, SEXP entry, const List& monoids, const std::string& key_type) {
+  SEXP key = oms_entry_key(entry);
+  if(!oms_tree_has_gt_key(x, key, key_type)) {
+    return add_right_cpp(x, entry, monoids);
+  }
+
+  List s = oms_split_tree_gt_key(x, key, key_type, monoids);
+  Shield<SEXP> right_with_hit(add_left_cpp(s["right"], s["elem"], monoids));
+  Shield<SEXP> left_plus_entry(add_right_cpp(s["left"], entry, monoids));
+  List ts(0);
+  return app3_cpp(left_plus_entry, ts, right_with_hit, monoids);
+}
+
 } // namespace
 
 extern "C" SEXP ft_cpp_append_right(SEXP t, SEXP el, SEXP monoids_) {
@@ -1310,6 +1440,17 @@ extern "C" SEXP ft_cpp_oms_set_merge(SEXP x, SEXP y, SEXP mode_, SEXP monoids_, 
   }
   List monoids(monoids_);
   return oms_set_merge_cpp_impl(x, y, mode, monoids, key_type);
+  END_RCPP
+}
+
+extern "C" SEXP ft_cpp_oms_insert(SEXP x, SEXP entry, SEXP monoids_, SEXP key_type_) {
+  BEGIN_RCPP
+  std::string key_type = as<std::string>(key_type_);
+  if(key_type != "numeric" && key_type != "character" && key_type != "logical") {
+    stop("Unsupported ordered_multiset key type.");
+  }
+  List monoids(monoids_);
+  return oms_insert_cpp_impl(x, entry, monoids, key_type);
   END_RCPP
 }
 

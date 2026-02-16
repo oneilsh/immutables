@@ -61,6 +61,11 @@
   .Call("ft_cpp_oms_set_merge", x, y, mode, monoids, key_type, PACKAGE = "immutables")
 }
 
+# Runtime: O(log n) near insertion point depth.
+.ft_cpp_oms_insert <- function(x, entry, monoids, key_type) {
+  .Call("ft_cpp_oms_insert", x, entry, monoids, key_type, PACKAGE = "immutables")
+}
+
 # Runtime: O(log n) near locate point depth.
 .ft_cpp_locate <- function(t, predicate, monoids, monoid_name, accumulator) {
   .Call("ft_cpp_locate", t, predicate, monoids, monoid_name, accumulator, PACKAGE = "immutables")

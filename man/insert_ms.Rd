@@ -4,12 +4,14 @@
 \alias{insert_ms}
 \title{Insert an element into an ordered multiset}
 \usage{
-insert_ms(x, element)
+insert_ms(x, element, key)
 }
 \arguments{
 \item{x}{An `ordered_multiset`.}
 
 \item{element}{Element to insert.}
+
+\item{key}{Scalar key for `element`.}
 }
 \value{
 Updated `ordered_multiset`.

@@ -46,6 +46,24 @@ reference:
       - pq_apply
       - "print.priority_queue"
 
+  - title: "ordered_multiset API"
+    desc: "Persistent ordered multiset API"
+    contents:
+      - ordered_multiset
+      - as_ordered_multiset
+      - insert_ms
+      - delete_one
+      - delete_all
+      - lower_bound
+      - upper_bound
+      - count_key
+      - count_between
+      - elements_between
+      - union_ms
+      - intersection_ms
+      - difference_ms
+      - "print.ordered_multiset"
+
   - title: "developer API"
     desc: "Lower-level constructors, query primitives, and tooling"
     contents:

@@ -12,7 +12,9 @@ upper_bound(x, key_value)
 \item{key_value}{Query key.}
 }
 \value{
-`list(found, index, element, key, seq_id)`.
+Named list with fields `found`, `index`, `element`, `key`, and
+  `seq_id`. When no match exists, `found` is `FALSE` and the remaining fields
+  are `NULL`.
 }
 \description{
 Find first element with key > value

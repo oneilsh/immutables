@@ -474,7 +474,7 @@ bench_oms_build <- function(n = 40000, key_space = 1000, use_cpp = TRUE, merge_e
   timing <- system.time({
     options(immutables.use_cpp = use_cpp)
     .bench_with_oms_engine(merge_engine, {
-      ms <- as_ordered_multiset(keys, key = identity)
+      ms <- as_ordered_multiset(keys, keys = keys)
     })
   })
   print(timing)
@@ -488,9 +488,9 @@ bench_oms_insert <- function(n = 20000, inserts = 2000, key_space = 1000, use_cp
   timing <- system.time({
     options(immutables.use_cpp = use_cpp)
     .bench_with_oms_engine(merge_engine, {
-      ms <- as_ordered_multiset(base, key = identity)
+      ms <- as_ordered_multiset(base, keys = base)
       for(i in seq_len(inserts)) {
-        ms <- insert_ms(ms, ins[[i]])
+        ms <- insert_ms(ms, ins[[i]], key = ins[[i]])
         if(i %% 100 == 0) print(i)
       }
     })
@@ -501,8 +501,10 @@ bench_oms_insert <- function(n = 20000, inserts = 2000, key_space = 1000, use_cp
 
 bench_oms_union <- function(n = 20000, reps = 200, key_space = 1000, use_cpp = TRUE, merge_engine = "auto") {
   message("== ordered_multiset union_ms ==")
-  x <- as_ordered_multiset(.bench_oms_keys(n, key_space = key_space), key = identity)
-  y <- as_ordered_multiset(.bench_oms_keys(n, key_space = key_space), key = identity)
+  x_vals <- .bench_oms_keys(n, key_space = key_space)
+  y_vals <- .bench_oms_keys(n, key_space = key_space)
+  x <- as_ordered_multiset(x_vals, keys = x_vals)
+  y <- as_ordered_multiset(y_vals, keys = y_vals)
   timing <- system.time({
     options(immutables.use_cpp = use_cpp)
     .bench_with_oms_engine(merge_engine, {
@@ -518,8 +520,10 @@ bench_oms_union <- function(n = 20000, reps = 200, key_space = 1000, use_cpp = T
 
 bench_oms_intersection <- function(n = 20000, reps = 200, key_space = 1000, use_cpp = TRUE, merge_engine = "auto") {
   message("== ordered_multiset intersection_ms ==")
-  x <- as_ordered_multiset(.bench_oms_keys(n, key_space = key_space), key = identity)
-  y <- as_ordered_multiset(.bench_oms_keys(n, key_space = key_space), key = identity)
+  x_vals <- .bench_oms_keys(n, key_space = key_space)
+  y_vals <- .bench_oms_keys(n, key_space = key_space)
+  x <- as_ordered_multiset(x_vals, keys = x_vals)
+  y <- as_ordered_multiset(y_vals, keys = y_vals)
   timing <- system.time({
     options(immutables.use_cpp = use_cpp)
     .bench_with_oms_engine(merge_engine, {
@@ -535,8 +539,10 @@ bench_oms_intersection <- function(n = 20000, reps = 200, key_space = 1000, use_
 
 bench_oms_difference <- function(n = 20000, reps = 200, key_space = 1000, use_cpp = TRUE, merge_engine = "auto") {
   message("== ordered_multiset difference_ms ==")
-  x <- as_ordered_multiset(.bench_oms_keys(n, key_space = key_space), key = identity)
-  y <- as_ordered_multiset(.bench_oms_keys(n, key_space = key_space), key = identity)
+  x_vals <- .bench_oms_keys(n, key_space = key_space)
+  y_vals <- .bench_oms_keys(n, key_space = key_space)
+  x <- as_ordered_multiset(x_vals, keys = x_vals)
+  y <- as_ordered_multiset(y_vals, keys = y_vals)
   timing <- system.time({
     options(immutables.use_cpp = use_cpp)
     .bench_with_oms_engine(merge_engine, {
@@ -555,7 +561,7 @@ run_all_benches <- function(n = 2000, use_cpp = TRUE) {
     # append_default = bench_default(n = n, use_cpp = use_cpp),
     # append_custom = bench_custom_monoid(n = n, use_cpp = use_cpp),
     # append_named = bench_named(n = n, use_cpp = use_cpp),
-    # append_named_custom = bench_named_custom_monoid(n = n, use_cpp = use_cpp),
+    # append_named_custom = bench_named_custom_monoid(n = n, use_cpp = use_cpp)
     oms_union = bench_oms_union(n = 5000, reps = 1, key_space = 1000, use_cpp = use_cpp),
     oms_build = bench_oms_build(n = 20000, key_space = 1000, use_cpp = use_cpp),
     oms_insert = bench_oms_insert(n = 5000, inserts = 2000, key_space = 1000, use_cpp = use_cpp),
@@ -593,7 +599,7 @@ devtools::document()
 devtools::load_all()
 
 with_cpp <- run_all_benches(use_cpp = TRUE)
-#no_cpp <- run_all_benches(use_cpp = FALSE)
+no_cpp <- run_all_benches(use_cpp = FALSE)
 
 print(as.data.frame(with_cpp))
-#print(as.data.frame(no_cpp))
+print(as.data.frame(no_cpp))

@@ -4,12 +4,12 @@
 \alias{as_ordered_multiset}
 \title{Build an Ordered Multiset from elements}
 \usage{
-as_ordered_multiset(x, key = identity, monoids = NULL)
+as_ordered_multiset(x, keys = NULL, monoids = NULL)
 }
 \arguments{
 \item{x}{Elements to add.}
 
-\item{key}{Function extracting a scalar key from each element.}
+\item{keys}{Scalar key values matching `x` length.}
 
 \item{monoids}{Optional additional named list of `measure_monoid` objects.}
 }
@@ -20,7 +20,7 @@ An `ordered_multiset`.
 Build an Ordered Multiset from elements
 }
 \examples{
-ms <- as_ordered_multiset(c(4, 1, 2, 1), key = identity)
+ms <- as_ordered_multiset(c(4, 1, 2, 1), keys = c(4, 1, 2, 1))
 ms
 count_key(ms, 1)
 }

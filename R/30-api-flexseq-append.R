@@ -103,3 +103,19 @@ append.flexseq <- function(x, values, ...) {
   }
   .ft_restore_subclass(.add_right_fast(x, x2, ms), x, context = "append()")
 }
+
+#' Ordered sequences cannot be appended directly
+#'
+#' Use `insert()` for key-aware insertion or `merge()` for combining objects.
+#'
+#' @method append ordered_sequence
+#' @param x An `ordered_sequence`.
+#' @param values Unused.
+#' @param ... Unused.
+#' @return Never returns; always errors.
+#' @export
+#' @noRd
+# Runtime: O(1).
+append.ordered_sequence <- function(x, values, ...) {
+  stop("`append()` is not supported for ordered_sequence/ordered_multiset. Use `insert()` or `merge()`.")
+}

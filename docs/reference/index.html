@@ -36,9 +36,9 @@
     </div>
 
     <div class="section level2">
-      <h2 id="flexseq-api">flexseq API<a class="anchor" aria-label="anchor" href="#flexseq-api"></a></h2>
+      <h2 id="flexseq">flexseq<a class="anchor" aria-label="anchor" href="#flexseq"></a></h2>
 
-      <div class="section-desc"><p>User-facing persistent sequence API</p></div>
+      <div class="section-desc"><p>Persistent sequences with fast append/prepend for double-ended queue behavior. Quick and memory-efficient concatenation and splitting by name or index. Other structures below (e.g. priority queues)</p></div>
 
 
     </div><div class="section level2">
@@ -72,6 +72,24 @@
         <dd>Append an element to a flexseq</dd>
       </dl><dl><dt>
 
+          <code><a href="split_at.html">split_at()</a></code>
+
+        </dt>
+        <dd>Split by Scalar Index or Name</dd>
+      </dl><dl><dt>
+
+          <code><a href="fold_left.html">fold_left()</a></code>
+
+        </dt>
+        <dd>Fold Left Over a Sequence</dd>
+      </dl><dl><dt>
+
+          <code><a href="fold_right.html">fold_right()</a></code>
+
+        </dt>
+        <dd>Fold Right Over a Sequence</dd>
+      </dl><dl><dt>
+
           <code><a href="c.flexseq.html">c(<i>&lt;flexseq&gt;</i>)</a></code>
 
         </dt>
@@ -90,17 +108,40 @@
         <dd>Sequence Length</dd>
       </dl><dl><dt>
 
-          <code><a href="fold_left.html">fold_left()</a></code>
+          <code><a href="as.list.flexseq.html">as.list(<i>&lt;flexseq&gt;</i>)</a></code>
 
         </dt>
-        <dd>Fold Left Over a Sequence</dd>
+        <dd>Coerce a Sequence to Base List</dd>
       </dl><dl><dt>
 
-          <code><a href="fold_right.html">fold_right()</a></code>
+          <code><a href="apply.html">apply()</a></code>
 
         </dt>
-        <dd>Fold Right Over a Sequence</dd>
+        <dd>Apply with S3 dispatch</dd>
       </dl><dl><dt>
+
+          <code><a href="seq_walk.html">seq_walk()</a></code>
+
+        </dt>
+        <dd>Walk a Function Over Sequence Elements</dd>
+      </dl><dl><dt>
+
+          <code><a href="plot.flexseq.html">plot(<i>&lt;flexseq&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Plot a Sequence Tree</dd>
+      </dl></div><div class="section level2">
+      <h2 id="flexseq-indexing">flexseq indexing<a class="anchor" aria-label="anchor" href="#flexseq-indexing"></a></h2>
+
+      <div class="section-desc"><p>Indexing functions for list-like behavior. Note that these operations are generally <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><mi>k</mi><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>n</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(k\log(n))</annotation></semantics></math> where <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math> is the size of the index vector and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math> the size of the sequence.</p></div>
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
 
           <code><a href="sub-.flexseq.html">`[`(<i>&lt;flexseq&gt;</i>)</a></code>
 
@@ -136,40 +177,10 @@
 
         </dt>
         <dd>Replace a named element with `$&lt;-`</dd>
-      </dl><dl><dt>
-
-          <code><a href="as.list.flexseq.html">as.list(<i>&lt;flexseq&gt;</i>)</a></code>
-
-        </dt>
-        <dd>Coerce a Sequence to Base List</dd>
-      </dl><dl><dt>
-
-          <code><a href="split_at.html">split_at()</a></code>
-
-        </dt>
-        <dd>Split by Scalar Index or Name</dd>
-      </dl><dl><dt>
-
-          <code><a href="apply.html">apply()</a></code>
-
-        </dt>
-        <dd>Apply with S3 dispatch</dd>
-      </dl><dl><dt>
-
-          <code><a href="seq_walk.html">seq_walk()</a></code>
-
-        </dt>
-        <dd>Walk a Function Over Sequence Elements</dd>
-      </dl><dl><dt>
-
-          <code><a href="plot.flexseq.html">plot(<i>&lt;flexseq&gt;</i>)</a></code>
-
-        </dt>
-        <dd>Plot a Sequence Tree</dd>
       </dl></div><div class="section level2">
-      <h2 id="priority-queue-api">priority_queue API<a class="anchor" aria-label="anchor" href="#priority-queue-api"></a></h2>
+      <h2 id="priority-queue">priority_queue<a class="anchor" aria-label="anchor" href="#priority-queue"></a></h2>
 
-      <div class="section-desc"><p>Persistent priority queue API</p></div>
+      <div class="section-desc"><p>Persistent priority queues associate priority values with items and provide <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>n</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(\log(n))</annotation></semantics></math> insertion and min/max operations. They are also <code>flexseq</code>s; prioritized items may be appended or prepended, they may be concatenated (resulting in a merged priority queue), etc.</p></div>
 
 
     </div><div class="section level2">
@@ -232,9 +243,9 @@
         </dt>
         <dd>Print a Priority Queue</dd>
       </dl></div><div class="section level2">
-      <h2 id="ordered-multiset-api">ordered_multiset API<a class="anchor" aria-label="anchor" href="#ordered-multiset-api"></a></h2>
+      <h2 id="ordered-sequence">ordered_sequence<a class="anchor" aria-label="anchor" href="#ordered-sequence"></a></h2>
 
-      <div class="section-desc"><p>Persistent ordered multiset API</p></div>
+      <div class="section-desc"><p>Persistent key-ordered sequences.</p></div>
 
 
     </div><div class="section level2">
@@ -244,22 +255,28 @@
 
       <dl><dt>
 
-          <code><a href="ordered_multiset.html">ordered_multiset()</a></code>
+          <code><a href="ordered_sequence.html">ordered_sequence()</a></code>
 
         </dt>
-        <dd>Construct an Ordered Multiset</dd>
+        <dd>Construct an Ordered Sequence</dd>
       </dl><dl><dt>
 
-          <code><a href="as_ordered_multiset.html">as_ordered_multiset()</a></code>
+          <code><a href="as_ordered_sequence.html">as_ordered_sequence()</a></code>
 
         </dt>
-        <dd>Build an Ordered Multiset from elements</dd>
+        <dd>Build an Ordered Sequence from elements</dd>
       </dl><dl><dt>
 
           <code><a href="insert.html">insert()</a></code>
 
         </dt>
         <dd>Insert an element</dd>
+      </dl><dl><dt>
+
+          <code><a href="merge.ordered_sequence.html">merge(<i>&lt;ordered_sequence&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Merge ordered keyed sequences</dd>
       </dl><dl><dt>
 
           <code><a href="peek_key.html">peek_key()</a></code>
@@ -304,6 +321,35 @@
         <dd>Return elements in a key range</dd>
       </dl><dl><dt>
 
+          <code><a href="print.ordered_sequence.html">print(<i>&lt;ordered_sequence&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Print an ordered sequence summary</dd>
+      </dl></div><div class="section level2">
+      <h2 id="ordered-multiset">ordered_multiset<a class="anchor" aria-label="anchor" href="#ordered-multiset"></a></h2>
+
+      <div class="section-desc"><p>Bag semantics layered on ordered_sequence.</p></div>
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="ordered_multiset.html">ordered_multiset()</a></code>
+
+        </dt>
+        <dd>Construct an Ordered Multiset</dd>
+      </dl><dl><dt>
+
+          <code><a href="as_ordered_multiset.html">as_ordered_multiset()</a></code>
+
+        </dt>
+        <dd>Build an Ordered Multiset from elements</dd>
+      </dl><dl><dt>
+
           <code><a href="union.html">union()</a></code> <code><a href="union.html">intersect()</a></code> <code><a href="union.html">setdiff()</a></code>
 
         </dt>
@@ -315,7 +361,7 @@
         </dt>
         <dd>Print an ordered multiset summary</dd>
       </dl></div><div class="section level2">
-      <h2 id="developer-api">developer API<a class="anchor" aria-label="anchor" href="#developer-api"></a></h2>
+      <h2 id="developer">developer<a class="anchor" aria-label="anchor" href="#developer"></a></h2>
 
       <div class="section-desc"><p>Lower-level constructors, query primitives, and tooling</p></div>
 

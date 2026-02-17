@@ -22,5 +22,5 @@ Build an Ordered Multiset from elements
 \examples{
 ms <- as_ordered_multiset(c(4, 1, 2, 1), keys = c(4, 1, 2, 1))
 ms
-length(elements_between(ms, 1, 1))
+union(ms, ms)
 }

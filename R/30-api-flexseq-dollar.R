@@ -56,3 +56,9 @@
   nm <- .ft_dollar_name(substitute(name))
   `[[<-.flexseq`(x, nm, value)
 }
+
+#' @export
+#' @noRd
+`$<-.ordered_sequence` <- function(x, name, value) {
+  stop("`$<-` is not supported for ordered_sequence/ordered_multiset.")
+}

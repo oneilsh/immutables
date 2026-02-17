@@ -91,7 +91,7 @@ parity_scenarios <- c(
   "[[<- replacement and deletion",
   "$ read",
   "$<- replacement",
-  "ordered_multiset insert",
+  "ordered_sequence insert",
   "ordered_multiset set ops",
   "print.FingerTree output",
   "get_graph_df",
@@ -108,7 +108,7 @@ cpp_wrapper_coverage <- list(
   .ft_cpp_tree_from_prepared = c("tree_from"),
   .ft_cpp_tree_from_sorted = c("ordered_multiset set ops"),
   .ft_cpp_concat = c("concat_trees"),
-  .ft_cpp_oms_insert = c("ordered_multiset insert"),
+  .ft_cpp_oms_insert = c("ordered_sequence insert"),
   .ft_cpp_oms_set_merge = c("ordered_multiset set ops"),
   .ft_cpp_locate = c("locate_by_predicate"),
   .ft_cpp_split_tree = c("split_around_by_predicate", "split_by_predicate"),
@@ -325,11 +325,11 @@ testthat::test_that("backend parity: $<- replacement", {
   })
 })
 
-testthat::test_that("backend parity: ordered_multiset insert", {
+testthat::test_that("backend parity: ordered_sequence insert", {
   expect_backend_identical({
-    x <- as_ordered_multiset(list("aa", "bb", "c", "ddd"), keys = c(2, 2, 1, 3))
+    x <- as_ordered_sequence(list("aa", "bb", "c", "ddd"), keys = c(2, 2, 1, 3))
     out <- insert(x, "qq", key = 2)
-    list(values = as.list(out), next_seq = attr(out, "oms_next_seq", exact = TRUE))
+    as.list(out)
   })
 })
 

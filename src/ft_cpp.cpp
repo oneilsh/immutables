@@ -241,7 +241,7 @@ void collect_leaves_impl(SEXP x, std::vector<SEXP>& out) {
 
 SEXP oms_entry_key(SEXP entry) {
   if(TYPEOF(entry) != VECSXP || XLENGTH(entry) < 2) {
-    stop("ordered_multiset entries must be list(item, key, seq_id).");
+    stop("ordered entries must be list(item, key).");
   }
   List e(entry);
   SEXP key = e[1];

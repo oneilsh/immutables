@@ -91,6 +91,21 @@ c.flexseq <- function(..., recursive = FALSE) {
   .ft_restore_subclass(out, xs[[1]], context = "c()")
 }
 
+#' Ordered sequences cannot be concatenated with `c()`
+#'
+#' Use `merge()` to combine ordered structures while preserving key order.
+#'
+#' @method c ordered_sequence
+#' @param ... Ordered objects.
+#' @param recursive Unused.
+#' @return Never returns; always errors.
+#' @export
+#' @noRd
+# Runtime: O(1).
+c.ordered_sequence <- function(..., recursive = FALSE) {
+  stop("`c()` is not supported for ordered_sequence/ordered_multiset. Use `merge()`.")
+}
+
 #' Plot a Sequence Tree
 #'
 #' @method plot flexseq

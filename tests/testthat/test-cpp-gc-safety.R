@@ -79,7 +79,7 @@
     step("ft_cpp_locate", .ft_cpp_locate(base_plain, function(v) v >= 4, ms, ".size", 0))
     step("ft_cpp_split_tree", .ft_cpp_split_tree(base_plain, function(v) v >= 4, ms, ".size", 0))
 
-    step("ft_cpp_oms_insert", .ft_cpp_oms_insert(x_oms, list(item = "new", key = 2, seq_id = 100), ms_oms, key_type_oms))
+    step("ft_cpp_oms_insert", .ft_cpp_oms_insert(x_oms, list(item = "new", key = 2), ms_oms, key_type_oms))
     step("ft_cpp_oms_set_merge", .ft_cpp_oms_set_merge(x_oms, y_oms, "union", ms_oms, key_type_oms))
 
     step("insert", insert(x_oms, "newer", key = 2))

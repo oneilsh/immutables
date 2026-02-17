@@ -22,5 +22,5 @@ Construct an Ordered Multiset
 \examples{
 ms <- ordered_multiset("bb", "a", "ccc", keys = c(2, 1, 3))
 ms
-lower_bound(ms, 2)
+union(ms, ms)
 }

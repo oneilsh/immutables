@@ -35,7 +35,7 @@ specialized behavior while preserving base array behavior by default."></head><b
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Apply with S3 dispatch</h1>
-      <small class="dont-index">Source: <a href="https://github.com/oneilsh/immutables/blob/HEAD/R/30-api-apply-generics.R" class="external-link"><code>R/30-api-apply-generics.R</code></a>, <a href="https://github.com/oneilsh/immutables/blob/HEAD/R/30-api-flexseq-seq-apply.R" class="external-link"><code>R/30-api-flexseq-seq-apply.R</code></a>, <a href="https://github.com/oneilsh/immutables/blob/HEAD/R/40-ordered_multiset-core.R" class="external-link"><code>R/40-ordered_multiset-core.R</code></a>, and 1 more</small>
+      <small class="dont-index">Source: <a href="https://github.com/oneilsh/immutables/blob/HEAD/R/30-api-apply-generics.R" class="external-link"><code>R/30-api-apply-generics.R</code></a>, <a href="https://github.com/oneilsh/immutables/blob/HEAD/R/30-api-flexseq-seq-apply.R" class="external-link"><code>R/30-api-flexseq-seq-apply.R</code></a>, <a href="https://github.com/oneilsh/immutables/blob/HEAD/R/40-ordered_sequence-core.R" class="external-link"><code>R/40-ordered_sequence-core.R</code></a>, and 1 more</small>
       <div class="d-none name"><code>apply.Rd</code></div>
     </div>
 
@@ -51,11 +51,11 @@ specialized behavior while preserving base array behavior by default.</p>
 <span><span class="co"># S3 method for class 'flexseq'</span></span>
 <span><span class="fu">apply</span><span class="op">(</span><span class="va">X</span>, MARGIN <span class="op">=</span> <span class="cn">NULL</span>, FUN <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span>, preserve_monoids <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># S3 method for class 'ordered_multiset'</span></span>
-<span><span class="fu">apply</span><span class="op">(</span><span class="va">X</span>, MARGIN <span class="op">=</span> <span class="cn">NULL</span>, FUN <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span>, reset_ties <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="co"># S3 method for class 'ordered_sequence'</span></span>
+<span><span class="fu">apply</span><span class="op">(</span><span class="va">X</span>, MARGIN <span class="op">=</span> <span class="cn">NULL</span>, FUN <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'priority_queue'</span></span>
-<span><span class="fu">apply</span><span class="op">(</span><span class="va">X</span>, MARGIN <span class="op">=</span> <span class="cn">NULL</span>, FUN <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span>, reset_ties <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">apply</span><span class="op">(</span><span class="va">X</span>, MARGIN <span class="op">=</span> <span class="cn">NULL</span>, FUN <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -82,11 +82,6 @@ specialized behavior while preserving base array behavior by default.</p>
 <dd><p>Logical; when `TRUE`, carries all input monoids to
 the output. When `FALSE` (default), output keeps only invariant monoids.</p></dd>
 
-
-<dt id="arg-reset-ties">reset_ties<a class="anchor" aria-label="anchor" href="#arg-reset-ties"></a></dt>
-<dd><p>Logical; if `TRUE`, refreshes tie-break `seq_id` by
-current object order. If `FALSE`, preserves existing `seq_id` values.</p></dd>
-
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -96,9 +91,9 @@ current object order. If `FALSE`, preserves existing `seq_id` values.</p></dd>
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>For immutable structures, use `apply(x, FUN, ...)` (no `MARGIN`):
 - `flexseq`: `FUN(value, ...)` returns transformed value.
-- `priority_queue`: `FUN(item, priority, seq_id, name, ...)` returns a named
+- `priority_queue`: `FUN(item, priority, name, ...)` returns a named
   list using fields from `item`, `priority`, `name`.
-- `ordered_multiset`: `FUN(item, key, seq_id, name, ...)` returns a named
+- `ordered_sequence`: `FUN(item, key, name, ...)` returns a named
   list using fields from `item`, `key`, `name`.</p>
     </div>
 

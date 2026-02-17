@@ -24,31 +24,19 @@ testthat::test_that("apply dispatches for priority_queue", {
   testthat::expect_error(apply(q, 1, sum), "MARGIN")
 })
 
-testthat::test_that("apply dispatches for ordered_multiset", {
-  ms <- as_ordered_multiset(list("x1", "x2", "x3"), keys = c(1, 1, 2))
+testthat::test_that("apply dispatches for ordered_sequence", {
+  xs <- as_ordered_sequence(list("x1", "x2", "x3"), keys = c(1, 1, 2))
 
-  ms_item <- apply(ms, function(item, key, seq_id, name) {
+  xs_item <- apply(xs, function(item, key, name) {
     list(item = toupper(item))
   })
-  testthat::expect_s3_class(ms_item, "ordered_multiset")
-  testthat::expect_equal(as.list(ms_item), list("X1", "X2", "X3"))
+  testthat::expect_s3_class(xs_item, "ordered_sequence")
+  testthat::expect_equal(as.list(xs_item), list("X1", "X2", "X3"))
 
-  ms_rekey <- apply(ms, function(item, key, seq_id, name) {
+  xs_rekey <- apply(xs, function(item, key, name) {
     list(key = if(key == 1) 3 else 1)
   })
-  testthat::expect_equal(as.list(ms_rekey), list("x3", "x1", "x2"))
-  testthat::expect_equal(peek_key(ms_rekey, 3), "x1")
-  testthat::expect_error(apply(ms, 1, sum), "MARGIN")
-})
-
-testthat::test_that("apply ordered_multiset reset_ties updates next_seq only when requested", {
-  ms <- as_ordered_multiset(list("a", "b", "c", "d"), keys = c(1, 2, 3, 4))
-  ms <- delete_one(ms, 4)
-  testthat::expect_identical(attr(ms, "oms_next_seq", exact = TRUE), 5)
-
-  keep <- apply(ms, function(item, key, seq_id, name) list(), reset_ties = FALSE)
-  reset <- apply(ms, function(item, key, seq_id, name) list(), reset_ties = TRUE)
-
-  testthat::expect_identical(attr(keep, "oms_next_seq", exact = TRUE), 5)
-  testthat::expect_identical(attr(reset, "oms_next_seq", exact = TRUE), 4)
+  testthat::expect_equal(as.list(xs_rekey), list("x3", "x1", "x2"))
+  testthat::expect_equal(peek_key(xs_rekey, 3), "x1")
+  testthat::expect_error(apply(xs, 1, sum), "MARGIN")
 })

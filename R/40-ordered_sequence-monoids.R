@@ -78,7 +78,7 @@
     return(a)
   }
   if(!identical(a$key_type, b$key_type)) {
-    stop("Incompatible key types encountered in ordered_multiset measures.")
+    stop("Incompatible key types encountered in ordered_sequence measures.")
   }
   cmp <- .oms_compare_key(a$key, b$key, a$key_type)
   if(cmp >= 0L) a else b
@@ -108,7 +108,7 @@ oms_max_key_monoid <- function() {
   if(length(user) > 0L) {
     bad <- intersect(names(user), c(".size", ".named_count", ".oms_max_key"))
     if(length(bad) > 0L) {
-      stop(paste0("Reserved monoid names cannot be supplied for ordered_multiset: ", paste(bad, collapse = ", ")))
+      stop(paste0("Reserved monoid names cannot be supplied for ordered_sequence: ", paste(bad, collapse = ", ")))
     }
   }
   ensure_size_monoids(c(user, .oms_required_monoids()))

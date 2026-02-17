@@ -13,9 +13,11 @@
 <url><loc>https://oneilsh.github.io/immutables/reference/append.default.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/append.flexseq.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/apply.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/apply.ordered_multiset.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/as.list.flexseq.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/as_flexseq.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/as_ordered_multiset.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/as_ordered_sequence.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/as_priority_queue.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/c.flexseq.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/cash-.FingerTree.html</loc></url>
@@ -44,7 +46,9 @@
 <url><loc>https://oneilsh.github.io/immutables/reference/locate_by_predicate.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/lower_bound.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/measure_monoid.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/merge.ordered_sequence.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/ordered_multiset.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/ordered_sequence.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/peek_key.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/peek_max.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/peek_min.html</loc></url>
@@ -54,6 +58,7 @@
 <url><loc>https://oneilsh.github.io/immutables/reference/print.FingerTree.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/print.flexseq.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/print.ordered_multiset.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/print.ordered_sequence.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/print.priority_queue.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/priority_queue.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/reduce_left.html</loc></url>

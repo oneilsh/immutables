@@ -31,7 +31,6 @@ reference:
       - "plot.flexseq"
   
   - title: flexseq indexing
-    contents:
     desc: |
       Indexing functions for list-like behavior. Note that these 
       operations are generally $O(k\log(n))$ where $k$ is the
@@ -64,13 +63,14 @@ reference:
       - extract_max
       - "print.priority_queue"
 
-  - title: "ordered_multiset"
+  - title: "ordered_sequence"
     desc: |
-      Persistent ordered multisets
+      Persistent key-ordered sequences.
     contents:
-      - ordered_multiset
-      - as_ordered_multiset
+      - ordered_sequence
+      - as_ordered_sequence
       - insert
+      - "merge.ordered_sequence"
       - peek_key
       - extract_key
       - delete_one
@@ -78,6 +78,14 @@ reference:
       - lower_bound
       - upper_bound
       - elements_between
+      - "print.ordered_sequence"
+
+  - title: "ordered_multiset"
+    desc: |
+      Bag semantics layered on ordered_sequence.
+    contents:
+      - ordered_multiset
+      - as_ordered_multiset
       - union
       - intersect
       - setdiff

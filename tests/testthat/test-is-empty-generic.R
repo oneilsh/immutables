@@ -3,9 +3,13 @@ testthat::test_that("is_empty dispatches for flexseq", {
   testthat::expect_false(is_empty(as_flexseq(1:3)))
 })
 
-testthat::test_that("is_empty dispatches for ordered_multiset", {
+testthat::test_that("is_empty dispatches for ordered_sequence and ordered_multiset", {
+  xs0 <- as_ordered_sequence(list(), keys = NULL)
+  xs1 <- as_ordered_sequence(list("a"), keys = 1)
   ms0 <- as_ordered_multiset(list(), keys = NULL)
   ms1 <- as_ordered_multiset(list("a"), keys = 1)
+  testthat::expect_true(is_empty(xs0))
+  testthat::expect_false(is_empty(xs1))
   testthat::expect_true(is_empty(ms0))
   testthat::expect_false(is_empty(ms1))
 })

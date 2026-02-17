@@ -37,7 +37,7 @@ while preserving base behavior for standard vectors."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Set operations with S3 dispatch</h1>
-      <small class="dont-index">Source: <a href="https://github.com/oneilsh/immutables/blob/HEAD/R/30-api-setops-generics.R" class="external-link"><code>R/30-api-setops-generics.R</code></a>, <a href="https://github.com/oneilsh/immutables/blob/HEAD/R/40-ordered_multiset-core.R" class="external-link"><code>R/40-ordered_multiset-core.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/oneilsh/immutables/blob/HEAD/R/30-api-setops-generics.R" class="external-link"><code>R/30-api-setops-generics.R</code></a>, <a href="https://github.com/oneilsh/immutables/blob/HEAD/R/40-ordered_multiset-core.R" class="external-link"><code>R/40-ordered_multiset-core.R</code></a>, <a href="https://github.com/oneilsh/immutables/blob/HEAD/R/40-ordered_sequence-core.R" class="external-link"><code>R/40-ordered_sequence-core.R</code></a></small>
       <div class="d-none name"><code>union.Rd</code></div>
     </div>
 
@@ -62,6 +62,15 @@ while preserving base behavior for standard vectors.</p>
 <span><span class="fu">intersect</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'ordered_multiset'</span></span>
+<span><span class="fu">setdiff</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for class 'ordered_sequence'</span></span>
+<span><span class="fu">union</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for class 'ordered_sequence'</span></span>
+<span><span class="fu">intersect</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for class 'ordered_sequence'</span></span>
 <span><span class="fu">setdiff</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 

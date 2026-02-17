@@ -20,6 +20,9 @@
 #' @export
 # Runtime: O(log n) tree update, with O(1) local name-state checks.
 prepend <- function(t, x) {
+  if(inherits(t, "ordered_sequence")) {
+    stop("`prepend()` is not supported for ordered_sequence/ordered_multiset. Use `insert()` or `merge()`.")
+  }
   ms <- attr(t, "monoids", exact = TRUE)
   if(is.null(ms)) {
     stop("Tree has no monoids attribute.")

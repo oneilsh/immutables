@@ -71,24 +71,11 @@
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">ms</span> <span class="op">&lt;-</span> <span class="fu">ordered_multiset</span><span class="op">(</span><span class="st">"bb"</span>, <span class="st">"a"</span>, <span class="st">"ccc"</span>, keys <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">ms</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;ordered_multiset&gt; size=3 next_seq=4 key_type=numeric</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;ordered_sequence&gt; size=3 key_type=numeric</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   preview[3]:  chr "a" |  chr "bb" |  chr "ccc"</span>
-<span class="r-in"><span><span class="fu"><a href="lower_bound.html">lower_bound</a></span><span class="op">(</span><span class="va">ms</span>, <span class="fl">2</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $found</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $index</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $element</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "bb"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $key</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $seq_id</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-in"><span><span class="fu"><a href="union.html">union</a></span><span class="op">(</span><span class="va">ms</span>, <span class="va">ms</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;ordered_sequence&gt; size=3 key_type=numeric</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   preview[3]:  chr "a" |  chr "bb" |  chr "ccc"</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

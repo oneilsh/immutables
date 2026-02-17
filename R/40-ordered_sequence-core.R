@@ -1,0 +1,894 @@
+# Runtime: O(1).
+.oms_assert_set <- function(x) {
+  if(!inherits(x, "ordered_sequence") || !is_structural_node(x)) {
+    stop("`x` must be an ordered_sequence.")
+  }
+  invisible(TRUE)
+}
+
+# Runtime: O(1).
+.ord_concrete_class <- function(x) {
+  if(inherits(x, "ordered_multiset")) {
+    return("ordered_multiset")
+  }
+  if(inherits(x, "ordered_sequence")) {
+    return("ordered_sequence")
+  }
+  NULL
+}
+
+# Runtime: O(1).
+.ord_assert_same_concrete <- function(x, y, op_name = "merge") {
+  cx <- .ord_concrete_class(x)
+  cy <- .ord_concrete_class(y)
+  if(is.null(cx) || is.null(cy)) {
+    stop("`", op_name, "()` requires ordered_sequence inputs.")
+  }
+  if(!identical(cx, cy)) {
+    stop("`", op_name, "()` cannot mix ordered_sequence and ordered_multiset.")
+  }
+  cx
+}
+
+# Runtime: O(1).
+.oms_key_type_state <- function(x) {
+  attr(x, "oms_key_type", exact = TRUE)
+}
+
+# Runtime: O(1).
+.oms_make_entry <- function(item, key_value) {
+  list(item = item, key = key_value)
+}
+
+# Runtime: O(n log n) from ordering by key then stable position.
+.oms_order_entries <- function(entries, key_type) {
+  if(length(entries) == 0L) {
+    return(entries)
+  }
+  idx <- seq_along(entries)
+  ord <- if(key_type == "numeric") {
+    order(vapply(entries, function(e) e$key, numeric(1)), idx)
+  } else if(key_type == "character") {
+    order(vapply(entries, function(e) e$key, character(1)), idx)
+  } else {
+    order(vapply(entries, function(e) as.integer(isTRUE(e$key)), integer(1)), idx)
+  }
+  entries[ord]
+}
+
+# Runtime: O(n) in entry count.
+.oms_prepare_entry_names <- function(entries) {
+  if(length(entries) == 0L) {
+    return(entries)
+  }
+  nms <- names(entries)
+  if(is.null(nms)) {
+    return(entries)
+  }
+
+  out <- entries
+  for(i in seq_along(out)) {
+    nm <- .ft_normalize_name(nms[[i]])
+    if(!is.null(nm)) {
+      out[[i]] <- .ft_set_name(out[[i]], nm)
+    }
+  }
+  names(out) <- NULL
+  out
+}
+
+# Runtime: O(1).
+.as_ordered_sequence <- function(x, key_type) {
+  if(!is_structural_node(x)) {
+    stop("Expected a structural tree node.")
+  }
+  class(x) <- unique(c("ordered_sequence", "flexseq", setdiff(class(x), "list")))
+  attr(x, "oms_key_type") <- key_type
+  x
+}
+
+# Runtime: O(1).
+.as_ordered_multiset <- function(x, key_type) {
+  if(!is_structural_node(x)) {
+    stop("Expected a structural tree node.")
+  }
+  class(x) <- unique(c("ordered_multiset", "ordered_sequence", "flexseq", setdiff(class(x), "list")))
+  attr(x, "oms_key_type") <- key_type
+  x
+}
+
+# Runtime: O(1).
+.ord_wrap_like <- function(template, tree, key_type = NULL) {
+  resolved_key_type <- if(is.null(key_type)) .oms_key_type_state(template) else key_type
+  if(inherits(template, "ordered_multiset")) {
+    return(.as_ordered_multiset(tree, key_type = resolved_key_type))
+  }
+  .as_ordered_sequence(tree, key_type = resolved_key_type)
+}
+
+# Runtime: O(1).
+.oms_wrap_tree <- function(template, tree, key_type = NULL) {
+  .ord_wrap_like(template, tree, key_type = key_type)
+}
+
+# Runtime: O(1).
+.oms_validate_key_type <- function(oms_key_type, new_key_type) {
+  if(is.null(oms_key_type)) {
+    return(new_key_type)
+  }
+  if(!identical(oms_key_type, new_key_type)) {
+    stop("Incompatible key type for this ordered_sequence.")
+  }
+  oms_key_type
+}
+
+# Runtime: O(1).
+.oms_as_key_list <- function(keys, n) {
+  key_list <- as.list(keys)
+  if(length(key_list) != n) {
+    stop("`keys` length must match elements length.")
+  }
+  key_list
+}
+
+# Runtime: O(n log n) for sorting + O(n) bulk build.
+.oms_build_from_items <- function(items, keys = NULL, monoids = NULL, concrete_class = c("ordered_sequence", "ordered_multiset")) {
+  concrete_class <- match.arg(concrete_class)
+  n <- length(items)
+
+  wrap <- if(concrete_class == "ordered_multiset") .as_ordered_multiset else .as_ordered_sequence
+
+  if(n == 0L) {
+    if(!is.null(keys) && length(as.list(keys)) > 0L) {
+      stop("`keys` must be empty when no elements are supplied.")
+    }
+    base <- as_flexseq(list(), monoids = .oms_merge_monoids(monoids))
+    return(wrap(base, key_type = NULL))
+  }
+
+  if(is.null(keys)) {
+    stop("`keys` is required when elements are supplied.")
+  }
+  keys <- .oms_as_key_list(keys, n)
+
+  entries <- vector("list", n)
+  item_names <- names(items)
+  key_type <- NULL
+  for(i in seq_len(n)) {
+    norm <- .oms_normalize_key(keys[[i]])
+    key_type <- .oms_validate_key_type(key_type, norm$key_type)
+    entries[[i]] <- .oms_make_entry(items[[i]], norm$key)
+  }
+  if(!is.null(item_names) && length(item_names) == n) {
+    names(entries) <- item_names
+  }
+
+  entries <- .oms_order_entries(entries, key_type)
+
+  merged_monoids <- .oms_merge_monoids(monoids)
+  base <- .oms_tree_from_ordered_entries(entries, merged_monoids)
+  wrap(base, key_type = key_type)
+}
+
+# Runtime: O(1).
+.oms_empty_tree_like <- function(template) {
+  ms <- attr(template, "monoids", exact = TRUE)
+  .as_flexseq(measured_empty(ms))
+}
+
+# Runtime: O(n) for ordered entries.
+.oms_tree_from_ordered_entries <- function(entries, monoids) {
+  entries <- .oms_prepare_entry_names(entries)
+  if(.ft_cpp_can_use(monoids)) {
+    return(.as_flexseq(.ft_cpp_tree_from_sorted(entries, monoids)))
+  }
+  .ft_tree_from_list_linear(entries, monoids)
+}
+
+# Runtime: O(log n) near locate point depth.
+.oms_bound_index <- function(x, key_value, strict = FALSE) {
+  .oms_assert_set(x)
+  n <- length(x)
+  if(n == 0L) {
+    return(1L)
+  }
+
+  key_type <- .oms_key_type_state(x)
+  norm <- .oms_normalize_key(key_value)
+  .oms_validate_key_type(key_type, norm$key_type)
+
+  pred <- if(!isTRUE(strict)) {
+    function(v) {
+      isTRUE(v$has) && .oms_compare_key(v$key, norm$key, v$key_type) >= 0L
+    }
+  } else {
+    function(v) {
+      isTRUE(v$has) && .oms_compare_key(v$key, norm$key, v$key_type) > 0L
+    }
+  }
+
+  loc <- locate_by_predicate(x, pred, ".oms_max_key", include_metadata = TRUE)
+  if(!isTRUE(loc$found)) {
+    return(as.integer(n + 1L))
+  }
+  as.integer(loc$metadata$index)
+}
+
+# Runtime: O(1).
+.oms_assert_compat <- function(x, y) {
+  .oms_assert_set(x)
+  .oms_assert_set(y)
+
+  tx <- .oms_key_type_state(x)
+  ty <- .oms_key_type_state(y)
+  if(!identical(tx, ty) && !(is.null(tx) || is.null(ty))) {
+    stop("Ordered key types are incompatible.")
+  }
+
+  invisible(TRUE)
+}
+
+# Runtime: O(1).
+.oms_range_start_index <- function(x, lo, include_lo) {
+  if(isTRUE(include_lo)) {
+    .oms_bound_index(x, lo, strict = FALSE)
+  } else {
+    .oms_bound_index(x, lo, strict = TRUE)
+  }
+}
+
+# Runtime: O(1).
+.oms_range_end_exclusive_index <- function(x, hi, include_hi) {
+  if(isTRUE(include_hi)) {
+    .oms_bound_index(x, hi, strict = TRUE)
+  } else {
+    .oms_bound_index(x, hi, strict = FALSE)
+  }
+}
+
+# Runtime: O(1).
+.oms_coerce_lgl_scalar <- function(v, arg_name) {
+  if(!is.logical(v) || length(v) != 1L || is.na(v)) {
+    stop(sprintf("`%s` must be TRUE or FALSE.", arg_name))
+  }
+  isTRUE(v)
+}
+
+# Runtime: O(n) in number of selected entries.
+.oms_extract_items <- function(entries) {
+  lapply(entries, function(e) e$item)
+}
+
+# Runtime: O(n).
+.oms_entries <- function(x) {
+  as.list.flexseq(x)
+}
+
+# Runtime: O(n).
+.oms_group_end <- function(entries, start_idx, key_type) {
+  n <- length(entries)
+  k <- entries[[start_idx]]$key
+  j <- start_idx
+  while(j <= n && .oms_compare_key(entries[[j]]$key, k, key_type) == 0L) {
+    j <- j + 1L
+  }
+  as.integer(j - 1L)
+}
+
+# Runtime: O(1).
+.oms_merge_engine <- function() {
+  engine <- getOption("immutables.oms.merge_engine", "auto")
+  if(is.null(engine)) {
+    engine <- "auto"
+  }
+  if(!is.character(engine) || length(engine) != 1L || is.na(engine)) {
+    stop("`options(immutables.oms.merge_engine=...)` must be one of: 'auto', 'cpp', 'legacy_r'.")
+  }
+  engine <- as.character(engine)
+  if(!engine %in% c("auto", "cpp", "legacy_r")) {
+    stop("`options(immutables.oms.merge_engine=...)` must be one of: 'auto', 'cpp', 'legacy_r'.")
+  }
+  engine
+}
+
+# Runtime: O(n + m) key merge scan + O(n + m) bulk build.
+.oms_set_merge_legacy_r <- function(x, y, mode, result_key_type) {
+  ex <- .oms_entries(x)
+  ey <- .oms_entries(y)
+  nx <- length(ex)
+  ny <- length(ey)
+  key_type <- .oms_key_type_state(x)
+  ms <- attr(x, "monoids", exact = TRUE)
+
+  out <- vector("list", nx + ny)
+  out_len <- 0L
+  i <- 1L
+  j <- 1L
+
+  append_entries <- function(src, start, end_incl) {
+    if(start <= end_incl) {
+      for(k in start:end_incl) {
+        out_len <<- out_len + 1L
+        out[[out_len]] <<- src[[k]]
+      }
+    }
+  }
+
+  while(i <= nx || j <= ny) {
+    if(i > nx) {
+      if(mode == "union") {
+        append_entries(ey, j, ny)
+      }
+      break
+    }
+    if(j > ny) {
+      if(mode %in% c("union", "difference")) {
+        append_entries(ex, i, nx)
+      }
+      break
+    }
+
+    cmp <- .oms_compare_key(ex[[i]]$key, ey[[j]]$key, key_type)
+
+    if(cmp < 0L) {
+      if(mode %in% c("union", "difference")) {
+        ie <- .oms_group_end(ex, i, key_type)
+        append_entries(ex, i, ie)
+        i <- ie + 1L
+      } else {
+        i <- .oms_group_end(ex, i, key_type) + 1L
+      }
+      next
+    }
+
+    if(cmp > 0L) {
+      if(mode == "union") {
+        je <- .oms_group_end(ey, j, key_type)
+        append_entries(ey, j, je)
+        j <- je + 1L
+      } else {
+        j <- .oms_group_end(ey, j, key_type) + 1L
+      }
+      next
+    }
+
+    ie <- .oms_group_end(ex, i, key_type)
+    je <- .oms_group_end(ey, j, key_type)
+
+    cx <- ie - i + 1L
+    cy <- je - j + 1L
+
+    if(mode == "intersection") {
+      k <- min(cx, cy)
+      if(k > 0L) {
+        append_entries(ex, i, i + k - 1L)
+      }
+    } else if(mode == "difference") {
+      k <- min(cx, cy)
+      if(cx > k) {
+        append_entries(ex, i + k, ie)
+      }
+    } else {
+      append_entries(ex, i, ie)
+      if(cy > cx) {
+        append_entries(ey, j, j + (cy - cx) - 1L)
+      }
+    }
+
+    i <- ie + 1L
+    j <- je + 1L
+  }
+
+  if(out_len == 0L) {
+    return(.ord_wrap_like(x, .oms_empty_tree_like(x), key_type = result_key_type))
+  }
+  out <- out[seq_len(out_len)]
+  out_tree <- .oms_tree_from_ordered_entries(out, ms)
+  .ord_wrap_like(x, out_tree, key_type = result_key_type)
+}
+
+# Runtime: O(n + m) key merge + O(n + m) bulk build.
+.oms_set_merge_cpp <- function(x, y, mode, result_key_type) {
+  ms <- attr(x, "monoids", exact = TRUE)
+  key_type <- .oms_key_type_state(x)
+  out_tree <- .as_flexseq(.ft_cpp_oms_set_merge(x, y, mode, ms, key_type))
+  .ord_wrap_like(x, out_tree, key_type = result_key_type)
+}
+
+# Runtime: O(n + m) in the selected engine.
+.oms_set_merge <- function(x, y, mode = c("union", "intersection", "difference")) {
+  mode <- match.arg(mode)
+  .oms_assert_compat(x, y)
+
+  tx <- .oms_key_type_state(x)
+  ty <- .oms_key_type_state(y)
+  result_key_type <- if(!is.null(tx)) tx else ty
+
+  nx <- length(x)
+  ny <- length(y)
+  if(nx == 0L) {
+    if(mode == "union") {
+      return(.ord_wrap_like(x, .as_flexseq(y), key_type = result_key_type))
+    }
+    return(.ord_wrap_like(x, .oms_empty_tree_like(x), key_type = result_key_type))
+  }
+  if(ny == 0L) {
+    if(mode == "intersection") {
+      return(.ord_wrap_like(x, .oms_empty_tree_like(x), key_type = result_key_type))
+    }
+    return(.ord_wrap_like(x, .as_flexseq(x), key_type = result_key_type))
+  }
+
+  engine <- .oms_merge_engine()
+  ms <- attr(x, "monoids", exact = TRUE)
+  can_cpp <- .ft_cpp_can_use(ms)
+
+  if(identical(engine, "cpp")) {
+    if(!can_cpp) {
+      stop("Ordered multiset merge engine 'cpp' requested, but C++ backend is unavailable.")
+    }
+    return(.oms_set_merge_cpp(x, y, mode, result_key_type))
+  }
+
+  if(identical(engine, "auto") && can_cpp) {
+    return(.oms_set_merge_cpp(x, y, mode, result_key_type))
+  }
+
+  .oms_set_merge_legacy_r(x, y, mode, result_key_type)
+}
+
+# Runtime: O(n + m) stable merge + O(n + m) bulk build.
+.ord_merge_two <- function(x, y) {
+  .oms_assert_compat(x, y)
+  .ord_assert_same_concrete(x, y, op_name = "merge")
+
+  tx <- .oms_key_type_state(x)
+  ty <- .oms_key_type_state(y)
+  result_key_type <- if(!is.null(tx)) tx else ty
+
+  nx <- length(x)
+  ny <- length(y)
+  if(nx == 0L) {
+    return(.ord_wrap_like(x, .as_flexseq(y), key_type = result_key_type))
+  }
+  if(ny == 0L) {
+    return(.ord_wrap_like(x, .as_flexseq(x), key_type = result_key_type))
+  }
+
+  ex <- .oms_entries(x)
+  ey <- .oms_entries(y)
+  ms <- attr(x, "monoids", exact = TRUE)
+  key_type <- .oms_key_type_state(x)
+
+  out <- vector("list", nx + ny)
+  out_len <- 0L
+  i <- 1L
+  j <- 1L
+
+  while(i <= nx && j <= ny) {
+    cmp <- .oms_compare_key(ex[[i]]$key, ey[[j]]$key, key_type)
+    if(cmp <= 0L) {
+      out_len <- out_len + 1L
+      out[[out_len]] <- ex[[i]]
+      i <- i + 1L
+    } else {
+      out_len <- out_len + 1L
+      out[[out_len]] <- ey[[j]]
+      j <- j + 1L
+    }
+  }
+  while(i <= nx) {
+    out_len <- out_len + 1L
+    out[[out_len]] <- ex[[i]]
+    i <- i + 1L
+  }
+  while(j <= ny) {
+    out_len <- out_len + 1L
+    out[[out_len]] <- ey[[j]]
+    j <- j + 1L
+  }
+
+  out <- out[seq_len(out_len)]
+  out_tree <- .oms_tree_from_ordered_entries(out, ms)
+  .ord_wrap_like(x, out_tree, key_type = result_key_type)
+}
+
+# Runtime: O(n log n) from build and ordering.
+#' Build an Ordered Sequence from elements
+#'
+#' @param x Elements to add.
+#' @param keys Scalar key values matching `x` length.
+#' @param monoids Optional additional named list of `measure_monoid` objects.
+#' @return An `ordered_sequence`.
+#' @examples
+#' xs <- as_ordered_sequence(c(4, 1, 2, 1), keys = c(4, 1, 2, 1))
+#' xs
+#' length(elements_between(xs, 1, 1))
+#' @export
+as_ordered_sequence <- function(x, keys = NULL, monoids = NULL) {
+  .oms_build_from_items(as.list(x), keys = keys, monoids = monoids, concrete_class = "ordered_sequence")
+}
+
+# Runtime: O(n log n) from build and ordering.
+#' Construct an Ordered Sequence
+#'
+#' @param ... Elements to add.
+#' @param keys Scalar key values matching `...` length.
+#' @param monoids Optional additional named list of `measure_monoid` objects.
+#' @return An `ordered_sequence`.
+#' @examples
+#' xs <- ordered_sequence("bb", "a", "ccc", keys = c(2, 1, 3))
+#' xs
+#' lower_bound(xs, 2)
+#' @export
+ordered_sequence <- function(..., keys = NULL, monoids = NULL) {
+  as_ordered_sequence(list(...), keys = keys, monoids = monoids)
+}
+
+# Runtime: O(log n) near insertion/split point depth.
+#' @noRd
+.oms_insert_impl <- function(x, element, key) {
+  .oms_assert_set(x)
+  norm <- .oms_normalize_key(key)
+  key_type <- .oms_validate_key_type(.oms_key_type_state(x), norm$key_type)
+
+  entry <- .oms_make_entry(element, norm$key)
+  ms <- attr(x, "monoids", exact = TRUE)
+
+  out <- if(.ft_cpp_can_use(ms)) {
+    .as_flexseq(.ft_cpp_oms_insert(x, entry, ms, key_type))
+  } else {
+    s <- split_by_predicate(
+      x,
+      function(v) isTRUE(v$has) && .oms_compare_key(v$key, norm$key, v$key_type) > 0L,
+      ".oms_max_key"
+    )
+    left_plus <- append(s$left, entry)
+    concat_trees(left_plus, s$right)
+  }
+
+  .ord_wrap_like(x, out, key_type = key_type)
+}
+
+# Runtime: O(log n) near insertion/split point depth.
+#' @rdname insert
+#' @param key Scalar key for `element`.
+#' @return Updated `ordered_sequence`.
+#' @export
+insert.ordered_sequence <- function(x, element, key, ...) {
+  .oms_insert_impl(x, element, key)
+}
+
+# Runtime: O(log n) near split points.
+#' Delete one element by key
+#'
+#' @param x An `ordered_sequence`.
+#' @param key_value Key value to delete.
+#' @return Updated `ordered_sequence`.
+#' @export
+delete_one <- function(x, key_value) {
+  .oms_assert_set(x)
+  l <- .oms_bound_index(x, key_value, strict = FALSE)
+  u <- .oms_bound_index(x, key_value, strict = TRUE)
+
+  if(l >= u) {
+    return(x)
+  }
+
+  s1 <- split_by_predicate(x, function(v) v >= l, ".size")
+  s2 <- split_by_predicate(s1$right, function(v) v >= 2L, ".size")
+  out <- concat_trees(s1$left, s2$right)
+  .ord_wrap_like(x, out)
+}
+
+# Runtime: O(log n) near split points.
+#' Delete all elements by key
+#'
+#' @param x An `ordered_sequence`.
+#' @param key_value Key value to delete.
+#' @return Updated `ordered_sequence`.
+#' @export
+delete_all <- function(x, key_value) {
+  .oms_assert_set(x)
+  l <- .oms_bound_index(x, key_value, strict = FALSE)
+  u <- .oms_bound_index(x, key_value, strict = TRUE)
+
+  if(l >= u) {
+    return(x)
+  }
+
+  s1 <- split_by_predicate(x, function(v) v >= l, ".size")
+  span_len <- as.integer(u - l)
+  s2 <- split_by_predicate(s1$right, function(v) v >= (span_len + 1L), ".size")
+  out <- concat_trees(s1$left, s2$right)
+  .ord_wrap_like(x, out)
+}
+
+# Runtime: O(log n).
+#' Find first element with key >= value
+#'
+#' @param x An `ordered_sequence`.
+#' @param key_value Query key.
+#' @return Named list with fields `found`, `index`, `element`, and `key`.
+#'   When no match exists, `found` is `FALSE` and the remaining fields
+#'   are `NULL`.
+#' @export
+lower_bound <- function(x, key_value) {
+  .oms_assert_set(x)
+  idx <- .oms_bound_index(x, key_value, strict = FALSE)
+  n <- length(x)
+
+  if(idx > n) {
+    return(list(found = FALSE, index = NULL, element = NULL, key = NULL))
+  }
+
+  entry <- .oms_entries(x)[[idx]]
+  list(found = TRUE, index = idx, element = entry$item, key = entry$key)
+}
+
+# Runtime: O(log n).
+#' Find first element with key > value
+#'
+#' @param x An `ordered_sequence`.
+#' @param key_value Query key.
+#' @return Named list with fields `found`, `index`, `element`, and `key`.
+#'   When no match exists, `found` is `FALSE` and the remaining fields
+#'   are `NULL`.
+#' @export
+upper_bound <- function(x, key_value) {
+  .oms_assert_set(x)
+  idx <- .oms_bound_index(x, key_value, strict = TRUE)
+  n <- length(x)
+
+  if(idx > n) {
+    return(list(found = FALSE, index = NULL, element = NULL, key = NULL))
+  }
+
+  entry <- .oms_entries(x)[[idx]]
+  list(found = TRUE, index = idx, element = entry$item, key = entry$key)
+}
+
+# Runtime: O(log n).
+#' Peek first element for one key
+#'
+#' Returns the first (leftmost) sequence element among entries whose key equals
+#' `key_value`.
+#'
+#' @param x An `ordered_sequence`.
+#' @param key_value Query key.
+#' @return Raw stored element.
+#' @export
+peek_key <- function(x, key_value) {
+  .oms_assert_set(x)
+  norm <- .oms_normalize_key(key_value)
+  key_type <- .oms_validate_key_type(.oms_key_type_state(x), norm$key_type)
+
+  idx <- .oms_bound_index(x, norm$key, strict = FALSE)
+  n <- length(x)
+  if(idx > n) {
+    stop("Key not found in ordered_sequence.")
+  }
+
+  s <- split_around_by_predicate(x, function(v) v >= idx, ".size")
+  if(.oms_compare_key(s$elem$key, norm$key, key_type) != 0L) {
+    stop("Key not found in ordered_sequence.")
+  }
+  s$elem$item
+}
+
+# Runtime: O(log n) near split point depth.
+#' Extract first element for one key
+#'
+#' Removes and returns the first (leftmost) sequence element among entries whose
+#' key equals `key_value`.
+#'
+#' @param x An `ordered_sequence`.
+#' @param key_value Query key.
+#' @return List with `element`, `key`, and updated `sequence`.
+#' @export
+extract_key <- function(x, key_value) {
+  .oms_assert_set(x)
+  norm <- .oms_normalize_key(key_value)
+  key_type <- .oms_validate_key_type(.oms_key_type_state(x), norm$key_type)
+
+  idx <- .oms_bound_index(x, norm$key, strict = FALSE)
+  n <- length(x)
+  if(idx > n) {
+    stop("Key not found in ordered_sequence.")
+  }
+
+  s <- split_around_by_predicate(x, function(v) v >= idx, ".size")
+  if(.oms_compare_key(s$elem$key, norm$key, key_type) != 0L) {
+    stop("Key not found in ordered_sequence.")
+  }
+
+  out <- concat_trees(s$left, s$right)
+  seq_out <- .ord_wrap_like(x, out)
+  list(element = s$elem$item, key = s$elem$key, sequence = seq_out)
+}
+
+# Runtime: O(n log n) total from traversal + reordering + rebuild.
+.oms_apply_impl <- function(x, f, ...) {
+  .oms_assert_set(x)
+  if(!is.function(f)) {
+    stop("`FUN` must be a function.")
+  }
+
+  entries <- .oms_entries(x)
+  n <- length(entries)
+  if(n == 0L) {
+    return(x)
+  }
+
+  out <- vector("list", n)
+  out_names <- if(is.null(names(entries))) rep("", n) else names(entries)
+  key_type <- .oms_key_type_state(x)
+
+  for(i in seq_len(n)) {
+    e <- entries[[i]]
+    cur_name <- out_names[[i]]
+
+    upd <- f(e$item, e$key, cur_name, ...)
+    if(!is.list(upd)) {
+      stop("`FUN` must return a list.")
+    }
+    if(length(upd) > 0L) {
+      nm <- names(upd)
+      if(is.null(nm) || any(is.na(nm)) || any(nm == "")) {
+        stop("`FUN` must return a named list using only: item, key, name.")
+      }
+      if(anyDuplicated(nm) > 0L) {
+        stop("`FUN` return list cannot contain duplicated field names.")
+      }
+      bad <- setdiff(nm, c("item", "key", "name"))
+      if(length(bad) > 0L) {
+        stop("`FUN` returned unsupported field(s): ", paste(bad, collapse = ", "))
+      }
+    }
+
+    item2 <- if("item" %in% names(upd)) upd[["item"]] else e$item
+    key2 <- e$key
+    if("key" %in% names(upd)) {
+      norm <- .oms_normalize_key(upd[["key"]])
+      key_type <- .oms_validate_key_type(key_type, norm$key_type)
+      key2 <- norm$key
+    }
+    if("name" %in% names(upd)) {
+      nm2 <- .ft_normalize_name(upd[["name"]])
+      out_names[[i]] <- if(is.null(nm2)) "" else nm2
+    }
+
+    out[[i]] <- .oms_make_entry(item = item2, key_value = key2)
+  }
+
+  if(any(out_names != "")) {
+    names(out) <- out_names
+  }
+
+  out <- .oms_order_entries(out, key_type)
+  ms <- attr(x, "monoids", exact = TRUE)
+  out_tree <- .oms_tree_from_ordered_entries(out, ms)
+  .ord_wrap_like(x, out_tree, key_type = key_type)
+}
+
+#' Apply over ordered sequence entries
+#'
+#' @rdname apply
+#' @method apply ordered_sequence
+#' @export
+apply.ordered_sequence <- function(X, MARGIN = NULL, FUN = NULL, ...) {
+  if(is.null(FUN)) {
+    if(is.function(MARGIN)) {
+      FUN <- MARGIN
+      MARGIN <- NULL
+    } else {
+      stop("`FUN` must be a function.")
+    }
+  }
+  if(!is.null(MARGIN)) {
+    stop("`MARGIN` is not used for ordered_sequence; call `apply(x, FUN, ...)`.")
+  }
+  .oms_apply_impl(X, FUN, ...)
+}
+
+# Runtime: O(log n + k), where k is output size.
+#' Return elements in a key range
+#'
+#' @param x An `ordered_sequence`.
+#' @param lo Lower bound key.
+#' @param hi Upper bound key.
+#' @param include_lo Include lower bound when `TRUE`.
+#' @param include_hi Include upper bound when `TRUE`.
+#' @return List of raw elements.
+#' @export
+elements_between <- function(x, lo, hi, include_lo = TRUE, include_hi = TRUE) {
+  .oms_assert_set(x)
+  include_lo <- .oms_coerce_lgl_scalar(include_lo, "include_lo")
+  include_hi <- .oms_coerce_lgl_scalar(include_hi, "include_hi")
+
+  start <- .oms_range_start_index(x, lo, include_lo)
+  end_excl <- .oms_range_end_exclusive_index(x, hi, include_hi)
+
+  if(end_excl <= start || start > length(x)) {
+    return(list())
+  }
+
+  entries <- .oms_entries(x)[seq.int(start, end_excl - 1L)]
+  .oms_extract_items(entries)
+}
+
+# Runtime: O(n + m) stable merge + O(n + m) build.
+#' Merge ordered keyed sequences
+#'
+#' @param x An `ordered_sequence`.
+#' @param y An `ordered_sequence`.
+#' @param ... Additional ordered objects to merge.
+#' @param all Unused for ordered sequences.
+#' @param sort Unused for ordered sequences.
+#' @param suffixes Unused for ordered sequences.
+#' @param incomparables Unused for ordered sequences.
+#' @return An ordered object of the same concrete class as `x`.
+#' @export
+merge.ordered_sequence <- function(x, y, ..., all = NULL, sort = NULL, suffixes = NULL, incomparables = NULL) {
+  if(!is.null(all) || !is.null(sort) || !is.null(suffixes) || !is.null(incomparables)) {
+    stop("`merge.ordered_sequence()` does not support `all`, `sort`, `suffixes`, or `incomparables`.")
+  }
+  .oms_assert_set(x)
+
+  others <- c(list(y), list(...))
+  if(length(others) == 0L) {
+    return(x)
+  }
+  for(obj in others) {
+    .oms_assert_set(obj)
+    .ord_assert_same_concrete(x, obj, op_name = "merge")
+  }
+
+  out <- x
+  for(obj in others) {
+    out <- .ord_merge_two(out, obj)
+  }
+  out
+}
+
+# Runtime: O(1).
+#' Ordered sequence set operations are not supported
+#'
+#' @rdname union
+#' @method union ordered_sequence
+#' @export
+union.ordered_sequence <- function(x, y, ...) {
+  stop("`union()` is only defined for ordered_multiset bag semantics; use `merge()` for ordered_sequence.")
+}
+
+# Runtime: O(1).
+#' @rdname union
+#' @method intersect ordered_sequence
+#' @export
+intersect.ordered_sequence <- function(x, y, ...) {
+  stop("`intersect()` is only defined for ordered_multiset bag semantics; use `merge()` for ordered_sequence.")
+}
+
+# Runtime: O(1).
+#' @rdname union
+#' @method setdiff ordered_sequence
+#' @export
+setdiff.ordered_sequence <- function(x, y, ...) {
+  stop("`setdiff()` is only defined for ordered_multiset bag semantics; use `merge()` for ordered_sequence.")
+}
+
+#' @method as.list ordered_sequence
+#' @export
+# Runtime: O(n).
+as.list.ordered_sequence <- function(x, ...) {
+  .oms_assert_set(x)
+  .oms_extract_items(as.list.flexseq(x, ...))
+}
+
+#' @method length ordered_sequence
+#' @export
+# Runtime: O(1).
+length.ordered_sequence <- function(x) {
+  .oms_assert_set(x)
+  as.integer(node_measure(x, ".size"))
+}

@@ -471,6 +471,57 @@
   .ft_restore_subclass(tree_from(out, monoids = ms), x, context = "[")
 }
 
+# Runtime: O(k), where k = length(pos).
+.ord_assert_positions_strict <- function(pos) {
+  if(length(pos) <= 1L) {
+    return(as.integer(pos))
+  }
+  pos <- as.integer(pos)
+  if(any(is.na(pos)) || any(diff(pos) <= 0L)) {
+    stop("Ordered subsetting requires strictly increasing indices (no duplicates or reordering).")
+  }
+  pos
+}
+
+#' @export
+#' @noRd
+`[.ordered_sequence` <- function(x, i, ...) {
+  if(missing(i)) {
+    return(x)
+  }
+  ms <- resolve_tree_monoids(x, required = TRUE)
+  n <- as.integer(node_measure(x, ".size"))
+
+  if(is.logical(i)) {
+    mask <- .ft_assert_lgl_indices(i, n)
+    idx <- .ft_true_positions(mask)
+    if(length(idx) == 0L) {
+      return(.ord_wrap_like(x, empty_tree(monoids = ms)))
+    }
+    out <- lapply(.ft_get_elems_at(x, idx), .ft_strip_name)
+    return(.ord_wrap_like(x, tree_from(out, monoids = ms)))
+  }
+
+  if(is.character(i)) {
+    idx <- .ft_assert_chr_indices(i)
+    if(length(idx) == 0L) {
+      return(.ord_wrap_like(x, empty_tree(monoids = ms)))
+    }
+    pos <- .ft_match_name_indices(x, idx, strict_missing = TRUE)
+    pos <- .ord_assert_positions_strict(pos)
+    out <- lapply(.ft_get_elems_at(x, pos), .ft_strip_name)
+    return(.ord_wrap_like(x, tree_from(out, monoids = ms)))
+  }
+
+  idx <- .ft_assert_int_indices(i, n)
+  if(length(idx) == 0L) {
+    return(.ord_wrap_like(x, empty_tree(monoids = ms)))
+  }
+  idx <- .ord_assert_positions_strict(idx)
+  out <- lapply(.ft_get_elems_at(x, idx), .ft_strip_name)
+  .ord_wrap_like(x, tree_from(out, monoids = ms))
+}
+
 #' Extract one element by position or unique name
 #'
 #' @method [[ flexseq
@@ -721,4 +772,16 @@
   s <- split_around_by_predicate(x, function(v) v >= idx, ".size")
   left_plus <- append(s$left, value)
   .ft_restore_subclass(concat(left_plus, s$right, ms), x, context = "[[<-")
+}
+
+#' @export
+#' @noRd
+`[<-.ordered_sequence` <- function(x, i, value) {
+  stop("`[<-` is not supported for ordered_sequence/ordered_multiset.")
+}
+
+#' @export
+#' @noRd
+`[[<-.ordered_sequence` <- function(x, i, value) {
+  stop("`[[<-` is not supported for ordered_sequence/ordered_multiset.")
 }

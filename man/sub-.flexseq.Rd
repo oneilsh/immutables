@@ -16,6 +16,7 @@
 \value{
 A new `flexseq` containing selected elements in query order.
   For character indexing, missing names are represented as `NULL` elements.
+  For `priority_queue`, missing character names are an error.
 }
 \description{
 Subset a flexseq by position or element name

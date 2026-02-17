@@ -15,17 +15,84 @@
 }
 
 # Runtime: O(1).
-.pq_next_seq <- function(q) {
-  n <- attr(q, "pq_next_seq", exact = TRUE)
-  if(is.null(n) || !is.numeric(n) || length(n) != 1L || is.na(n)) {
-    stop("priority_queue is missing valid `pq_next_seq` attribute.")
+.pq_is_entry_object <- function(x) {
+  if(!is.list(x)) {
+    return(FALSE)
   }
-  as.numeric(n)
+  nm <- names(x)
+  if(is.null(nm) || length(nm) == 0L || any(is.na(nm)) || any(nm == "")) {
+    return(FALSE)
+  }
+  all(c("item", "priority") %in% nm) && all(nm %in% c("item", "priority", "name", "seq_id"))
 }
 
 # Runtime: O(1).
-.pq_make_entry <- function(item, priority, seq_id) {
-  list(item = item, priority = .pq_assert_priority(priority), seq_id = as.numeric(seq_id))
+.pq_parse_entry <- function(entry, context = "priority_queue") {
+  if(!is.list(entry)) {
+    stop(context, " entries must be named lists with fields: item, priority (optional: name).")
+  }
+  nm <- names(entry)
+  if(is.null(nm) || any(is.na(nm)) || any(nm == "")) {
+    stop(context, " entries must be named lists with fields: item, priority (optional: name).")
+  }
+  if(anyDuplicated(nm) > 0L) {
+    stop(context, " entry fields must be unique.")
+  }
+  bad <- setdiff(nm, c("item", "priority", "name", "seq_id"))
+  if(length(bad) > 0L) {
+    stop(context, " entry contains unsupported field(s): ", paste(bad, collapse = ", "))
+  }
+  if(!("item" %in% nm) || !("priority" %in% nm)) {
+    stop(context, " entries must include both `item` and `priority`.")
+  }
+
+  out <- list(
+    item = entry[["item"]],
+    priority = .pq_assert_priority(entry[["priority"]])
+  )
+
+  nm_hint <- if("name" %in% nm) .ft_normalize_name(entry[["name"]]) else NULL
+  if(is.null(nm_hint)) {
+    nm_hint <- .ft_get_name(entry)
+  }
+  .ft_set_name(out, nm_hint)
+}
+
+# Runtime: O(k), where k is replacement payload size.
+.pq_prepare_replacement_values <- function(value, context = "priority_queue replacement") {
+  vals <- if(.pq_is_entry_object(value)) list(value) else as.list(value)
+  if(length(vals) == 0L) {
+    return(list())
+  }
+  out <- lapply(vals, function(v) .pq_parse_entry(v, context = context))
+  vn <- names(vals)
+  if(!is.null(vn)) {
+    names(out) <- vn
+  }
+  out
+}
+
+# Runtime: O(n) to validate all entries.
+.pq_validate_tree_entries <- function(x, context = "priority_queue") {
+  els <- .ft_to_list(x)
+  if(length(els) == 0L) {
+    return(invisible(TRUE))
+  }
+  for(el in els) {
+    .pq_parse_entry(el, context = context)
+  }
+  invisible(TRUE)
+}
+
+# Runtime: O(n) to validate then O(1) to reclass.
+.pq_restore_tree <- function(x, context = "priority_queue") {
+  .pq_validate_tree_entries(x, context = context)
+  .as_priority_queue(x)
+}
+
+# Runtime: O(1).
+.pq_make_entry <- function(item, priority) {
+  list(item = item, priority = .pq_assert_priority(priority))
 }
 
 # Runtime: O(1) under fixed monoid set.
@@ -41,15 +108,12 @@
 }
 
 # Runtime: O(1).
-.as_priority_queue <- function(x, next_seq = NULL) {
+.as_priority_queue <- function(x) {
   if(!is_structural_node(x)) {
     stop("Expected a structural tree node.")
   }
   class(x) <- unique(c("priority_queue", "flexseq", setdiff(class(x), "list")))
-  if(is.null(next_seq)) {
-    next_seq <- as.numeric(node_measure(x, ".size")) + 1
-  }
-  attr(x, "pq_next_seq") <- as.numeric(next_seq)
+  attr(x, "pq_next_seq") <- NULL
   x
 }
 
@@ -82,7 +146,7 @@ as_priority_queue <- function(x, priorities, names = NULL, monoids = NULL) {
 
   entries <- vector("list", n)
   for(i in seq_len(n)) {
-    entries[[i]] <- .pq_make_entry(x_list[[i]], p_list[[i]], i)
+    entries[[i]] <- .pq_make_entry(x_list[[i]], p_list[[i]])
   }
 
   nm <- names
@@ -97,7 +161,7 @@ as_priority_queue <- function(x, priorities, names = NULL, monoids = NULL) {
   }
 
   q <- as_flexseq(entries, monoids = .pq_merge_monoids(monoids))
-  .as_priority_queue(q, next_seq = n + 1)
+  .as_priority_queue(q)
 }
 
 # Runtime: O(n log n) from underlying sequence construction.
@@ -121,10 +185,7 @@ priority_queue <- function(..., priorities = NULL, names = NULL, monoids = NULL)
     if(!is.null(priorities) && length(priorities) > 0L) {
       stop("`priorities` must be empty when no elements are supplied.")
     }
-    return(.as_priority_queue(
-      as_flexseq(list(), monoids = .pq_merge_monoids(monoids)),
-      next_seq = 1
-    ))
+    return(.as_priority_queue(as_flexseq(list(), monoids = .pq_merge_monoids(monoids))))
   }
 
   if(is.null(priorities)) {
@@ -181,15 +242,14 @@ insert.default <- function(x, ...) {
 insert.priority_queue <- function(x, element, priority, name = NULL, ...) {
   q <- x
   .pq_assert_queue(q)
-  seq_id <- .pq_next_seq(q)
-  entry <- .pq_make_entry(element, priority, seq_id)
+  entry <- .pq_make_entry(element, priority)
 
   if(!is.null(name)) {
     entry <- .ft_set_name(entry, name)
   }
 
   q2 <- append(q, entry)
-  .as_priority_queue(q2, next_seq = seq_id + 1)
+  .as_priority_queue(q2)
 }
 
 # Runtime: O(log n) near locate point depth.
@@ -217,7 +277,7 @@ insert.priority_queue <- function(x, element, priority, name = NULL, ...) {
   s <- split_around_by_predicate(q, pred, monoid_name)
 
   rest <- concat_trees(s$left, s$right)
-  rest <- .as_priority_queue(rest, next_seq = .pq_next_seq(q))
+  rest <- .as_priority_queue(rest)
 
   list(
     element = s$elem[["item"]],
@@ -287,13 +347,10 @@ extract_max <- function(q) {
 }
 
 # Runtime: O(n log n) total from entry traversal + queue rebuild.
-.pq_apply_impl <- function(q, f, reset_ties = TRUE, ...) {
+.pq_apply_impl <- function(q, f, ...) {
   .pq_assert_queue(q)
   if(!is.function(f)) {
     stop("`f` must be a function.")
-  }
-  if(!is.logical(reset_ties) || length(reset_ties) != 1L || is.na(reset_ties)) {
-    stop("`reset_ties` must be TRUE or FALSE.")
   }
 
   entries <- as.list(q)
@@ -305,7 +362,7 @@ extract_max <- function(q) {
     e <- entries[[i]]
     cur_name <- out_names[[i]]
 
-    upd <- f(e$item, e$priority, e$seq_id, cur_name, ...)
+    upd <- f(e$item, e$priority, cur_name, ...)
     if(!is.list(upd)) {
       stop("`f` must return a list.")
     }
@@ -332,8 +389,7 @@ extract_max <- function(q) {
 
     out[[i]] <- list(
       item = item2,
-      priority = as.numeric(pr2),
-      seq_id = if(isTRUE(reset_ties)) as.numeric(i) else as.numeric(e$seq_id)
+      priority = as.numeric(pr2)
     )
   }
 
@@ -348,18 +404,15 @@ extract_max <- function(q) {
   }
 
   q2 <- as_flexseq(out, monoids = .pq_merge_monoids(user_monoids))
-  next_seq <- if(isTRUE(reset_ties)) as.numeric(n + 1L) else .pq_next_seq(q)
-  .as_priority_queue(q2, next_seq = next_seq)
+  .as_priority_queue(q2)
 }
 
 #' Apply over priority queue entries
 #'
 #' @rdname apply
 #' @method apply priority_queue
-#' @param reset_ties Logical; if `TRUE`, refreshes tie-break `seq_id` by
-#'   current object order. If `FALSE`, preserves existing `seq_id` values.
 #' @export
-apply.priority_queue <- function(X, MARGIN = NULL, FUN = NULL, ..., reset_ties = TRUE) {
+apply.priority_queue <- function(X, MARGIN = NULL, FUN = NULL, ...) {
   if(is.null(FUN)) {
     if(is.function(MARGIN)) {
       FUN <- MARGIN
@@ -371,5 +424,5 @@ apply.priority_queue <- function(X, MARGIN = NULL, FUN = NULL, ..., reset_ties =
   if(!is.null(MARGIN)) {
     stop("`MARGIN` is not used for priority_queue; call `apply(x, FUN, ...)`.")
   }
-  .pq_apply_impl(X, FUN, reset_ties = reset_ties, ...)
+  .pq_apply_impl(X, FUN, ...)
 }

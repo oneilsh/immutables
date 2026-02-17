@@ -5,7 +5,7 @@
 #'
 #' For immutable structures, use `apply(x, FUN, ...)` (no `MARGIN`):
 #' - `flexseq`: `FUN(value, ...)` returns transformed value.
-#' - `priority_queue`: `FUN(item, priority, seq_id, name, ...)` returns a named
+#' - `priority_queue`: `FUN(item, priority, name, ...)` returns a named
 #'   list using fields from `item`, `priority`, `name`.
 #' - `ordered_multiset`: `FUN(item, key, seq_id, name, ...)` returns a named
 #'   list using fields from `item`, `key`, `name`.
@@ -15,8 +15,7 @@
 #' @param FUN Function to apply.
 #' @param ... Method-specific arguments.
 #' @param preserve_monoids Logical flag used by `apply.flexseq()`.
-#' @param reset_ties Logical flag used by `apply.priority_queue()` and
-#'   `apply.ordered_multiset()`.
+#' @param reset_ties Logical flag used by `apply.ordered_multiset()`.
 #' @return Method-dependent result.
 #' @export
 apply <- function(X, MARGIN, FUN, ...) {

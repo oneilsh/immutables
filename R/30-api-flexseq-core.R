@@ -8,6 +8,18 @@
   x
 }
 
+# restore subtype after shared flexseq operations.
+# Runtime: O(1) for plain flexseq, O(n) when validating priority_queue entries.
+.ft_restore_subclass <- function(out, source, context = "flexseq operation") {
+  if(!is_structural_node(out)) {
+    stop("Expected a structural tree node.")
+  }
+  if(inherits(source, "priority_queue")) {
+    return(.pq_restore_tree(out, context = context))
+  }
+  .as_flexseq(out)
+}
+
 # normalize constructor input to list without dropping names.
 # Runtime: O(n), where n is number of constructor inputs.
 .flexseq_input_list <- function(x) {
@@ -76,7 +88,7 @@ c.flexseq <- function(..., recursive = FALSE) {
   for(i in 2:length(xs)) {
     out <- concat_trees(out, xs[[i]])
   }
-  .as_flexseq(out)
+  .ft_restore_subclass(out, xs[[1]], context = "c()")
 }
 
 #' Plot a Sequence Tree

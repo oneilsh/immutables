@@ -408,6 +408,7 @@
 #' @param ... Unused.
 #' @return A new `flexseq` containing selected elements in query order.
 #'   For character indexing, missing names are represented as `NULL` elements.
+#'   For `priority_queue`, missing character names are an error.
 #' @examples
 #' x <- as_flexseq(letters[1:6])
 #' x
@@ -437,19 +438,20 @@
     mask <- .ft_assert_lgl_indices(i, n)
     idx <- .ft_true_positions(mask)
     if(length(idx) == 0L) {
-      return(empty_tree(monoids = ms))
+      return(.ft_restore_subclass(empty_tree(monoids = ms), x, context = "["))
     }
     out <- lapply(.ft_get_elems_at(x, idx), .ft_strip_name)
-    return(tree_from(out, monoids = ms))
+    return(.ft_restore_subclass(tree_from(out, monoids = ms), x, context = "["))
   }
 
   if(is.character(i)) {
     idx <- .ft_assert_chr_indices(i)
     if(length(idx) == 0L) {
-      return(empty_tree(monoids = ms))
+      return(.ft_restore_subclass(empty_tree(monoids = ms), x, context = "["))
     }
 
-    pos <- .ft_match_name_indices(x, idx, strict_missing = FALSE)
+    strict_missing <- inherits(x, "priority_queue")
+    pos <- .ft_match_name_indices(x, idx, strict_missing = strict_missing)
     out <- vector("list", length(pos))
     valid <- which(!is.na(pos))
     if(length(valid) > 0L) {
@@ -458,15 +460,15 @@
         out[[valid[[j]]]] <- .ft_strip_name(vals[[j]])
       }
     }
-    return(tree_from(out, monoids = ms))
+    return(.ft_restore_subclass(tree_from(out, monoids = ms), x, context = "["))
   }
 
   idx <- .ft_assert_int_indices(i, n)
   if(length(idx) == 0L) {
-    return(empty_tree(monoids = ms))
+    return(.ft_restore_subclass(empty_tree(monoids = ms), x, context = "["))
   }
   out <- lapply(.ft_get_elems_at(x, idx), .ft_strip_name)
-  tree_from(out, monoids = ms)
+  .ft_restore_subclass(tree_from(out, monoids = ms), x, context = "[")
 }
 
 #' Extract one element by position or unique name
@@ -528,7 +530,11 @@
 # n = tree size and k = number of replaced positions.
 `[<-.flexseq` <- function(x, i, value) {
   ms <- resolve_tree_monoids(x, required = TRUE)
-  vals <- as.list(value)
+  vals <- if(inherits(x, "priority_queue")) {
+    .pq_prepare_replacement_values(value, context = "[<- on priority_queue")
+  } else {
+    as.list(value)
+  }
   n <- as.integer(node_measure(x, ".size"))
 
   if(is.logical(i)) {
@@ -551,7 +557,7 @@
       for(k in seq_along(pos)) {
         xs[pos[[k]]] <- list(.ft_set_name(vals[[k]], idx[[k]]))
       }
-      return(tree_from(xs, monoids = ms))
+      return(.ft_restore_subclass(tree_from(xs, monoids = ms), x, context = "[<-"))
     }
 
     name_to_pos <- .ft_name_positions_fast(x)
@@ -574,7 +580,7 @@
       name_vec <- upd$name_vec
       xs[pos[[k]]] <- list(.ft_set_name(vals[[k]], nm))
     }
-    return(tree_from(xs, monoids = ms))
+    return(.ft_restore_subclass(tree_from(xs, monoids = ms), x, context = "[<-"))
   }
 
   idx <- .ft_assert_int_indices(i, n)
@@ -610,7 +616,7 @@
       }
       out[[idx[[k]]]] <- .ft_set_name(vals[[k]], nm)
     }
-    return(out)
+    return(.ft_restore_subclass(out, x, context = "[<-"))
   }
 
   xs <- .ft_to_list(x)
@@ -633,7 +639,7 @@
     v <- .ft_set_name(vals[[k]], nm)
     xs[idx[[k]]] <- list(v)
   }
-  tree_from(xs, monoids = ms)
+  .ft_restore_subclass(tree_from(xs, monoids = ms), x, context = "[<-")
 }
 
 #' Replace one element by position or unique name
@@ -665,6 +671,9 @@
     if(is.null(value)) {
       return(`[[<-.flexseq`(x, pos, NULL))
     }
+    if(inherits(x, "priority_queue")) {
+      value <- .pq_parse_entry(value, context = "[[<- on priority_queue")
+    }
     nm <- .ft_effective_name(value)
     if(is.null(nm)) {
       nm <- i
@@ -680,7 +689,10 @@
   }
   if(is.null(value)) {
     s <- split_around_by_predicate(x, function(v) v >= idx, ".size")
-    return(.as_flexseq(concat(s$left, s$right, ms)))
+    return(.ft_restore_subclass(concat(s$left, s$right, ms), x, context = "[[<-"))
+  }
+  if(inherits(x, "priority_queue")) {
+    value <- .pq_parse_entry(value, context = "[[<- on priority_queue")
   }
   old <- NULL
   nm <- .ft_effective_name(value)
@@ -708,5 +720,5 @@
 
   s <- split_around_by_predicate(x, function(v) v >= idx, ".size")
   left_plus <- append(s$left, value)
-  .as_flexseq(concat(left_plus, s$right, ms))
+  .ft_restore_subclass(concat(left_plus, s$right, ms), x, context = "[[<-")
 }

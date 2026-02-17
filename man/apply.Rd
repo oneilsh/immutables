@@ -15,7 +15,7 @@ apply(X, MARGIN, FUN, ...)
 
 \method{apply}{ordered_multiset}(X, MARGIN = NULL, FUN = NULL, ..., reset_ties = FALSE)
 
-\method{apply}{priority_queue}(X, MARGIN = NULL, FUN = NULL, ..., reset_ties = TRUE)
+\method{apply}{priority_queue}(X, MARGIN = NULL, FUN = NULL, ...)
 }
 \arguments{
 \item{X}{Object to apply over.}
@@ -30,7 +30,8 @@ apply(X, MARGIN, FUN, ...)
 the output. When `FALSE` (default), output keeps only invariant monoids.}
 
 \item{reset_ties}{Logical; if `TRUE`, refreshes tie-break `seq_id` by
-current object order. If `FALSE`, preserves existing `seq_id` values.}
+current object order. If `FALSE` (default), preserves existing `seq_id`
+values.}
 }
 \value{
 Method-dependent result.
@@ -42,7 +43,7 @@ specialized behavior while preserving base array behavior by default.
 \details{
 For immutable structures, use `apply(x, FUN, ...)` (no `MARGIN`):
 - `flexseq`: `FUN(value, ...)` returns transformed value.
-- `priority_queue`: `FUN(item, priority, seq_id, name, ...)` returns a named
+- `priority_queue`: `FUN(item, priority, name, ...)` returns a named
   list using fields from `item`, `priority`, `name`.
 - `ordered_multiset`: `FUN(item, key, seq_id, name, ...)` returns a named
   list using fields from `item`, `key`, `name`.

@@ -14,7 +14,7 @@ testthat::test_that("apply dispatches for flexseq", {
 
 testthat::test_that("apply dispatches for priority_queue", {
   q <- priority_queue("a", "bb", "ccc", priorities = c(1, 3, 2))
-  q2 <- apply(q, function(item, priority, seq_id, name) {
+  q2 <- apply(q, function(item, priority, name) {
     list(item = toupper(item), priority = priority + 2 * nchar(item))
   })
 

@@ -1,4 +1,4 @@
-# choose the earliest insertion on ties
+# choose the left-most entry on ties
 # Runtime: O(1).
 .pq_choose_min <- function(a, b) {
   if(a$priority < b$priority) {
@@ -7,10 +7,10 @@
   if(a$priority > b$priority) {
     return(b)
   }
-  if(a$seq_id <= b$seq_id) a else b
+  a
 }
 
-# choose the earliest insertion on ties
+# choose the left-most entry on ties
 # Runtime: O(1).
 .pq_choose_max <- function(a, b) {
   if(a$priority > b$priority) {
@@ -19,15 +19,15 @@
   if(a$priority < b$priority) {
     return(b)
   }
-  if(a$seq_id <= b$seq_id) a else b
+  a
 }
 
 # Runtime: O(1).
 pq_min_measure_monoid <- function() {
   measure_monoid(
     .pq_choose_min,
-    list(priority = Inf, seq_id = Inf),
-    function(el) list(priority = as.numeric(el$priority), seq_id = as.numeric(el$seq_id))
+    list(priority = Inf),
+    function(el) list(priority = as.numeric(el$priority))
   )
 }
 
@@ -35,14 +35,14 @@ pq_min_measure_monoid <- function() {
 pq_max_measure_monoid <- function() {
   measure_monoid(
     .pq_choose_max,
-    list(priority = -Inf, seq_id = Inf),
-    function(el) list(priority = as.numeric(el$priority), seq_id = as.numeric(el$seq_id))
+    list(priority = -Inf),
+    function(el) list(priority = as.numeric(el$priority))
   )
 }
 
 # Runtime: O(1).
 .pq_measure_equal <- function(a, b) {
-  isTRUE(all.equal(a$priority, b$priority)) && isTRUE(all.equal(a$seq_id, b$seq_id))
+  isTRUE(all.equal(a$priority, b$priority))
 }
 
 # Runtime: O(1).

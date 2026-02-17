@@ -8,32 +8,51 @@ home:
   description: Monoid-annotated 2-3 finger trees for R
 
 reference:
-  - title: "flexseq API"
-    desc: "User-facing persistent sequence API"
+  - title: "flexseq"
+    desc: |
+      Persistent sequences with fast append/prepend for 
+      double-ended queue behavior. Quick and memory-efficient
+      concatenation and splitting by name or index. Other structures
+      below (e.g. priority queues) 
     contents:
       - flexseq
       - as_flexseq
       - prepend
       - "append.flexseq"
+      - split_at
+      - fold_left
+      - fold_right
       - "c.flexseq"
       - "print.flexseq"
       - "length.flexseq"
-      - fold_left
-      - fold_right
+      - "as.list.flexseq"
+      - apply
+      - seq_walk
+      - "plot.flexseq"
+  
+  - title: flexseq indexing
+    contents:
+    desc: |
+      Indexing functions for list-like behavior. Note that these 
+      operations are generally $O(k\log(n))$ where $k$ is the
+      size of the index vector and $n$ the size of the sequence.
+    contents:
       - "[.flexseq"
       - "[[.flexseq"
       - "[<-.flexseq"
       - "[[<-.flexseq"
       - "$.flexseq"
       - "$<-.flexseq"
-      - "as.list.flexseq"
-      - split_at
-      - apply
-      - seq_walk
-      - "plot.flexseq"
 
-  - title: "priority_queue API"
-    desc: "Persistent priority queue API"
+
+  - title: "priority_queue"
+    desc: |
+      Persistent priority queues associate priority values with 
+      items and provide $O(\log(n))$ insertion and min/max operations.
+      They are also `flexseq`s; prioritized items may be appended or 
+      prepended, they may be concatenated (resulting in a merged
+      priority queue), etc.
+
     contents:
       - priority_queue
       - as_priority_queue
@@ -45,8 +64,9 @@ reference:
       - extract_max
       - "print.priority_queue"
 
-  - title: "ordered_multiset API"
-    desc: "Persistent ordered multiset API"
+  - title: "ordered_multiset"
+    desc: |
+      Persistent ordered multisets
     contents:
       - ordered_multiset
       - as_ordered_multiset
@@ -63,7 +83,7 @@ reference:
       - setdiff
       - "print.ordered_multiset"
 
-  - title: "developer API"
+  - title: "developer"
     desc: "Lower-level constructors, query primitives, and tooling"
     contents:
       - add_monoids

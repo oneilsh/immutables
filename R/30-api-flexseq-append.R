@@ -63,39 +63,43 @@ append.flexseq <- function(x, values, ...) {
     stop("Invalid tree name state: mixed named/unnamed elements.")
   }
 
-  x2 <- values
+  x2 <- if(inherits(x, "priority_queue")) {
+    .pq_parse_entry(values, context = "append() on priority_queue")
+  } else {
+    values
+  }
   if(nn == 0L) {
     # Fast unnamed path: avoid attr writes when incoming element is also unnamed.
-    nm <- .ft_get_name(values)
+    nm <- .ft_get_name(x2)
     if(is.null(nm)) {
-      nm <- .ft_name_from_value(values)
+      nm <- .ft_name_from_value(x2)
     }
     if(is.null(nm)) {
       if(.ft_cpp_can_use(ms)) {
-        return(.as_flexseq(.ft_cpp_add_right(x, x2, ms)))
+        return(.ft_restore_subclass(.ft_cpp_add_right(x, x2, ms), x, context = "append()"))
       }
-      return(.as_flexseq(.add_right_fast(x, x2, ms)))
+      return(.ft_restore_subclass(.add_right_fast(x, x2, ms), x, context = "append()"))
     }
     if(n > 0L) {
       stop("Cannot mix named and unnamed elements (append would create mixed named and unnamed tree).")
     }
     if(.ft_cpp_can_use(ms)) {
-      return(.as_flexseq(.ft_cpp_add_right_named(x, values, nm, ms)))
+      return(.ft_restore_subclass(.ft_cpp_add_right_named(x, x2, nm, ms), x, context = "append()"))
     }
     x2 <- .ft_set_name(x2, nm)
   } else {
-    nm <- .ft_effective_name(values)
+    nm <- .ft_effective_name(x2)
     if(is.null(nm)) {
       stop("Cannot mix named and unnamed elements (append would create mixed named and unnamed tree).")
     }
     if(.ft_cpp_can_use(ms)) {
-      return(.as_flexseq(.ft_cpp_add_right_named(x, values, nm, ms)))
+      return(.ft_restore_subclass(.ft_cpp_add_right_named(x, x2, nm, ms), x, context = "append()"))
     }
     x2 <- .ft_set_name(x2, nm)
   }
 
   if(.ft_cpp_can_use(ms)) {
-    return(.as_flexseq(.ft_cpp_add_right(x, x2, ms)))
+    return(.ft_restore_subclass(.ft_cpp_add_right(x, x2, ms), x, context = "append()"))
   }
-  .as_flexseq(.add_right_fast(x, x2, ms))
+  .ft_restore_subclass(.add_right_fast(x, x2, ms), x, context = "append()")
 }

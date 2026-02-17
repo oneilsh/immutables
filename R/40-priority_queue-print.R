@@ -10,7 +10,7 @@
 # Runtime: O(log n) for min/max summary lookups.
 print.priority_queue <- function(x, ...) {
   n <- as.integer(node_measure(x, ".size"))
-  cat(sprintf("<priority_queue> size=%d next_seq=%s\n", n, format(.pq_next_seq(x))))
+  cat(sprintf("<priority_queue> size=%d\n", n))
   if(n > 0L) {
     minm <- node_measure(x, ".pq_min")
     maxm <- node_measure(x, ".pq_max")

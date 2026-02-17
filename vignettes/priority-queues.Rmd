@@ -9,7 +9,13 @@ vignette: >
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
-library(immutables)
+if(requireNamespace("immutables", quietly = TRUE)) {
+  library(immutables)
+} else if(requireNamespace("pkgload", quietly = TRUE)) {
+  pkgload::load_all(".", quiet = TRUE)
+} else {
+  stop("Need either installed 'immutables' or the 'pkgload' package to render this vignette.")
+}
 ```
 
 ## Creating a priority queue
@@ -26,12 +32,12 @@ peek_min(x)
 peek_max(x)
 ```
 
-## Extracting elements
+## Popping elements
 
-`extract_min()` and `extract_max()` return both the element and the updated queue.
+`pop_min()` and `pop_max()` return both the element and the updated queue.
 
 ```{r}
-x2 <- extract_min(x)
+x2 <- pop_min(x)
 x2$element
 x2$priority
 x2$queue
@@ -51,5 +57,5 @@ The original queue is unchanged.
 
 ```{r}
 peek_min(x)
-is_empty(x)
+length(x)
 ```

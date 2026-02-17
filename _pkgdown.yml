@@ -10,21 +10,25 @@ home:
 reference:
   - title: "flexseq"
     desc: |
-      Persistent sequences with fast append/prepend for 
+      Persistent sequences with fast push/pop/peek operations for 
       double-ended queue behavior. Quick and memory-efficient
       concatenation and splitting by name or index. Other structures
       below (e.g. priority queues) 
     contents:
       - flexseq
       - as_flexseq
-      - prepend
-      - "append.flexseq"
+      - push_front
+      - push_back
+      - pop_front
+      - pop_back
+      - peek_front
+      - peek_back
       - split_at
       - "c.flexseq"
       - "print.flexseq"
       - "length.flexseq"
       - "as.list.flexseq"
-      - apply
+      - "apply.flexseq"
       - "plot.flexseq"
   
   - title: flexseq indexing
@@ -53,11 +57,12 @@ reference:
       - priority_queue
       - as_priority_queue
       - insert
-      - is_empty
+      - "length.priority_queue"
       - peek_min
       - peek_max
-      - extract_min
-      - extract_max
+      - pop_min
+      - pop_max
+      - "apply.priority_queue"
       - "print.priority_queue"
 
   - title: "ordered_sequence"

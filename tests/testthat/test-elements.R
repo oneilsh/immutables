@@ -1,8 +1,8 @@
 testthat::test_that("Elements can be lists and data.frames", {
   df <- data.frame(x = 1:2, y = c("a", "b"), stringsAsFactors = FALSE)
   t <- flexseq()
-  t <- append(t, list(a = 1, b = 2))
-  t <- append(t, df)
+  t <- push_back(t, list(a = 1, b = 2))
+  t <- push_back(t, df)
 
   reduced <- as.list(t)
   testthat::expect_identical(length(reduced), 2L)

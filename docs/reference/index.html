@@ -38,7 +38,7 @@
     <div class="section level2">
       <h2 id="flexseq">flexseq<a class="anchor" aria-label="anchor" href="#flexseq"></a></h2>
 
-      <div class="section-desc"><p>Persistent sequences with fast append/prepend for double-ended queue behavior. Quick and memory-efficient concatenation and splitting by name or index. Other structures below (e.g. priority queues)</p></div>
+      <div class="section-desc"><p>Persistent sequences with fast push/pop/peek operations for double-ended queue behavior. Quick and memory-efficient concatenation and splitting by name or index. Other structures below (e.g. priority queues)</p></div>
 
 
     </div><div class="section level2">
@@ -60,16 +60,40 @@
         <dd>Coerce to a Persistent Flexible Sequence</dd>
       </dl><dl><dt>
 
-          <code><a href="prepend.html">prepend()</a></code>
+          <code><a href="push_front.html">push_front()</a></code>
 
         </dt>
-        <dd>Prepend an element</dd>
+        <dd>Push an element to the front</dd>
       </dl><dl><dt>
 
-          <code><a href="append.flexseq.html">append(<i>&lt;flexseq&gt;</i>)</a></code>
+          <code><a href="push_back.html">push_back()</a></code>
 
         </dt>
-        <dd>Append an element to a flexseq</dd>
+        <dd>Push an element to the back</dd>
+      </dl><dl><dt>
+
+          <code><a href="pop_front.html">pop_front()</a></code>
+
+        </dt>
+        <dd>Pop the front element</dd>
+      </dl><dl><dt>
+
+          <code><a href="pop_back.html">pop_back()</a></code>
+
+        </dt>
+        <dd>Pop the back element</dd>
+      </dl><dl><dt>
+
+          <code><a href="peek_front.html">peek_front()</a></code>
+
+        </dt>
+        <dd>Peek at the front element</dd>
+      </dl><dl><dt>
+
+          <code><a href="peek_back.html">peek_back()</a></code>
+
+        </dt>
+        <dd>Peek at the back element</dd>
       </dl><dl><dt>
 
           <code><a href="split_at.html">split_at()</a></code>

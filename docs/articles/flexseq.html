@@ -127,10 +127,10 @@ Each update returns a new object.</p>
 <span><span class="co">#&gt; [1] "e"</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="appending-and-prepending">Appending and prepending<a class="anchor" aria-label="anchor" href="#appending-and-prepending"></a>
+<h2 id="pushing-at-either-end">Pushing at either end<a class="anchor" aria-label="anchor" href="#pushing-at-either-end"></a>
 </h2>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">x4</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/append.flexseq.html">append</a></span><span class="op">(</span><span class="va">x2</span>, <span class="st">"f"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">x4</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/push_back.html">push_back</a></span><span class="op">(</span><span class="va">x2</span>, <span class="st">"f"</span><span class="op">)</span></span>
 <span><span class="va">x4</span></span>
 <span><span class="co">#&gt; FingerTree &lt;size=6, named=no&gt;</span></span>
 <span><span class="co">#&gt;   monoids: none</span></span>
@@ -153,7 +153,7 @@ Each update returns a new object.</p>
 <span><span class="co">#&gt; [[6]]</span></span>
 <span><span class="co">#&gt; [1] "f"</span></span>
 <span></span>
-<span><span class="va">x5</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prepend.html">prepend</a></span><span class="op">(</span><span class="va">x4</span>, <span class="st">"start"</span><span class="op">)</span></span>
+<span><span class="va">x5</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/push_front.html">push_front</a></span><span class="op">(</span><span class="va">x4</span>, <span class="st">"start"</span><span class="op">)</span></span>
 <span><span class="va">x5</span></span>
 <span><span class="co">#&gt; FingerTree &lt;size=7, named=no&gt;</span></span>
 <span><span class="co">#&gt;   monoids: none</span></span>
@@ -179,9 +179,43 @@ Each update returns a new object.</p>
 <span><span class="co">#&gt; ... and 1 more element not shown</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="named-sequences">Named sequences<a class="anchor" aria-label="anchor" href="#named-sequences"></a>
+<h2 id="peeking-and-popping">Peeking and popping<a class="anchor" aria-label="anchor" href="#peeking-and-popping"></a>
 </h2>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/peek_front.html">peek_front</a></span><span class="op">(</span><span class="va">x5</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "start"</span></span>
+<span><span class="fu"><a href="../reference/peek_back.html">peek_back</a></span><span class="op">(</span><span class="va">x5</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "f"</span></span>
+<span></span>
+<span><span class="va">pf</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pop_front.html">pop_front</a></span><span class="op">(</span><span class="va">x5</span><span class="op">)</span></span>
+<span><span class="va">pf</span><span class="op">$</span><span class="va">value</span></span>
+<span><span class="co">#&gt; [1] "start"</span></span>
+<span><span class="va">pf</span><span class="op">$</span><span class="va">rest</span></span>
+<span><span class="co">#&gt; FingerTree &lt;size=6, named=no&gt;</span></span>
+<span><span class="co">#&gt;   monoids: none</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [[1]]</span></span>
+<span><span class="co">#&gt; [1] "a"</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [[2]]</span></span>
+<span><span class="co">#&gt; [1] "b"</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [[3]]</span></span>
+<span><span class="co">#&gt; [1] "c"</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [[4]]</span></span>
+<span><span class="co">#&gt; [1] "d"</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [[5]]</span></span>
+<span><span class="co">#&gt; [1] "e"</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [[6]]</span></span>
+<span><span class="co">#&gt; [1] "f"</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="named-sequences">Named sequences<a class="anchor" aria-label="anchor" href="#named-sequences"></a>
+</h2>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">x_named</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/as_flexseq.html">as_flexseq</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">1</span>, b <span class="op">=</span> <span class="fl">2</span>, c <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">x_named</span></span>
 <span><span class="co">#&gt; FingerTree &lt;size=3, named=yes&gt;</span></span>
@@ -204,7 +238,7 @@ Each update returns a new object.</p>
 <div class="section level2">
 <h2 id="concatenation">Concatenation<a class="anchor" aria-label="anchor" href="#concatenation"></a>
 </h2>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">x6</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/as_flexseq.html">as_flexseq</a></span><span class="op">(</span><span class="fl">4</span><span class="op">:</span><span class="fl">6</span><span class="op">)</span></span>
 <span><span class="va">x7</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">x6</span><span class="op">)</span></span>
 <span><span class="va">x7</span></span>
@@ -230,14 +264,28 @@ Each update returns a new object.</p>
 <span><span class="co">#&gt; [1] 6</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="folding">Folding<a class="anchor" aria-label="anchor" href="#folding"></a>
+<h2 id="applying-a-transform">Applying a transform<a class="anchor" aria-label="anchor" href="#applying-a-transform"></a>
 </h2>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sum_m</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/measure_monoid.html">measure_monoid</a></span><span class="op">(</span><span class="va">`+`</span>, <span class="fl">0</span>, <span class="va">as.numeric</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">x8</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/as_flexseq.html">as_flexseq</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/fold_left.html">fold_left</a></span><span class="op">(</span><span class="va">x8</span>, <span class="va">sum_m</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 55</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">x8</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/as_flexseq.html">as_flexseq</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/apply.html">apply</a></span><span class="op">(</span><span class="va">x8</span>, <span class="kw">function</span><span class="op">(</span><span class="va">el</span><span class="op">)</span> <span class="va">el</span> <span class="op">*</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co">#&gt; FingerTree &lt;size=5, named=no&gt;</span></span>
+<span><span class="co">#&gt;   monoids: none</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [[1]]</span></span>
+<span><span class="co">#&gt; [1] 10</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [[2]]</span></span>
+<span><span class="co">#&gt; [1] 20</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [[3]]</span></span>
+<span><span class="co">#&gt; [1] 30</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [[4]]</span></span>
+<span><span class="co">#&gt; [1] 40</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [[5]]</span></span>
+<span><span class="co">#&gt; [1] 50</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

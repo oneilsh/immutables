@@ -12,6 +12,7 @@
 <url><loc>https://oneilsh.github.io/immutables/reference/add_monoids.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/append.default.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/append.flexseq.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/append.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/apply.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/apply.ordered_multiset.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/as.list.flexseq.html</loc></url>
@@ -49,11 +50,15 @@
 <url><loc>https://oneilsh.github.io/immutables/reference/merge.ordered_sequence.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/ordered_multiset.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/ordered_sequence.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/peek_back.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/peek_front.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/peek_key.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/peek_max.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/peek_min.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/plot.flexseq.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/plot_tree.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/pop_back.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/pop_front.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/prepend.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/print.FingerTree.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/print.flexseq.html</loc></url>
@@ -61,6 +66,8 @@
 <url><loc>https://oneilsh.github.io/immutables/reference/print.ordered_sequence.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/print.priority_queue.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/priority_queue.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/push_back.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/push_front.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/reduce_left.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/reduce_right.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/seq_walk.html</loc></url>

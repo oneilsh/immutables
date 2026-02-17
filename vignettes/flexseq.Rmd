@@ -9,7 +9,13 @@ vignette: >
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
-library(immutables)
+if(requireNamespace("immutables", quietly = TRUE)) {
+  library(immutables)
+} else if(requireNamespace("pkgload", quietly = TRUE)) {
+  pkgload::load_all(".", quiet = TRUE)
+} else {
+  stop("Need either installed 'immutables' or the 'pkgload' package to render this vignette.")
+}
 ```
 
 ## Creating sequences
@@ -34,14 +40,25 @@ x3 <- x2[c(1, 3, 5)]
 x3
 ```
 
-## Appending and prepending
+## Pushing at either end
 
 ```{r}
-x4 <- append(x2, "f")
+x4 <- push_back(x2, "f")
 x4
 
-x5 <- prepend(x4, "start")
+x5 <- push_front(x4, "start")
 x5
+```
+
+## Peeking and popping
+
+```{r}
+peek_front(x5)
+peek_back(x5)
+
+pf <- pop_front(x5)
+pf$value
+pf$rest
 ```
 
 ## Named sequences
@@ -62,11 +79,9 @@ x7 <- c(x, x6)
 x7
 ```
 
-## Folding
+## Applying a transform
 
 ```{r}
-sum_m <- measure_monoid(`+`, 0, as.numeric)
-
-x8 <- as_flexseq(1:10)
-fold_left(x8, sum_m)
+x8 <- as_flexseq(1:5)
+apply(x8, function(el) el * 10)
 ```

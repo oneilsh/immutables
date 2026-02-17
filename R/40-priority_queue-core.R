@@ -142,7 +142,7 @@ as_priority_queue <- function(x, priorities, names = NULL, monoids = NULL) {
 #' Construct a Priority Queue
 #'
 #' Priority queues expose queue-oriented operations (`insert`, `peek_*`,
-#' `extract_*`, and `apply`). For full sequence-style editing and traversal,
+#' `pop_*`, and `apply`). For full sequence-style editing and traversal,
 #' cast explicitly with `as_flexseq()`.
 #'
 #' @param ... Elements to enqueue.
@@ -226,14 +226,14 @@ insert.priority_queue <- function(x, element, priority, name = NULL, ...) {
     entry <- .ft_set_name(entry, name)
   }
 
-  q2 <- append.flexseq(q, entry)
+  q2 <- .ft_push_back_impl(q, entry, context = "insert()")
   .as_priority_queue(q2)
 }
 
 # Runtime: O(log n) near locate point depth.
 .pq_peek <- function(q, monoid_name) {
   .pq_assert_queue(q)
-  if(is_empty(q)) {
+  if(length(q) == 0L) {
     stop("Cannot peek from an empty priority_queue.")
   }
 
@@ -253,8 +253,8 @@ insert.priority_queue <- function(x, element, priority, name = NULL, ...) {
 # Runtime: O(log n) near split point depth.
 .pq_extract <- function(q, monoid_name) {
   .pq_assert_queue(q)
-  if(is_empty(q)) {
-    stop("Cannot extract from an empty priority_queue.")
+  if(length(q) == 0L) {
+    stop("Cannot pop from an empty priority_queue.")
   }
 
   target <- node_measure(q, monoid_name)
@@ -307,35 +307,42 @@ peek_max <- function(q) {
 }
 
 # Runtime: O(log n) near split point depth.
-#' Extract minimum-priority element
+#' Pop minimum-priority element
 #'
 #' @param q A `priority_queue`.
 #' @return List with `element`, `priority`, and updated `queue`.
 #' @examples
 #' x <- priority_queue("a", "b", "c", priorities = c(2, 1, 1))
-#' out <- extract_min(x)
+#' out <- pop_min(x)
 #' out$element
 #' out$priority
 #' out$queue
 #' @export
-extract_min <- function(q) {
+pop_min <- function(q) {
   .pq_extract(q, ".pq_min")
 }
 
 # Runtime: O(log n) near split point depth.
-#' Extract maximum-priority element
+#' Pop maximum-priority element
 #'
 #' @param q A `priority_queue`.
 #' @return List with `element`, `priority`, and updated `queue`.
 #' @examples
 #' x <- priority_queue("a", "b", "c", priorities = c(2, 3, 3))
-#' out <- extract_max(x)
+#' out <- pop_max(x)
 #' out$element
 #' out$priority
 #' out$queue
 #' @export
-extract_max <- function(q) {
+pop_max <- function(q) {
   .pq_extract(q, ".pq_max")
+}
+
+#' @rdname length.flexseq
+#' @method length priority_queue
+#' @export
+length.priority_queue <- function(x) {
+  as.integer(node_measure(x, ".size"))
 }
 
 # Runtime: O(n log n) total from entry traversal + queue rebuild.

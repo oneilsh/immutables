@@ -161,14 +161,6 @@ length.flexseq <- function(x) {
   as.integer(node_measure(x, ".size"))
 }
 
-#' @rdname is_empty
-#' @method is_empty flexseq
-#' @export
-# Runtime: O(1) using cached `.size` measure.
-is_empty.flexseq <- function(x, ...) {
-  as.integer(node_measure(x, ".size")) == 0L
-}
-
 #' Coerce a Sequence to Base List
 #'
 #' Returns elements in left-to-right sequence order.

@@ -49,3 +49,28 @@ testthat::test_that("concat_trees unions monoids on shared names", {
   t_merged <- c(t3, t4)
   testthat::expect_true("sum" %in% names(attr(t_merged, "monoids")))
 })
+
+testthat::test_that("peek/pop helpers work and are persistent", {
+  x <- as_flexseq(letters[1:4])
+
+  testthat::expect_identical(peek_front(x), "a")
+  testthat::expect_identical(peek_back(x), "d")
+
+  pf <- pop_front(x)
+  testthat::expect_identical(pf$value, "a")
+  testthat::expect_identical(as.list(pf$rest), as.list(letters[2:4]))
+
+  pb <- pop_back(x)
+  testthat::expect_identical(pb$value, "d")
+  testthat::expect_identical(as.list(pb$rest), as.list(letters[1:3]))
+
+  testthat::expect_identical(as.list(x), as.list(letters[1:4]))
+})
+
+testthat::test_that("peek/pop helpers validate empty input", {
+  x <- flexseq()
+  testthat::expect_error(peek_front(x), "empty sequence")
+  testthat::expect_error(peek_back(x), "empty sequence")
+  testthat::expect_error(pop_front(x), "empty sequence")
+  testthat::expect_error(pop_back(x), "empty sequence")
+})

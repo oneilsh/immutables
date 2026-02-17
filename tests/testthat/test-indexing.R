@@ -225,12 +225,12 @@ testthat::test_that("single-name replacement enforces uniqueness without map reb
 testthat::test_that("append and prepend preserve global name-state invariant", {
   unnamed <- as_flexseq(1:3)
   testthat::expect_error(
-    append(unnamed, stats::setNames(4, "x")),
+    push_back(unnamed, stats::setNames(4, "x")),
     "mixed named and unnamed"
   )
 
   named <- as_flexseq(setNames(as.list(1:3), c("a", "b", "c")))
-  testthat::expect_error(prepend(named, 0), "mixed named and unnamed")
+  testthat::expect_error(push_front(named, 0), "mixed named and unnamed")
 })
 
 testthat::test_that("$ provides strict exact-name access and replacement", {

@@ -1,33 +1,31 @@
-testthat::test_that("priority_queue constructor and length/is_empty", {
+testthat::test_that("priority_queue constructor and length", {
   q0 <- priority_queue()
   testthat::expect_true(inherits(q0, "priority_queue"))
   testthat::expect_true(inherits(q0, "flexseq"))
-  testthat::expect_true(is_empty(q0))
   testthat::expect_identical(length(q0), 0L)
 
   q <- priority_queue("a", "b", "c", priorities = c(3, 1, 2))
-  testthat::expect_false(is_empty(q))
   testthat::expect_identical(length(q), 3L)
   testthat::expect_equal(peek_min(q), "b")
   testthat::expect_equal(peek_max(q), "a")
 })
 
-testthat::test_that("min/max extraction uses sequence order on ties", {
+testthat::test_that("min/max pop uses sequence order on ties", {
   q <- priority_queue("a", "b", "c", "d", priorities = c(2, 1, 1, 2))
 
-  e1 <- extract_min(q)
+  e1 <- pop_min(q)
   testthat::expect_equal(e1$element, "b")
   testthat::expect_equal(e1$priority, 1)
 
-  e2 <- extract_min(e1$queue)
+  e2 <- pop_min(e1$queue)
   testthat::expect_equal(e2$element, "c")
   testthat::expect_equal(e2$priority, 1)
 
-  x1 <- extract_max(q)
+  x1 <- pop_max(q)
   testthat::expect_equal(x1$element, "a")
   testthat::expect_equal(x1$priority, 2)
 
-  x2 <- extract_max(x1$queue)
+  x2 <- pop_max(x1$queue)
   testthat::expect_equal(x2$element, "d")
   testthat::expect_equal(x2$priority, 2)
 })
@@ -44,8 +42,12 @@ testthat::test_that("insert is persistent and supports names", {
 
 testthat::test_that("priority_queue disallows sequence-style mutation helpers", {
   q <- priority_queue("b", "c", priorities = c(2, 3))
-  testthat::expect_error(prepend(q, list(item = "a", priority = 1)), "Cast first")
-  testthat::expect_error(append(q, list(item = "d", priority = 4)), "Cast first")
+  testthat::expect_error(push_front(q, list(item = "a", priority = 1)), "Cast first")
+  testthat::expect_error(push_back(q, list(item = "d", priority = 4)), "Cast first")
+  testthat::expect_error(peek_front(q), "not supported for priority_queue")
+  testthat::expect_error(peek_back(q), "not supported for priority_queue")
+  testthat::expect_error(pop_front(q), "not supported for priority_queue")
+  testthat::expect_error(pop_back(q), "not supported for priority_queue")
   testthat::expect_error(c(q, q), "Cast first")
 })
 
@@ -95,7 +97,7 @@ testthat::test_that("priority_queue casts down to flexseq explicitly", {
   testthat::expect_equal(x[["kx"]]$priority, 2)
 
   x_unnamed <- as_flexseq(priority_queue("x", "y", priorities = c(2, 1)))
-  x2 <- append(x_unnamed, list(item = "z", priority = 3))
+  x2 <- push_back(x_unnamed, list(item = "z", priority = 3))
   testthat::expect_s3_class(x2, "flexseq")
   testthat::expect_equal(length(x2), 3L)
 })

@@ -115,12 +115,12 @@ testthat::test_that("order-breaking writes are blocked on ordered types", {
   ms <- as_ordered_multiset(list("a", "b"), keys = c(1, 2))
 
   testthat::expect_error(c(xs, xs), "merge")
-  testthat::expect_error(append(xs, "c"), "not supported")
-  testthat::expect_error(prepend(xs, "z"), "not supported")
+  testthat::expect_error(push_back(xs, "c"), "not supported")
+  testthat::expect_error(push_front(xs, "z"), "not supported")
 
   testthat::expect_error(c(ms, ms), "merge")
-  testthat::expect_error(append(ms, "c"), "not supported")
-  testthat::expect_error(prepend(ms, "z"), "not supported")
+  testthat::expect_error(push_back(ms, "c"), "not supported")
+  testthat::expect_error(push_front(ms, "z"), "not supported")
 
   testthat::expect_error({ xs[[1]] <- "z" }, "not supported")
   testthat::expect_error({ xs[1] <- list("z") }, "not supported")
@@ -147,6 +147,20 @@ testthat::test_that("ordered subsetting requires strictly increasing mapped posi
   testthat::expect_error(xs[c(2, 2)], "strictly increasing")
   testthat::expect_error(xs[c("c", "a")], "strictly increasing")
   testthat::expect_error(xs[c("a", "missing")], "Unknown element name")
+})
+
+testthat::test_that("pop helpers preserve ordered class", {
+  xs <- as_ordered_sequence(list("x1", "x2", "x3"), keys = c(1, 2, 3))
+  pf <- pop_front(xs)
+  pb <- pop_back(xs)
+
+  testthat::expect_identical(pf$value, "x1")
+  testthat::expect_s3_class(pf$rest, "ordered_sequence")
+  testthat::expect_equal(as.list(pf$rest), list("x2", "x3"))
+
+  testthat::expect_identical(pb$value, "x3")
+  testthat::expect_s3_class(pb$rest, "ordered_sequence")
+  testthat::expect_equal(as.list(pb$rest), list("x1", "x2"))
 })
 
 testthat::test_that("apply dispatches for ordered_sequence and no reset_ties arg", {

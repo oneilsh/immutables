@@ -188,7 +188,7 @@ testthat::test_that("backend parity: add_monoids", {
 testthat::test_that("backend parity: append", {
   expect_backend_identical({
     t <- as_flexseq(1:10)
-    t <- append(t, 11)
+    t <- push_back(t, 11)
     snapshot_tree(t)
   })
 })
@@ -196,7 +196,7 @@ testthat::test_that("backend parity: append", {
 testthat::test_that("backend parity: append named", {
   expect_backend_identical({
     t <- as_flexseq(setNames(as.list(1:4), LETTERS[1:4]))
-    t <- append(t, structure(5, names = "E"))
+    t <- push_back(t, structure(5, names = "E"))
     snapshot_tree(t)
   })
 })
@@ -204,7 +204,7 @@ testthat::test_that("backend parity: append named", {
 testthat::test_that("backend parity: prepend", {
   expect_backend_identical({
     t <- as_flexseq(1:10)
-    t <- prepend(t, 0)
+    t <- push_front(t, 0)
     snapshot_tree(t)
   })
 })
@@ -212,7 +212,7 @@ testthat::test_that("backend parity: prepend", {
 testthat::test_that("backend parity: prepend named", {
   expect_backend_identical({
     t <- as_flexseq(setNames(as.list(1:4), LETTERS[1:4]))
-    t <- prepend(t, structure(0, names = "Z"))
+    t <- push_front(t, structure(0, names = "Z"))
     snapshot_tree(t)
   })
 })

@@ -34,7 +34,7 @@ split_by_predicate <- function(x, predicate, monoid_name) {
     } else {
       split_tree_impl_fast(predicate, mr$i, x, ms, mr, monoid_name)
     }
-    right <- prepend(s$right, s$elem)
+    right <- push_front(s$right, s$elem)
     return(list(left = .as_flexseq(s$left), right = .as_flexseq(right)))
   }
 

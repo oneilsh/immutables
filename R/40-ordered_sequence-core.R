@@ -543,7 +543,7 @@ ordered_sequence <- function(..., keys = NULL, monoids = NULL) {
       function(v) isTRUE(v$has) && .oms_compare_key(v$key, norm$key, v$key_type) > 0L,
       ".oms_max_key"
     )
-    left_plus <- append(s$left, entry)
+    left_plus <- push_back(s$left, entry)
     concat_trees(left_plus, s$right)
   }
 

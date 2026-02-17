@@ -29,7 +29,7 @@ testthat::test_that("indexing enforces bounds and integer-only indices", {
   testthat::expect_error(t[c(1, 2.5)], "integer indices")
 })
 
-testthat::test_that("replacement indexing supports [[<- and [<- with exact-size semantics", {
+testthat::test_that("replacement indexing supports [[<- and [<- with recycling semantics", {
   r <- measure_monoid(function(a, b) a + b, 0, function(el) el)
   t <- as_flexseq(1:5, monoids = list(sum = r))
 
@@ -44,10 +44,11 @@ testthat::test_that("replacement indexing supports [[<- and [<- with exact-size 
   testthat::expect_identical(t3[[1]], 10)
   testthat::expect_identical(t3[[5]], 50)
 
-  testthat::expect_error({
-    t4 <- t
-    t4[c(1, 2)] <- list(99)
-  }, "Replacement length must match index length exactly")
+  t4 <- t
+  t4[c(1, 2, 3)] <- list(99, 100)
+  testthat::expect_identical(t4[[1]], 99)
+  testthat::expect_identical(t4[[2]], 100)
+  testthat::expect_identical(t4[[3]], 99)
 })
 
 testthat::test_that("[[<- keeps monoid attrs and updates one element via split path", {
@@ -182,6 +183,12 @@ testthat::test_that("character replacement indexing updates by existing names on
   t[c("b", "b")] <- list(20, 30)
   testthat::expect_identical(t[["b"]], 30)
   testthat::expect_identical(attr(t, "measures")$.named_count, 4L)
+
+  t[c("a", "c", "d")] <- list(7, 8)
+  testthat::expect_identical(t[["a"]], 7)
+  testthat::expect_identical(t[["c"]], 8)
+  testthat::expect_identical(t[["d"]], 7)
+
   testthat::expect_error({
     t2 <- t
     t2[c("a", "missing")] <- list(1, 2)

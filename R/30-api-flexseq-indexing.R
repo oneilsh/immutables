@@ -504,7 +504,7 @@
 #' @method [<- flexseq
 #' @param x A `flexseq`.
 #' @param i Positive integer indices, character names, or logical mask.
-#' @param value Replacement values; must have exactly same length as `i`.
+#' @param value Replacement values; recycled to selected index length.
 #' @return A new `flexseq` with selected elements replaced.
 #' @examples
 #' x <- as_flexseq(1:6)
@@ -540,9 +540,7 @@
 
   if(is.character(i)) {
     idx <- .ft_assert_chr_indices(i)
-    if(length(vals) != length(idx)) {
-      stop("Replacement length must match index length exactly.")
-    }
+    vals <- .ft_recycle_values(vals, length(idx))
     if(length(idx) == 0L) {
       return(x)
     }
@@ -580,8 +578,9 @@
   }
 
   idx <- .ft_assert_int_indices(i, n)
-  if(length(vals) != length(idx)) {
-    stop("Replacement length must match index length exactly.")
+  vals <- .ft_recycle_values(vals, length(idx))
+  if(length(idx) == 0L) {
+    return(x)
   }
   vn <- names(vals)
   has_name_hints <- .ft_values_have_name_hints(vals)

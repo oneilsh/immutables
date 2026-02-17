@@ -11,7 +11,7 @@
 
 \item{i}{Positive integer indices, character names, or logical mask.}
 
-\item{value}{Replacement values; must have exactly same length as `i`.}
+\item{value}{Replacement values; recycled to selected index length.}
 }
 \value{
 A new `flexseq` with selected elements replaced.

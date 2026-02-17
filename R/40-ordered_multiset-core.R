@@ -25,6 +25,21 @@
   list(item = item, key = key_value, seq_id = as.numeric(seq_id))
 }
 
+# Runtime: O(n log n) from ordering by key then seq_id.
+.oms_order_entries <- function(entries, key_type) {
+  if(length(entries) == 0L) {
+    return(entries)
+  }
+  ord <- if(key_type == "numeric") {
+    order(vapply(entries, function(e) e$key, numeric(1)), vapply(entries, function(e) e$seq_id, numeric(1)))
+  } else if(key_type == "character") {
+    order(vapply(entries, function(e) e$key, character(1)), vapply(entries, function(e) e$seq_id, numeric(1)))
+  } else {
+    order(vapply(entries, function(e) as.integer(isTRUE(e$key)), integer(1)), vapply(entries, function(e) e$seq_id, numeric(1)))
+  }
+  entries[ord]
+}
+
 # Runtime: O(1).
 .as_ordered_multiset <- function(x, key_type, next_seq = NULL) {
   if(!is_structural_node(x)) {
@@ -88,14 +103,7 @@
     entries[[i]] <- .oms_make_entry(items[[i]], norm$key, i)
   }
 
-  ord <- if(key_type == "numeric") {
-    order(vapply(entries, function(e) e$key, numeric(1)), vapply(entries, function(e) e$seq_id, numeric(1)))
-  } else if(key_type == "character") {
-    order(vapply(entries, function(e) e$key, character(1)), vapply(entries, function(e) e$seq_id, numeric(1)))
-  } else {
-    order(vapply(entries, function(e) as.integer(isTRUE(e$key)), integer(1)), vapply(entries, function(e) e$seq_id, numeric(1)))
-  }
-  entries <- entries[ord]
+  entries <- .oms_order_entries(entries, key_type)
 
   merged_monoids <- .oms_merge_monoids(monoids)
   base <- .oms_tree_from_ordered_entries(entries, merged_monoids)
@@ -600,6 +608,101 @@ extract_key <- function(x, key_value) {
   out <- concat_trees(s$left, s$right)
   ms <- .oms_wrap_tree(x, out, next_seq = .oms_next_seq(x))
   list(element = s$elem$item, key = s$elem$key, multiset = ms)
+}
+
+# Runtime: O(n log n) total from traversal + reordering + rebuild.
+.oms_apply_impl <- function(x, f, reset_ties = FALSE, ...) {
+  .oms_assert_set(x)
+  if(!is.function(f)) {
+    stop("`FUN` must be a function.")
+  }
+  if(!is.logical(reset_ties) || length(reset_ties) != 1L || is.na(reset_ties)) {
+    stop("`reset_ties` must be TRUE or FALSE.")
+  }
+
+  entries <- .oms_entries(x)
+  n <- length(entries)
+  if(n == 0L) {
+    return(x)
+  }
+
+  out <- vector("list", n)
+  out_names <- if(is.null(names(entries))) rep("", n) else names(entries)
+  key_type <- .oms_key_type_state(x)
+
+  for(i in seq_len(n)) {
+    e <- entries[[i]]
+    cur_name <- out_names[[i]]
+
+    upd <- f(e$item, e$key, e$seq_id, cur_name, ...)
+    if(!is.list(upd)) {
+      stop("`FUN` must return a list.")
+    }
+    if(length(upd) > 0L) {
+      nm <- names(upd)
+      if(is.null(nm) || any(is.na(nm)) || any(nm == "")) {
+        stop("`FUN` must return a named list using only: item, key, name.")
+      }
+      if(anyDuplicated(nm) > 0L) {
+        stop("`FUN` return list cannot contain duplicated field names.")
+      }
+      bad <- setdiff(nm, c("item", "key", "name"))
+      if(length(bad) > 0L) {
+        stop("`FUN` returned unsupported field(s): ", paste(bad, collapse = ", "))
+      }
+    }
+
+    item2 <- if("item" %in% names(upd)) upd[["item"]] else e$item
+    key2 <- e$key
+    if("key" %in% names(upd)) {
+      norm <- .oms_normalize_key(upd[["key"]])
+      key_type <- .oms_validate_key_type(key_type, norm$key_type)
+      key2 <- norm$key
+    }
+    if("name" %in% names(upd)) {
+      nm2 <- .ft_normalize_name(upd[["name"]])
+      out_names[[i]] <- if(is.null(nm2)) "" else nm2
+    }
+
+    out[[i]] <- .oms_make_entry(
+      item = item2,
+      key_value = key2,
+      seq_id = if(isTRUE(reset_ties)) i else e$seq_id
+    )
+  }
+
+  if(any(out_names != "")) {
+    names(out) <- out_names
+  }
+
+  out <- .oms_order_entries(out, key_type)
+  ms <- attr(x, "monoids", exact = TRUE)
+  out_tree <- .oms_tree_from_ordered_entries(out, ms)
+  next_seq <- if(isTRUE(reset_ties)) as.numeric(n + 1L) else .oms_next_seq(x)
+  .oms_wrap_tree(x, out_tree, next_seq = next_seq, key_type = key_type)
+}
+
+#' Apply over ordered multiset entries
+#'
+#' @rdname apply
+#' @method apply ordered_multiset
+#' @param reset_ties Logical; if `TRUE`, refreshes tie-break `seq_id` by
+#'   current object order. If `FALSE` (default), preserves existing `seq_id`
+#'   values.
+#' @export
+apply.ordered_multiset <- function(X, MARGIN = NULL, FUN = NULL, ..., reset_ties = FALSE) {
+  if(is.null(FUN)) {
+    if(is.function(MARGIN)) {
+      FUN <- MARGIN
+      MARGIN <- NULL
+    } else {
+      stop("`FUN` must be a function.")
+    }
+  }
+  if(!is.null(MARGIN)) {
+    stop("`MARGIN` is not used for ordered_multiset; call `apply(x, FUN, ...)`.")
+  }
+  .oms_apply_impl(X, FUN, reset_ties = reset_ties, ...)
 }
 
 # Runtime: O(log n + k), where k is output size.

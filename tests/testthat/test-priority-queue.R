@@ -53,9 +53,9 @@ testthat::test_that("values path is removed", {
   testthat::expect_error(tree_from(1:3, values = 1:3), "unused argument")
 })
 
-testthat::test_that("pq_apply maps items and priorities", {
+testthat::test_that("apply maps priority queue items and priorities", {
   q <- priority_queue("a", "bb", "ccc", priorities = c(1, 3, 2))
-  q2 <- pq_apply(
+  q2 <- apply(
     q,
     function(item, priority, seq_id, name) {
       list(item = toupper(item), priority = priority + 2 * nchar(item))
@@ -67,12 +67,12 @@ testthat::test_that("pq_apply maps items and priorities", {
   testthat::expect_identical(length(q2), 3L)
 })
 
-testthat::test_that("pq_apply can preserve seq_id tie ordering", {
+testthat::test_that("apply can preserve priority queue seq_id tie ordering", {
   q <- as_priority_queue(
     c("a", "b", "c"),
     priorities = c(2, 1, 3)
   )
-  q2 <- pq_apply(
+  q2 <- apply(
     q,
     function(item, priority, seq_id, name) list(priority = 1),
     reset_ties = FALSE
@@ -82,9 +82,9 @@ testthat::test_that("pq_apply can preserve seq_id tie ordering", {
   testthat::expect_equal(peek_min(q2), "a")
 })
 
-testthat::test_that("pq_apply can update entry names", {
+testthat::test_that("apply can update priority queue entry names", {
   q <- as_priority_queue(setNames(as.list(c("x", "y")), c("kx", "ky")), priorities = c(2, 1))
-  q2 <- pq_apply(q, function(item, priority, seq_id, name) {
+  q2 <- apply(q, function(item, priority, seq_id, name) {
     list(name = paste0(name, "_new"))
   })
 
@@ -92,25 +92,25 @@ testthat::test_that("pq_apply can update entry names", {
   testthat::expect_equal(q2[["ky_new"]]$item, "y")
 })
 
-testthat::test_that("pq_apply validates inputs", {
+testthat::test_that("apply validates priority queue inputs", {
   q <- priority_queue("a", priorities = 1)
-  testthat::expect_error(pq_apply(as_flexseq(1:3)), "`q` must be a priority_queue")
-  testthat::expect_error(pq_apply(q, 1), "`f` must be a function")
+  testthat::expect_error(apply.priority_queue(as_flexseq(1:3), FUN = identity), "`q` must be a priority_queue")
+  testthat::expect_error(apply(q, 1), "`FUN` must be a function")
   testthat::expect_error(
-    pq_apply(q, function(item, priority, seq_id, name) list(), reset_ties = NA),
+    apply(q, function(item, priority, seq_id, name) list(), reset_ties = NA),
     "`reset_ties` must be TRUE or FALSE"
   )
-  testthat::expect_error(pq_apply(q, function(item, priority, seq_id, name) 1), "`f` must return a list")
+  testthat::expect_error(apply(q, function(item, priority, seq_id, name) 1), "`f` must return a list")
   testthat::expect_error(
-    pq_apply(q, function(item, priority, seq_id, name) list(123)),
+    apply(q, function(item, priority, seq_id, name) list(123)),
     "must return a named list"
   )
   testthat::expect_error(
-    pq_apply(q, function(item, priority, seq_id, name) list(foo = 1)),
+    apply(q, function(item, priority, seq_id, name) list(foo = 1)),
     "unsupported field"
   )
   testthat::expect_error(
-    pq_apply(q, function(item, priority, seq_id, name) list(priority = NA_real_)),
+    apply(q, function(item, priority, seq_id, name) list(priority = NA_real_)),
     "`priority` must be a single non-missing numeric value"
   )
 })

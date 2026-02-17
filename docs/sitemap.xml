@@ -12,6 +12,7 @@
 <url><loc>https://oneilsh.github.io/immutables/reference/add_monoids.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/append.default.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/append.flexseq.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/apply.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/as.list.flexseq.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/as_flexseq.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/as_ordered_multiset.html</loc></url>
@@ -22,8 +23,6 @@
 <url><loc>https://oneilsh.github.io/immutables/reference/cash-set-.FingerTree.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/cash-set-.flexseq.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/concat_trees.html</loc></url>
-<url><loc>https://oneilsh.github.io/immutables/reference/count_between.html</loc></url>
-<url><loc>https://oneilsh.github.io/immutables/reference/count_key.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/delete_all.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/delete_one.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/elements_between.html</loc></url>
@@ -51,7 +50,6 @@
 <url><loc>https://oneilsh.github.io/immutables/reference/peek_min.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/plot.flexseq.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/plot_tree.html</loc></url>
-<url><loc>https://oneilsh.github.io/immutables/reference/pq_apply.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/prepend.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/print.FingerTree.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/print.flexseq.html</loc></url>
@@ -60,7 +58,6 @@
 <url><loc>https://oneilsh.github.io/immutables/reference/priority_queue.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/reduce_left.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/reduce_right.html</loc></url>
-<url><loc>https://oneilsh.github.io/immutables/reference/seq_apply.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/seq_walk.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/split.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/split_around_by_predicate.html</loc></url>

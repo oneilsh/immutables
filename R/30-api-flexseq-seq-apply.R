@@ -1,24 +1,5 @@
-#' Apply a Function to Each Sequence Element
-#'
-#' Maps `f` over elements of a `flexseq` and returns a new `flexseq`.
-#' Traversal is linear, and rebuild uses standard tree construction.
-#'
-#' @param x A `flexseq`.
-#' @param f Function applied to each element.
-#' @param preserve_monoids Logical; when `TRUE`, carries all input monoids to
-#'   the output. When `FALSE` (default), output keeps only invariant monoids
-#'   (`.size`, `.named_count`).
-#' @param ... Additional arguments passed to `f`.
-#' @return A `flexseq` with transformed elements.
-#' @examples
-#' x <- as_flexseq(1:5)
-#' seq_apply(x, function(v) v * 10)
-#'
-#' xn <- as_flexseq(setNames(as.list(1:3), c("a", "b", "c")))
-#' seq_apply(xn, function(v) v + 1)
-#' @export
 # Runtime: O(n log n) total (O(n) traversal + O(n log n) rebuild).
-seq_apply <- function(x, f, preserve_monoids = FALSE, ...) {
+.seq_apply_impl <- function(x, f, preserve_monoids = FALSE, ...) {
   if(!inherits(x, "flexseq")) {
     stop("`x` must be a flexseq.")
   }
@@ -58,4 +39,26 @@ seq_apply <- function(x, f, preserve_monoids = FALSE, ...) {
   }
 
   as_flexseq(out, monoids = out_monoids)
+}
+
+#' Apply over flexseq elements
+#'
+#' @rdname apply
+#' @method apply flexseq
+#' @param preserve_monoids Logical; when `TRUE`, carries all input monoids to
+#'   the output. When `FALSE` (default), output keeps only invariant monoids.
+#' @export
+apply.flexseq <- function(X, MARGIN = NULL, FUN = NULL, ..., preserve_monoids = FALSE) {
+  if(is.null(FUN)) {
+    if(is.function(MARGIN)) {
+      FUN <- MARGIN
+      MARGIN <- NULL
+    } else {
+      stop("`FUN` must be a function.")
+    }
+  }
+  if(!is.null(MARGIN)) {
+    stop("`MARGIN` is not used for flexseq; call `apply(x, FUN, ...)`.")
+  }
+  .seq_apply_impl(X, FUN, preserve_monoids = preserve_monoids, ...)
 }

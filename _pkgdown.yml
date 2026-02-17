@@ -28,7 +28,7 @@ reference:
       - "$<-.flexseq"
       - "as.list.flexseq"
       - split_at
-      - seq_apply
+      - apply
       - seq_walk
       - "plot.flexseq"
 
@@ -43,7 +43,6 @@ reference:
       - peek_max
       - extract_min
       - extract_max
-      - pq_apply
       - "print.priority_queue"
 
   - title: "ordered_multiset API"

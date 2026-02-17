@@ -1,6 +1,6 @@
-testthat::test_that("seq_apply maps values in order", {
+testthat::test_that("apply maps flexseq values in order", {
   x <- as_flexseq(1:5)
-  y <- seq_apply(x, function(v) v * 10)
+  y <- apply(x, function(v) v * 10)
 
   testthat::expect_s3_class(y, "flexseq")
   testthat::expect_identical(as.integer(node_measure(y, ".size")), 5L)
@@ -10,19 +10,19 @@ testthat::test_that("seq_apply maps values in order", {
   )
 })
 
-testthat::test_that("seq_apply preserves element names for named sequences", {
+testthat::test_that("apply preserves element names for named flexseq", {
   x <- as_flexseq(setNames(as.list(1:4), c("a", "b", "c", "d")))
-  y <- seq_apply(x, function(v) v + 1L)
+  y <- apply(x, function(v) v + 1L)
 
   nms <- .ft_collect_names(y)
   testthat::expect_identical(nms, c("a", "b", "c", "d"))
   testthat::expect_identical(y[["c"]], 4L)
 })
 
-testthat::test_that("seq_apply default keeps only invariant monoids", {
+testthat::test_that("apply default keeps only invariant monoids for flexseq", {
   sum_m <- measure_monoid(`+`, 0, as.numeric)
   x <- as_flexseq(1:4, monoids = list(sum = sum_m))
-  y <- seq_apply(x, function(v) v * 2)
+  y <- apply(x, function(v) v * 2)
 
   ms <- attr(y, "monoids", exact = TRUE)
   testthat::expect_true(!is.null(ms[[".size"]]))
@@ -31,19 +31,19 @@ testthat::test_that("seq_apply default keeps only invariant monoids", {
   testthat::expect_identical(as.integer(node_measure(y, ".size")), 4L)
 })
 
-testthat::test_that("seq_apply can preserve monoids when requested", {
+testthat::test_that("apply can preserve monoids for flexseq when requested", {
   sum_m <- measure_monoid(`+`, 0, as.numeric)
   x <- as_flexseq(1:4, monoids = list(sum = sum_m))
-  y <- seq_apply(x, function(v) v * 2, preserve_monoids = TRUE)
+  y <- apply(x, function(v) v * 2, preserve_monoids = TRUE)
 
   testthat::expect_true(!is.null(attr(y, "monoids", exact = TRUE)[["sum"]]))
   testthat::expect_identical(node_measure(y, "sum"), 20)
   testthat::expect_identical(as.integer(node_measure(y, ".size")), 4L)
 })
 
-testthat::test_that("seq_apply validates inputs", {
+testthat::test_that("apply validates flexseq inputs", {
   x <- as_flexseq(1:3)
-  testthat::expect_error(seq_apply(list(1, 2, 3), identity), "`x` must be a flexseq")
-  testthat::expect_error(seq_apply(x, 1), "`f` must be a function")
-  testthat::expect_error(seq_apply(x, identity, preserve_monoids = NA), "`preserve_monoids` must be TRUE or FALSE")
+  testthat::expect_error(apply.flexseq(list(1, 2, 3), FUN = identity), "`x` must be a flexseq")
+  testthat::expect_error(apply(x, 1), "`FUN` must be a function")
+  testthat::expect_error(apply(x, identity, preserve_monoids = NA), "`preserve_monoids` must be TRUE or FALSE")
 })

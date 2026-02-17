@@ -192,23 +192,6 @@ insert.priority_queue <- function(x, element, priority, name = NULL, ...) {
   .as_priority_queue(q2, next_seq = seq_id + 1)
 }
 
-# Runtime: O(1).
-#' Check whether a priority queue is empty
-#'
-#' @param q A `priority_queue`.
-#' @return Logical scalar.
-#' @examples
-#' x <- priority_queue()
-#' is_empty(x)
-#'
-#' x2 <- priority_queue("a", priorities = 1)
-#' is_empty(x2)
-#' @export
-is_empty <- function(q) {
-  .pq_assert_queue(q)
-  as.integer(node_measure(q, ".size")) == 0L
-}
-
 # Runtime: O(log n) near locate point depth.
 .pq_peek <- function(q, monoid_name) {
   .pq_assert_queue(q)
@@ -303,32 +286,8 @@ extract_max <- function(q) {
   .pq_extract(q, ".pq_max")
 }
 
-#' Apply a Function Over Priority Queue Entries
-#'
-#' Applies a per-entry transform and rebuilds a `priority_queue`.
-#'
-#' @param q A `priority_queue`.
-#' @param f Callback called as `f(item, priority, seq_id, name, ...)`.
-#'   It must return a named list using any subset of: `item`, `priority`,
-#'   `name`. Missing fields inherit original values.
-#' @param reset_ties Logical; if `TRUE`, refreshes tie-break `seq_id` by
-#'   current order. If `FALSE`, preserves existing `seq_id` values.
-#' @param ... Additional arguments passed to `f`.
-#' @return A rebuilt `priority_queue`.
-#' @examples
-#' q <- priority_queue("a", "bb", "ccc", priorities = c(1, 3, 2))
-#' q2 <- pq_apply(q, function(item, priority, seq_id, name) {
-#'   list(item = toupper(item))
-#' })
-#' peek_min(q2)
-#'
-#' q3 <- pq_apply(q, function(item, priority, seq_id, name) {
-#'   list(priority = priority + nchar(item))
-#' })
-#' peek_max(q3)
-#' @export
 # Runtime: O(n log n) total from entry traversal + queue rebuild.
-pq_apply <- function(q, f, reset_ties = TRUE, ...) {
+.pq_apply_impl <- function(q, f, reset_ties = TRUE, ...) {
   .pq_assert_queue(q)
   if(!is.function(f)) {
     stop("`f` must be a function.")
@@ -391,4 +350,26 @@ pq_apply <- function(q, f, reset_ties = TRUE, ...) {
   q2 <- as_flexseq(out, monoids = .pq_merge_monoids(user_monoids))
   next_seq <- if(isTRUE(reset_ties)) as.numeric(n + 1L) else .pq_next_seq(q)
   .as_priority_queue(q2, next_seq = next_seq)
+}
+
+#' Apply over priority queue entries
+#'
+#' @rdname apply
+#' @method apply priority_queue
+#' @param reset_ties Logical; if `TRUE`, refreshes tie-break `seq_id` by
+#'   current object order. If `FALSE`, preserves existing `seq_id` values.
+#' @export
+apply.priority_queue <- function(X, MARGIN = NULL, FUN = NULL, ..., reset_ties = TRUE) {
+  if(is.null(FUN)) {
+    if(is.function(MARGIN)) {
+      FUN <- MARGIN
+      MARGIN <- NULL
+    } else {
+      stop("`FUN` must be a function.")
+    }
+  }
+  if(!is.null(MARGIN)) {
+    stop("`MARGIN` is not used for priority_queue; call `apply(x, FUN, ...)`.")
+  }
+  .pq_apply_impl(X, FUN, reset_ties = reset_ties, ...)
 }

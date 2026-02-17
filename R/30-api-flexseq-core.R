@@ -52,6 +52,9 @@ flexseq <- function(..., monoids = NULL) {
 
 #' Coerce to a Persistent Flexible Sequence
 #'
+#' For `priority_queue` inputs, this explicitly drops queue behavior and returns
+#' a plain `flexseq` so full sequence operations are available.
+#'
 #' @param x Input vector/list-like object.
 #' @param monoids Optional named list of measure monoids.
 #' @return A `flexseq` object.
@@ -61,11 +64,34 @@ flexseq <- function(..., monoids = NULL) {
 #'
 #' x2 <- as_flexseq(list(one = 1, two = 2, three = 3))
 #' x2
+#'
+#' q <- priority_queue("a", "b", priorities = c(2, 1))
+#' as_flexseq(q)
+#' @export
+# Runtime: O(1) generic dispatch.
+as_flexseq <- function(x, monoids = NULL) {
+  UseMethod("as_flexseq")
+}
+
+#' @method as_flexseq default
 #' @export
 # Runtime: O(n log n) over element count.
-as_flexseq <- function(x, monoids = NULL) {
+as_flexseq.default <- function(x, monoids = NULL) {
   t <- tree_from(x, monoids = monoids)
   .as_flexseq(t)
+}
+
+#' @method as_flexseq priority_queue
+#' @export
+# Runtime: O(n log n) from list materialization + rebuild.
+as_flexseq.priority_queue <- function(x, monoids = NULL) {
+  entries <- as.list(x)
+  out_monoids <- monoids
+  if(is.null(out_monoids)) {
+    ms <- attr(x, "monoids", exact = TRUE)
+    out_monoids <- ms[setdiff(names(ms), c(".pq_min", ".pq_max"))]
+  }
+  as_flexseq.default(entries, monoids = out_monoids)
 }
 
 #' Concatenate Sequences
@@ -104,6 +130,13 @@ c.flexseq <- function(..., recursive = FALSE) {
 # Runtime: O(1).
 c.ordered_sequence <- function(..., recursive = FALSE) {
   stop("`c()` is not supported for ordered_sequence/ordered_multiset. Use `merge()`.")
+}
+
+#' @export
+#' @noRd
+# Runtime: O(1).
+c.priority_queue <- function(..., recursive = FALSE) {
+  stop("`c()` is not supported for priority_queue. Cast first with `as_flexseq()`.")
 }
 
 #' Plot a Sequence Tree

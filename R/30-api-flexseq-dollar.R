@@ -37,6 +37,13 @@
   `[[.flexseq`(x, nm)
 }
 
+#' @export
+#' @noRd
+`$.priority_queue` <- function(x, name) {
+  nm <- .ft_dollar_name(substitute(name))
+  `[[.priority_queue`(x, nm)
+}
+
 #' Replace a named element with `$<-`
 #'
 #' Exact-name replacement on named trees, equivalent to `x[[\"name\"]] <- value`.
@@ -61,4 +68,10 @@
 #' @noRd
 `$<-.ordered_sequence` <- function(x, name, value) {
   stop("`$<-` is not supported for ordered_sequence/ordered_multiset.")
+}
+
+#' @export
+#' @noRd
+`$<-.priority_queue` <- function(x, name, value) {
+  stop("`$<-` is not supported for priority_queue. Cast first with `as_flexseq()`.")
 }

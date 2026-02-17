@@ -84,3 +84,11 @@ fold_left.flexseq <- function(x, monoid) {
   }
   fold_left_impl(x, monoid)
 }
+
+#' @method fold_left priority_queue
+#' @export
+#' @noRd
+# Runtime: O(1).
+fold_left.priority_queue <- function(x, monoid) {
+  stop("`fold_left()` is not supported for priority_queue. Cast first with `as_flexseq()`.")
+}

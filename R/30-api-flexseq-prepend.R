@@ -23,6 +23,9 @@ prepend <- function(t, x) {
   if(inherits(t, "ordered_sequence")) {
     stop("`prepend()` is not supported for ordered_sequence/ordered_multiset. Use `insert()` or `merge()`.")
   }
+  if(inherits(t, "priority_queue")) {
+    stop("`prepend()` is not supported for priority_queue. Cast first with `as_flexseq()`.")
+  }
   ms <- attr(t, "monoids", exact = TRUE)
   if(is.null(ms)) {
     stop("Tree has no monoids attribute.")
@@ -38,11 +41,7 @@ prepend <- function(t, x) {
     stop("Invalid tree name state: mixed named/unnamed elements.")
   }
 
-  x2 <- if(inherits(t, "priority_queue")) {
-    .pq_parse_entry(x, context = "prepend() on priority_queue")
-  } else {
-    x
-  }
+  x2 <- x
   if(nn == 0L) {
     # Fast unnamed path: avoid attr writes when incoming element is also unnamed.
     nm <- .ft_get_name(x2)

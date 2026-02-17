@@ -15,6 +15,9 @@ seq_walk <- function(x, f, ...) {
   if(!inherits(x, "flexseq")) {
     stop("`x` must be a flexseq.")
   }
+  if(inherits(x, "priority_queue")) {
+    stop("`seq_walk()` is not supported for priority_queue. Cast first with `as_flexseq()`.")
+  }
   if(!is.function(f)) {
     stop("`f` must be a function.")
   }

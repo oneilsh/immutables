@@ -42,16 +42,11 @@ testthat::test_that("insert is persistent and supports names", {
   testthat::expect_equal(length(q2), 3L)
 })
 
-testthat::test_that("shared flexseq ops preserve priority_queue class", {
+testthat::test_that("priority_queue disallows sequence-style mutation helpers", {
   q <- priority_queue("b", "c", priorities = c(2, 3))
-  q2 <- prepend(q, list(item = "a", priority = 1))
-  q3 <- append(q2, list(item = "d", priority = 4))
-  q4 <- c(q3, priority_queue("e", priorities = 0))
-
-  testthat::expect_s3_class(q2, "priority_queue")
-  testthat::expect_s3_class(q3, "priority_queue")
-  testthat::expect_s3_class(q4, "priority_queue")
-  testthat::expect_equal(peek_min(q4), "e")
+  testthat::expect_error(prepend(q, list(item = "a", priority = 1)), "Cast first")
+  testthat::expect_error(append(q, list(item = "d", priority = 4)), "Cast first")
+  testthat::expect_error(c(q, q), "Cast first")
 })
 
 testthat::test_that("priority_queue character subset is strict on missing names", {
@@ -66,36 +61,14 @@ testthat::test_that("priority_queue character subset is strict on missing names"
   testthat::expect_error(q[c("kb", "missing")], "Unknown element name")
 })
 
-testthat::test_that("priority_queue write paths require strict entry payloads", {
+testthat::test_that("priority_queue disallows positional/logical indexing and replacements", {
   q <- priority_queue("a", "b", priorities = c(2, 1))
 
-  testthat::expect_error(append(q, "z"), "entries must")
-  testthat::expect_error(prepend(q, list(item = "z")), "include both")
-
-  q2 <- q
-  q2[[1]] <- list(item = "x", priority = 5)
-  testthat::expect_s3_class(q2, "priority_queue")
-  testthat::expect_equal(q2[[1]]$item, "x")
-  testthat::expect_equal(q2[[1]]$priority, 5)
-
-  q3 <- q
-  q3[c(1, 2)] <- list(
-    list(item = "u", priority = 4),
-    list(item = "v", priority = 6)
-  )
-  testthat::expect_s3_class(q3, "priority_queue")
-  testthat::expect_equal(q3[[1]]$item, "u")
-  testthat::expect_equal(q3[[2]]$item, "v")
-})
-
-testthat::test_that("priority_queue write paths accept optional name field", {
-  q <- as_priority_queue(setNames(as.list(c("x", "y")), c("kx", "ky")), priorities = c(2, 1))
-  q2 <- q
-  q2[["kx"]] <- list(item = "xx", priority = 9, name = "kxx")
-
-  testthat::expect_s3_class(q2, "priority_queue")
-  testthat::expect_equal(q2[["kxx"]]$item, "xx")
-  testthat::expect_error(q2[["kx"]], "Unknown element name")
+  testthat::expect_error(q[[1]], "scalar character names only")
+  testthat::expect_error(q[1:2], "character name indexing only")
+  testthat::expect_error(q[c(TRUE, FALSE)], "character name indexing only")
+  testthat::expect_error({ q[[1]] <- list(item = "x", priority = 5) }, "Cast first")
+  testthat::expect_error({ q[c(1, 2)] <- list("u", "v") }, "Cast first")
 })
 
 testthat::test_that("priority queue carries required monoids", {
@@ -107,6 +80,24 @@ testthat::test_that("priority queue carries required monoids", {
 testthat::test_that("values path is removed", {
   testthat::expect_error(as_flexseq(1:3, values = 1:3), "unused argument")
   testthat::expect_error(tree_from(1:3, values = 1:3), "unused argument")
+})
+
+testthat::test_that("priority_queue casts down to flexseq explicitly", {
+  q_named <- as_priority_queue(setNames(as.list(c("x", "y")), c("kx", "ky")), priorities = c(2, 1))
+  x <- as_flexseq(q_named)
+
+  testthat::expect_s3_class(x, "flexseq")
+  testthat::expect_false(inherits(x, "priority_queue"))
+  testthat::expect_true(all(c(".size", ".named_count") %in% names(attr(x, "monoids", exact = TRUE))))
+  testthat::expect_false(".pq_min" %in% names(attr(x, "monoids", exact = TRUE)))
+  testthat::expect_false(".pq_max" %in% names(attr(x, "monoids", exact = TRUE)))
+  testthat::expect_equal(x[["kx"]]$item, "x")
+  testthat::expect_equal(x[["kx"]]$priority, 2)
+
+  x_unnamed <- as_flexseq(priority_queue("x", "y", priorities = c(2, 1)))
+  x2 <- append(x_unnamed, list(item = "z", priority = 3))
+  testthat::expect_s3_class(x2, "flexseq")
+  testthat::expect_equal(length(x2), 3L)
 })
 
 testthat::test_that("apply maps priority queue items and priorities", {
@@ -164,4 +155,17 @@ testthat::test_that("apply validates priority queue inputs", {
     apply(q, function(item, priority, name) list(priority = NA_real_)),
     "`priority` must be a single non-missing numeric value"
   )
+})
+
+testthat::test_that("priority_queue blocks fold/split/locate/seq_walk helpers", {
+  q <- priority_queue("a", "b", priorities = c(2, 1))
+  sum_m <- measure_monoid(`+`, 0, function(el) 1)
+
+  testthat::expect_error(fold_left(q, sum_m), "Cast first")
+  testthat::expect_error(fold_right(q, sum_m), "Cast first")
+  testthat::expect_error(seq_walk(q, identity), "Cast first")
+  testthat::expect_error(split_by_predicate(q, function(v) v >= 1, ".size"), "Cast first")
+  testthat::expect_error(split_around_by_predicate(q, function(v) v >= 1, ".size"), "Cast first")
+  testthat::expect_error(split_at(q, 1), "Cast first")
+  testthat::expect_error(locate_by_predicate(q, function(v) v >= 1, ".size"), "Cast first")
 })

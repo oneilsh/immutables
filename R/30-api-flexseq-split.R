@@ -17,6 +17,9 @@
 #' @export
 # Runtime: O(log n) near split point depth.
 split_by_predicate <- function(x, predicate, monoid_name) {
+  if(inherits(x, "priority_queue")) {
+    stop("`split_by_predicate()` is not supported for priority_queue. Cast first with `as_flexseq()`.")
+  }
   ctx <- resolve_named_monoid(x, monoid_name)
   ms <- ctx$monoids
   mr <- ctx$monoid
@@ -57,6 +60,9 @@ split_by_predicate <- function(x, predicate, monoid_name) {
 #' @export
 # Runtime: O(log n) for scalar index splits; O(n) for scalar name lookup + split.
 split_at <- function(x, at, pull_index = FALSE) {
+  if(inherits(x, "priority_queue")) {
+    stop("`split_at()` is not supported for priority_queue. Cast first with `as_flexseq()`.")
+  }
   if(is.logical(at)) {
     stop("`at` must be a scalar index or name.")
   }

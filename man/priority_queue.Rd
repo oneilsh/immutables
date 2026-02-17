@@ -19,7 +19,9 @@ priority_queue(..., priorities = NULL, names = NULL, monoids = NULL)
 A `priority_queue`.
 }
 \description{
-Construct a Priority Queue
+Priority queues expose queue-oriented operations (`insert`, `peek_*`,
+`extract_*`, and `apply`). For full sequence-style editing and traversal,
+cast explicitly with `as_flexseq()`.
 }
 \examples{
 x <- priority_queue("a", "b", "c", priorities = c(2, 1, 2))

@@ -180,7 +180,7 @@
       </dl></div><div class="section level2">
       <h2 id="priority-queue">priority_queue<a class="anchor" aria-label="anchor" href="#priority-queue"></a></h2>
 
-      <div class="section-desc"><p>Persistent priority queues associate priority values with items and provide <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>n</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(\log(n))</annotation></semantics></math> insertion and min/max operations. They are also <code>flexseq</code>s; prioritized items may be appended or prepended, they may be concatenated (resulting in a merged priority queue), etc.</p></div>
+      <div class="section-desc"><p>Persistent priority queues associate priority values with items and provide <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>n</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(\log(n))</annotation></semantics></math> insertion and min/max operations. Priority queues intentionally expose queue-oriented APIs only; sequence-style edits/traversal should cast first with <code><a href="../reference/as_flexseq.html">as_flexseq()</a></code>.</p></div>
 
 
     </div><div class="section level2">

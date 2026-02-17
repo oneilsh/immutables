@@ -48,9 +48,9 @@ reference:
     desc: |
       Persistent priority queues associate priority values with 
       items and provide $O(\log(n))$ insertion and min/max operations.
-      They are also `flexseq`s; prioritized items may be appended or 
-      prepended, they may be concatenated (resulting in a merged
-      priority queue), etc.
+      Priority queues intentionally expose queue-oriented APIs only;
+      sequence-style edits/traversal should cast first with
+      `as_flexseq()`.
 
     contents:
       - priority_queue

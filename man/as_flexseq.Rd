@@ -15,7 +15,8 @@ as_flexseq(x, monoids = NULL)
 A `flexseq` object.
 }
 \description{
-Coerce to a Persistent Flexible Sequence
+For `priority_queue` inputs, this explicitly drops queue behavior and returns
+a plain `flexseq` so full sequence operations are available.
 }
 \examples{
 x <- as_flexseq(1:5)
@@ -23,4 +24,7 @@ x
 
 x2 <- as_flexseq(list(one = 1, two = 2, three = 3))
 x2
+
+q <- priority_queue("a", "b", priorities = c(2, 1))
+as_flexseq(q)
 }

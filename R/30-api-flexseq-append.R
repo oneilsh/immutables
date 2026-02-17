@@ -63,11 +63,7 @@ append.flexseq <- function(x, values, ...) {
     stop("Invalid tree name state: mixed named/unnamed elements.")
   }
 
-  x2 <- if(inherits(x, "priority_queue")) {
-    .pq_parse_entry(values, context = "append() on priority_queue")
-  } else {
-    values
-  }
+  x2 <- values
   if(nn == 0L) {
     # Fast unnamed path: avoid attr writes when incoming element is also unnamed.
     nm <- .ft_get_name(x2)
@@ -118,4 +114,11 @@ append.flexseq <- function(x, values, ...) {
 # Runtime: O(1).
 append.ordered_sequence <- function(x, values, ...) {
   stop("`append()` is not supported for ordered_sequence/ordered_multiset. Use `insert()` or `merge()`.")
+}
+
+#' @export
+#' @noRd
+# Runtime: O(1).
+append.priority_queue <- function(x, values, ...) {
+  stop("`append()` is not supported for priority_queue. Cast first with `as_flexseq()`.")
 }

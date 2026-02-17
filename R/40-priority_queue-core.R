@@ -15,18 +15,6 @@
 }
 
 # Runtime: O(1).
-.pq_is_entry_object <- function(x) {
-  if(!is.list(x)) {
-    return(FALSE)
-  }
-  nm <- names(x)
-  if(is.null(nm) || length(nm) == 0L || any(is.na(nm)) || any(nm == "")) {
-    return(FALSE)
-  }
-  all(c("item", "priority") %in% nm) && all(nm %in% c("item", "priority", "name", "seq_id"))
-}
-
-# Runtime: O(1).
 .pq_parse_entry <- function(entry, context = "priority_queue") {
   if(!is.list(entry)) {
     stop(context, " entries must be named lists with fields: item, priority (optional: name).")
@@ -56,20 +44,6 @@
     nm_hint <- .ft_get_name(entry)
   }
   .ft_set_name(out, nm_hint)
-}
-
-# Runtime: O(k), where k is replacement payload size.
-.pq_prepare_replacement_values <- function(value, context = "priority_queue replacement") {
-  vals <- if(.pq_is_entry_object(value)) list(value) else as.list(value)
-  if(length(vals) == 0L) {
-    return(list())
-  }
-  out <- lapply(vals, function(v) .pq_parse_entry(v, context = context))
-  vn <- names(vals)
-  if(!is.null(vn)) {
-    names(out) <- vn
-  }
-  out
 }
 
 # Runtime: O(n) to validate all entries.
@@ -167,6 +141,10 @@ as_priority_queue <- function(x, priorities, names = NULL, monoids = NULL) {
 # Runtime: O(n log n) from underlying sequence construction.
 #' Construct a Priority Queue
 #'
+#' Priority queues expose queue-oriented operations (`insert`, `peek_*`,
+#' `extract_*`, and `apply`). For full sequence-style editing and traversal,
+#' cast explicitly with `as_flexseq()`.
+#'
 #' @param ... Elements to enqueue.
 #' @param priorities Numeric priorities matching `...`.
 #' @param names Optional element names.
@@ -248,7 +226,7 @@ insert.priority_queue <- function(x, element, priority, name = NULL, ...) {
     entry <- .ft_set_name(entry, name)
   }
 
-  q2 <- append(q, entry)
+  q2 <- append.flexseq(q, entry)
   .as_priority_queue(q2)
 }
 
@@ -261,7 +239,14 @@ insert.priority_queue <- function(x, element, priority, name = NULL, ...) {
 
   target <- node_measure(q, monoid_name)
   pred <- function(v) .pq_measure_equal(v, target)
-  loc <- locate_by_predicate(q, pred, monoid_name)
+  ctx <- resolve_named_monoid(q, monoid_name)
+  ms <- ctx$monoids
+  mr <- ctx$monoid
+  loc <- if(.ft_cpp_can_use(ms)) {
+    .ft_cpp_locate(q, pred, ms, monoid_name, mr$i)
+  } else {
+    locate_tree_impl_fast(pred, mr$i, q, ms, mr, monoid_name, 0L)
+  }
   loc$elem[["item"]]
 }
 
@@ -274,7 +259,14 @@ insert.priority_queue <- function(x, element, priority, name = NULL, ...) {
 
   target <- node_measure(q, monoid_name)
   pred <- function(v) .pq_measure_equal(v, target)
-  s <- split_around_by_predicate(q, pred, monoid_name)
+  ctx <- resolve_named_monoid(q, monoid_name)
+  ms <- ctx$monoids
+  mr <- ctx$monoid
+  s <- if(.ft_cpp_can_use(ms)) {
+    .ft_cpp_split_tree(q, pred, ms, monoid_name, mr$i)
+  } else {
+    split_tree_impl_fast(pred, mr$i, q, ms, mr, monoid_name)
+  }
 
   rest <- concat_trees(s$left, s$right)
   rest <- .as_priority_queue(rest)

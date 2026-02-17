@@ -20,6 +20,9 @@
 #' @export
 # Runtime: O(log n) near split point depth.
 split_around_by_predicate <- function(t, predicate, monoid_name, accumulator = NULL) {
+  if(inherits(t, "priority_queue")) {
+    stop("`split_around_by_predicate()` is not supported for priority_queue. Cast first with `as_flexseq()`.")
+  }
   ctx <- resolve_named_monoid(t, monoid_name)
   ms <- ctx$monoids
   mr <- ctx$monoid

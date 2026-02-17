@@ -522,6 +522,18 @@
   .ord_wrap_like(x, tree_from(out, monoids = ms))
 }
 
+#' @export
+#' @noRd
+`[.priority_queue` <- function(x, i, ...) {
+  if(missing(i)) {
+    return(x)
+  }
+  if(!is.character(i)) {
+    stop("`[.priority_queue` supports character name indexing only. Cast first with `as_flexseq()`.")
+  }
+  `[.flexseq`(x, i, ...)
+}
+
 #' Extract one element by position or unique name
 #'
 #' @method [[ flexseq
@@ -550,6 +562,15 @@
   }
 
   .ft_strip_name(.ft_get_elem_at(x, idx))
+}
+
+#' @export
+#' @noRd
+`[[.priority_queue` <- function(x, i, ...) {
+  if(!(is.character(i) && length(i) == 1L && !is.na(i))) {
+    stop("`[[.priority_queue` supports scalar character names only. Cast first with `as_flexseq()`.")
+  }
+  `[[.flexseq`(x, i, ...)
 }
 
 #' Replace selected elements by position or name
@@ -581,11 +602,7 @@
 # n = tree size and k = number of replaced positions.
 `[<-.flexseq` <- function(x, i, value) {
   ms <- resolve_tree_monoids(x, required = TRUE)
-  vals <- if(inherits(x, "priority_queue")) {
-    .pq_prepare_replacement_values(value, context = "[<- on priority_queue")
-  } else {
-    as.list(value)
-  }
+  vals <- as.list(value)
   n <- as.integer(node_measure(x, ".size"))
 
   if(is.logical(i)) {
@@ -722,9 +739,6 @@
     if(is.null(value)) {
       return(`[[<-.flexseq`(x, pos, NULL))
     }
-    if(inherits(x, "priority_queue")) {
-      value <- .pq_parse_entry(value, context = "[[<- on priority_queue")
-    }
     nm <- .ft_effective_name(value)
     if(is.null(nm)) {
       nm <- i
@@ -741,9 +755,6 @@
   if(is.null(value)) {
     s <- split_around_by_predicate(x, function(v) v >= idx, ".size")
     return(.ft_restore_subclass(concat(s$left, s$right, ms), x, context = "[[<-"))
-  }
-  if(inherits(x, "priority_queue")) {
-    value <- .pq_parse_entry(value, context = "[[<- on priority_queue")
   }
   old <- NULL
   nm <- .ft_effective_name(value)
@@ -784,4 +795,16 @@
 #' @noRd
 `[[<-.ordered_sequence` <- function(x, i, value) {
   stop("`[[<-` is not supported for ordered_sequence/ordered_multiset.")
+}
+
+#' @export
+#' @noRd
+`[<-.priority_queue` <- function(x, i, value) {
+  stop("`[<-` is not supported for priority_queue. Cast first with `as_flexseq()`.")
+}
+
+#' @export
+#' @noRd
+`[[<-.priority_queue` <- function(x, i, value) {
+  stop("`[[<-` is not supported for priority_queue. Cast first with `as_flexseq()`.")
 }

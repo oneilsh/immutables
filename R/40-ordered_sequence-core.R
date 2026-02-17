@@ -7,30 +7,6 @@
 }
 
 # Runtime: O(1).
-.ord_concrete_class <- function(x) {
-  if(inherits(x, "ordered_multiset")) {
-    return("ordered_multiset")
-  }
-  if(inherits(x, "ordered_sequence")) {
-    return("ordered_sequence")
-  }
-  NULL
-}
-
-# Runtime: O(1).
-.ord_assert_same_concrete <- function(x, y, op_name = "merge") {
-  cx <- .ord_concrete_class(x)
-  cy <- .ord_concrete_class(y)
-  if(is.null(cx) || is.null(cy)) {
-    stop("`", op_name, "()` requires ordered_sequence inputs.")
-  }
-  if(!identical(cx, cy)) {
-    stop("`", op_name, "()` cannot mix ordered_sequence and ordered_multiset.")
-  }
-  cx
-}
-
-# Runtime: O(1).
 .oms_key_type_state <- function(x) {
   attr(x, "oms_key_type", exact = TRUE)
 }
@@ -437,62 +413,6 @@
   .oms_set_merge_legacy_r(x, y, mode, result_key_type)
 }
 
-# Runtime: O(n + m) stable merge + O(n + m) bulk build.
-.ord_merge_two <- function(x, y) {
-  .oms_assert_compat(x, y)
-  .ord_assert_same_concrete(x, y, op_name = "merge")
-
-  tx <- .oms_key_type_state(x)
-  ty <- .oms_key_type_state(y)
-  result_key_type <- if(!is.null(tx)) tx else ty
-
-  nx <- length(x)
-  ny <- length(y)
-  if(nx == 0L) {
-    return(.ord_wrap_like(x, .as_flexseq(y), key_type = result_key_type))
-  }
-  if(ny == 0L) {
-    return(.ord_wrap_like(x, .as_flexseq(x), key_type = result_key_type))
-  }
-
-  ex <- .oms_entries(x)
-  ey <- .oms_entries(y)
-  ms <- attr(x, "monoids", exact = TRUE)
-  key_type <- .oms_key_type_state(x)
-
-  out <- vector("list", nx + ny)
-  out_len <- 0L
-  i <- 1L
-  j <- 1L
-
-  while(i <= nx && j <= ny) {
-    cmp <- .oms_compare_key(ex[[i]]$key, ey[[j]]$key, key_type)
-    if(cmp <= 0L) {
-      out_len <- out_len + 1L
-      out[[out_len]] <- ex[[i]]
-      i <- i + 1L
-    } else {
-      out_len <- out_len + 1L
-      out[[out_len]] <- ey[[j]]
-      j <- j + 1L
-    }
-  }
-  while(i <= nx) {
-    out_len <- out_len + 1L
-    out[[out_len]] <- ex[[i]]
-    i <- i + 1L
-  }
-  while(j <= ny) {
-    out_len <- out_len + 1L
-    out[[out_len]] <- ey[[j]]
-    j <- j + 1L
-  }
-
-  out <- out[seq_len(out_len)]
-  out_tree <- .oms_tree_from_ordered_entries(out, ms)
-  .ord_wrap_like(x, out_tree, key_type = result_key_type)
-}
-
 # Runtime: O(n log n) from build and ordering.
 #' Build an Ordered Sequence from elements
 #'
@@ -817,40 +737,6 @@ elements_between <- function(x, lo, hi, include_lo = TRUE, include_hi = TRUE) {
   .oms_extract_items(entries)
 }
 
-# Runtime: O(n + m) stable merge + O(n + m) build.
-#' Merge ordered keyed sequences
-#'
-#' @param x An `ordered_sequence`.
-#' @param y An `ordered_sequence`.
-#' @param ... Additional ordered objects to merge.
-#' @param all Unused for ordered sequences.
-#' @param sort Unused for ordered sequences.
-#' @param suffixes Unused for ordered sequences.
-#' @param incomparables Unused for ordered sequences.
-#' @return An ordered object of the same concrete class as `x`.
-#' @export
-merge.ordered_sequence <- function(x, y, ..., all = NULL, sort = NULL, suffixes = NULL, incomparables = NULL) {
-  if(!is.null(all) || !is.null(sort) || !is.null(suffixes) || !is.null(incomparables)) {
-    stop("`merge.ordered_sequence()` does not support `all`, `sort`, `suffixes`, or `incomparables`.")
-  }
-  .oms_assert_set(x)
-
-  others <- c(list(y), list(...))
-  if(length(others) == 0L) {
-    return(x)
-  }
-  for(obj in others) {
-    .oms_assert_set(obj)
-    .ord_assert_same_concrete(x, obj, op_name = "merge")
-  }
-
-  out <- x
-  for(obj in others) {
-    out <- .ord_merge_two(out, obj)
-  }
-  out
-}
-
 # Runtime: O(1).
 #' Ordered sequence set operations are not supported
 #'
@@ -858,7 +744,7 @@ merge.ordered_sequence <- function(x, y, ..., all = NULL, sort = NULL, suffixes 
 #' @method union ordered_sequence
 #' @export
 union.ordered_sequence <- function(x, y, ...) {
-  stop("`union()` is only defined for ordered_multiset bag semantics; use `merge()` for ordered_sequence.")
+  stop("`union()` is only defined for ordered_multiset bag semantics. Convert with `as_ordered_multiset()`.")
 }
 
 # Runtime: O(1).
@@ -866,7 +752,7 @@ union.ordered_sequence <- function(x, y, ...) {
 #' @method intersect ordered_sequence
 #' @export
 intersect.ordered_sequence <- function(x, y, ...) {
-  stop("`intersect()` is only defined for ordered_multiset bag semantics; use `merge()` for ordered_sequence.")
+  stop("`intersect()` is only defined for ordered_multiset bag semantics. Convert with `as_ordered_multiset()`.")
 }
 
 # Runtime: O(1).
@@ -874,7 +760,7 @@ intersect.ordered_sequence <- function(x, y, ...) {
 #' @method setdiff ordered_sequence
 #' @export
 setdiff.ordered_sequence <- function(x, y, ...) {
-  stop("`setdiff()` is only defined for ordered_multiset bag semantics; use `merge()` for ordered_sequence.")
+  stop("`setdiff()` is only defined for ordered_multiset bag semantics. Convert with `as_ordered_multiset()`.")
 }
 
 #' @method as.list ordered_sequence

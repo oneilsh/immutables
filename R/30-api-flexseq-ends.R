@@ -69,7 +69,7 @@
 # Runtime: O(log n) tree update, with O(1) local name-state checks.
 push_back <- function(x, value) {
   if(inherits(x, "ordered_sequence")) {
-    stop("`push_back()` is not supported for ordered_sequence/ordered_multiset. Use `insert()` or `merge()`.")
+    stop("`push_back()` is not supported for ordered_sequence/ordered_multiset. Use `insert()`.")
   }
   if(inherits(x, "priority_queue")) {
     stop("`push_back()` is not supported for priority_queue. Cast first with `as_flexseq()`.")
@@ -96,7 +96,7 @@ push_back <- function(x, value) {
 # Runtime: O(log n) tree update, with O(1) local name-state checks.
 push_front <- function(x, value) {
   if(inherits(x, "ordered_sequence")) {
-    stop("`push_front()` is not supported for ordered_sequence/ordered_multiset. Use `insert()` or `merge()`.")
+    stop("`push_front()` is not supported for ordered_sequence/ordered_multiset. Use `insert()`.")
   }
   if(inherits(x, "priority_queue")) {
     stop("`push_front()` is not supported for priority_queue. Cast first with `as_flexseq()`.")

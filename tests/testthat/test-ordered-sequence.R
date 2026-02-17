@@ -82,26 +82,6 @@ testthat::test_that("peek_key and extract_key are stable within duplicate key bl
   testthat::expect_error(extract_key(xs, 9), "not found")
 })
 
-testthat::test_that("merge is additive, stable, and variadic", {
-  x <- as_ordered_sequence(list("x2a", "x2b", "x1"), keys = c(2, 2, 1))
-  y <- as_ordered_sequence(list("y2", "y1"), keys = c(2, 1))
-  z <- as_ordered_sequence(list("z2", "z3"), keys = c(2, 3))
-
-  mxy <- merge(x, y)
-  testthat::expect_s3_class(mxy, "ordered_sequence")
-  testthat::expect_equal(as.list(mxy), list("x1", "y1", "x2a", "x2b", "y2"))
-
-  mxyz <- merge(x, y, z)
-  testthat::expect_equal(as.list(mxyz), list("x1", "y1", "x2a", "x2b", "y2", "z2", "z3"))
-})
-
-testthat::test_that("merge rejects mixed ordered concrete classes", {
-  xs <- as_ordered_sequence(list("a"), keys = 1)
-  ms <- as_ordered_multiset(list("b"), keys = 1)
-  testthat::expect_error(merge(xs, ms), "cannot mix")
-  testthat::expect_error(merge(ms, xs), "cannot mix")
-})
-
 testthat::test_that("ordered_sequence set ops error with guidance", {
   x <- as_ordered_sequence(list("a"), keys = 1)
   y <- as_ordered_sequence(list("b"), keys = 1)
@@ -114,11 +94,11 @@ testthat::test_that("order-breaking writes are blocked on ordered types", {
   xs <- as_ordered_sequence(list("a", "b"), keys = c(1, 2))
   ms <- as_ordered_multiset(list("a", "b"), keys = c(1, 2))
 
-  testthat::expect_error(c(xs, xs), "merge")
+  testthat::expect_error(c(xs, xs), "not supported")
   testthat::expect_error(push_back(xs, "c"), "not supported")
   testthat::expect_error(push_front(xs, "z"), "not supported")
 
-  testthat::expect_error(c(ms, ms), "merge")
+  testthat::expect_error(c(ms, ms), "not supported")
   testthat::expect_error(push_back(ms, "c"), "not supported")
   testthat::expect_error(push_front(ms, "z"), "not supported")
 

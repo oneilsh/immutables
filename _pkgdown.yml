@@ -72,7 +72,6 @@ reference:
       - ordered_sequence
       - as_ordered_sequence
       - insert
-      - "merge.ordered_sequence"
       - peek_key
       - extract_key
       - delete_one

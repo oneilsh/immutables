@@ -28,18 +28,6 @@ testthat::test_that("union/intersect/setdiff methods use ordered_multiset bag se
   testthat::expect_equal(setdiff(c(1, 2, 2), c(2, 3)), 1)
 })
 
-testthat::test_that("merge on ordered_multiset is additive and differs from bag union", {
-  x <- as_ordered_multiset(list("aa", "bb", "c"), keys = c(2, 2, 1))
-  y <- as_ordered_multiset(list("xx", "z", "qq"), keys = c(2, 1, 2))
-
-  m <- merge(x, y)
-  u <- union(x, y)
-
-  testthat::expect_s3_class(m, "ordered_multiset")
-  testthat::expect_equal(as.list(m), list("c", "z", "aa", "bb", "xx", "qq"))
-  testthat::expect_equal(as.list(u), list("c", "aa", "bb"))
-})
-
 testthat::test_that("set operations require compatible key types", {
   x <- as_ordered_multiset(list("aa", "b"), keys = c(2, 1))
   y <- as_ordered_multiset(list("aa", "b"), keys = c("2", "1"))

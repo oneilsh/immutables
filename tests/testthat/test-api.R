@@ -1,10 +1,3 @@
-testthat::test_that("reduce uses explicit monoid object", {
-  r <- measure_monoid(function(a, b) a + b, 0, function(el) 0)
-  t <- as_flexseq(1:3)
-  testthat::expect_identical(fold_left(t, r), 6)
-  testthat::expect_identical(fold_right(t, r), 6)
-})
-
 testthat::test_that("tree construction defaults to .size monoid", {
   t <- as_flexseq(1:3)
   ms <- attr(t, "measures")

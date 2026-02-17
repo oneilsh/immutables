@@ -80,8 +80,6 @@ parity_scenarios <- c(
   "prepend",
   "prepend named",
   "concat_trees",
-  "reduce_left",
-  "reduce_right",
   "split_around_by_predicate",
   "split_by_predicate",
   "locate_by_predicate",
@@ -137,8 +135,8 @@ testthat::test_that("backend parity: coverage map includes all cpp wrappers", {
 testthat::test_that("backend parity: MeasureMonoid constructor/use", {
   expect_backend_identical({
     m <- measure_monoid(function(a, b) a + b, 0, as.numeric)
-    t <- as_flexseq(1:5)
-    fold_left(t, m)
+    t <- as_flexseq(1:5, monoids = list(sum = m))
+    as.integer(node_measure(t, "sum"))
   })
 })
 
@@ -224,22 +222,6 @@ testthat::test_that("backend parity: concat_trees", {
     t1 <- as_flexseq(1:10)
     t2 <- as_flexseq(11:20)
     snapshot_tree(c(t1, t2))
-  })
-})
-
-testthat::test_that("backend parity: reduce_left", {
-  expect_backend_identical({
-    t <- as_flexseq(1:25)
-    m <- measure_monoid(function(a, b) a + b, 0, as.numeric)
-    fold_left(t, m)
-  })
-})
-
-testthat::test_that("backend parity: reduce_right", {
-  expect_backend_identical({
-    t <- as_flexseq(1:25)
-    m <- measure_monoid(function(a, b) a + b, 0, as.numeric)
-    fold_right(t, m)
   })
 })
 

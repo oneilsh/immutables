@@ -22,7 +22,8 @@ Construct a Measure Monoid Specification
 \examples{
 sum_m <- measure_monoid(`+`, 0, as.numeric)
 x <- as_flexseq(1:5)
-fold_left(x, sum_m)
+x2 <- add_monoids(x, list(sum = sum_m))
+attr(x2, "measures")$sum
 
 # create a second monoid and add it to a sequence
 nchar_sum <- measure_monoid(`+`, 0, function(el) nchar(as.character(el)))

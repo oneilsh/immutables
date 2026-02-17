@@ -157,13 +157,8 @@ testthat::test_that("apply validates priority queue inputs", {
   )
 })
 
-testthat::test_that("priority_queue blocks fold/split/locate/seq_walk helpers", {
+testthat::test_that("priority_queue blocks split/locate helpers", {
   q <- priority_queue("a", "b", priorities = c(2, 1))
-  sum_m <- measure_monoid(`+`, 0, function(el) 1)
-
-  testthat::expect_error(fold_left(q, sum_m), "Cast first")
-  testthat::expect_error(fold_right(q, sum_m), "Cast first")
-  testthat::expect_error(seq_walk(q, identity), "Cast first")
   testthat::expect_error(split_by_predicate(q, function(v) v >= 1, ".size"), "Cast first")
   testthat::expect_error(split_around_by_predicate(q, function(v) v >= 1, ".size"), "Cast first")
   testthat::expect_error(split_at(q, 1), "Cast first")

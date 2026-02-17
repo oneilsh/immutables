@@ -72,8 +72,7 @@ Missing monoids are added to each side before concatenation.</p>
 <span class="r-in"><span><span class="va">left</span> <span class="op">&lt;-</span> <span class="fu"><a href="as_flexseq.html">as_flexseq</a></span><span class="op">(</span><span class="va">letters</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">right</span> <span class="op">&lt;-</span> <span class="fu"><a href="as_flexseq.html">as_flexseq</a></span><span class="op">(</span><span class="va">letters</span><span class="op">[</span><span class="fl">4</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">t</span> <span class="op">&lt;-</span> <span class="fu">concat_trees</span><span class="op">(</span><span class="va">left</span>, <span class="va">right</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">cat_m</span> <span class="op">&lt;-</span> <span class="fu"><a href="measure_monoid.html">measure_monoid</a></span><span class="op">(</span><span class="va">paste0</span>, <span class="st">""</span>, <span class="va">as.character</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="fold_left.html">fold_left</a></span><span class="op">(</span><span class="va">t</span>, <span class="va">cat_m</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">as.list</a></span><span class="op">(</span><span class="va">t</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

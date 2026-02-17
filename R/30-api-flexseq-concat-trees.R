@@ -11,8 +11,7 @@
 #' left <- as_flexseq(letters[1:3])
 #' right <- as_flexseq(letters[4:6])
 #' t <- concat_trees(left, right)
-#' cat_m <- measure_monoid(paste0, "", as.character)
-#' fold_left(t, cat_m)
+#' as.list(t)
 #' }
 #' @keywords internal
 # Runtime: O(nx + ny) when monoid harmonization requires add_monoids passes;

@@ -20,14 +20,11 @@ reference:
       - prepend
       - "append.flexseq"
       - split_at
-      - fold_left
-      - fold_right
       - "c.flexseq"
       - "print.flexseq"
       - "length.flexseq"
       - "as.list.flexseq"
       - apply
-      - seq_walk
       - "plot.flexseq"
   
   - title: flexseq indexing

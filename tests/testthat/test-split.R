@@ -10,14 +10,13 @@ testthat::test_that("split_around_by_predicate returns distinguished element and
 
 testthat::test_that("split_by_predicate returns left/right trees with split element prepended to right", {
   mr <- measure_monoid(function(a, b) a + b, 0, function(el) 1)
-  sr <- measure_monoid(function(a, b) paste0(a, b), "", function(el) "")
   t <- as_flexseq(letters[1:6], monoids = list(count = mr))
 
   s <- split_by_predicate(t, function(v) v >= 4, ".size")
   testthat::expect_identical(attr(s$left, "measures")$.size, 3)
   testthat::expect_identical(attr(s$right, "measures")$.size, 3)
-  testthat::expect_identical(fold_left(s$left, sr), "abc")
-  testthat::expect_identical(fold_left(s$right, sr), "def")
+  testthat::expect_identical(tree_chars(s$left), "abc")
+  testthat::expect_identical(tree_chars(s$right), "def")
 })
 
 testthat::test_that("split_by_predicate handles empty and predicate-never-true cases", {
@@ -33,19 +32,18 @@ testthat::test_that("split_by_predicate handles empty and predicate-never-true c
 })
 
 testthat::test_that("split_by_predicate boundary at first and last element", {
-  sr <- measure_monoid(function(a, b) paste0(a, b), "", function(el) "")
   t <- as_flexseq(letters[1:5])
 
   s1 <- split_by_predicate(t, function(v) v >= 1, ".size")
   testthat::expect_true(s1$left %isa% Empty)
   testthat::expect_identical(attr(s1$right, "measures")$.size, 5)
-  testthat::expect_identical(fold_left(s1$right, sr), "abcde")
+  testthat::expect_identical(tree_chars(s1$right), "abcde")
 
   s2 <- split_by_predicate(t, function(v) v >= 5, ".size")
   testthat::expect_identical(attr(s2$left, "measures")$.size, 4)
   testthat::expect_identical(attr(s2$right, "measures")$.size, 1)
-  testthat::expect_identical(fold_left(s2$left, sr), "abcd")
-  testthat::expect_identical(fold_left(s2$right, sr), "e")
+  testthat::expect_identical(tree_chars(s2$left), "abcd")
+  testthat::expect_identical(tree_chars(s2$right), "e")
 })
 
 testthat::test_that("split_around_by_predicate respects custom accumulator offsets", {
@@ -66,13 +64,13 @@ testthat::test_that("split_at supports scalar integer index", {
   t <- as_flexseq(letters[1:6])
 
   s <- split_at(t, 4)
-  testthat::expect_identical(fold_left(s$left, measure_monoid(function(a, b) paste0(a, b), "", function(el) as.character(el))), "abc")
+  testthat::expect_identical(tree_chars(s$left), "abc")
   testthat::expect_identical(s$elem, "d")
-  testthat::expect_identical(fold_left(s$right, measure_monoid(function(a, b) paste0(a, b), "", function(el) as.character(el))), "ef")
+  testthat::expect_identical(tree_chars(s$right), "ef")
 
   s2 <- split_at(t, 4, pull_index = TRUE)
-  testthat::expect_identical(fold_left(s2$left, measure_monoid(function(a, b) paste0(a, b), "", function(el) as.character(el))), "abc")
-  testthat::expect_identical(fold_left(s2$right, measure_monoid(function(a, b) paste0(a, b), "", function(el) as.character(el))), "def")
+  testthat::expect_identical(tree_chars(s2$left), "abc")
+  testthat::expect_identical(tree_chars(s2$right), "def")
 })
 
 testthat::test_that("split_at supports scalar name", {

@@ -1,8 +1,3 @@
-tree_chars <- function(t) {
-  r <- measure_monoid(function(a, b) paste0(a, b), "", function(el) "")
-  fold_left(t, r)
-}
-
 testthat::test_that("viewL and viewR return boundary element and remainder", {
   m_count <- measure_monoid(function(a, b) a + b, 0, function(el) 1)
   t <- as_flexseq(letters[1:5], monoids = list(count = m_count))

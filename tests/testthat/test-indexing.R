@@ -1,20 +1,17 @@
 testthat::test_that("read indexing supports [] and [[ with positive integer indices", {
-  r <- measure_monoid(function(a, b) a + b, 0, function(el) el)
-  t <- as_flexseq(1:6, monoids = list(sum = r))
+  t <- as_flexseq(1:6)
 
   testthat::expect_equal(t[[3]], 3)
 
   s <- t[c(2, 4, 6)]
-  testthat::expect_identical(fold_left(s, r), 12)
+  testthat::expect_equal(sum(unlist(as.list(s), use.names = FALSE)), 12)
   testthat::expect_identical(attr(s, "measures")$.size, 3)
 })
 
 testthat::test_that("read indexing supports duplicates and arbitrary order", {
   t <- as_flexseq(letters[1:5])
-  cat_m <- measure_monoid(paste0, "", as.character)
-
   s <- t[c(5, 2, 2, 4)]
-  testthat::expect_identical(fold_left(s, cat_m), "ebbd")
+  testthat::expect_identical(tree_chars(s), "ebbd")
   testthat::expect_identical(attr(s, "measures")$.size, 4)
 })
 
@@ -30,17 +27,16 @@ testthat::test_that("indexing enforces bounds and integer-only indices", {
 })
 
 testthat::test_that("replacement indexing supports [[<- and [<- with recycling semantics", {
-  r <- measure_monoid(function(a, b) a + b, 0, function(el) el)
-  t <- as_flexseq(1:5, monoids = list(sum = r))
+  t <- as_flexseq(1:5)
 
   t2 <- t
   t2[[2]] <- 20
-  testthat::expect_identical(fold_left(t2, r), 33)
+  testthat::expect_identical(sum(unlist(as.list(t2), use.names = FALSE)), 33)
   testthat::expect_identical(t2[[2]], 20)
 
   t3 <- t
   t3[c(1, 5)] <- list(10, 50)
-  testthat::expect_identical(fold_left(t3, r), 69)
+  testthat::expect_identical(sum(unlist(as.list(t3), use.names = FALSE)), 69)
   testthat::expect_identical(t3[[1]], 10)
   testthat::expect_identical(t3[[5]], 50)
 
@@ -99,17 +95,16 @@ testthat::test_that("[<- keeps structural attrs and custom monoid measures coher
 
   testthat::expect_identical(attr(t, "measures")$.size, 5)
   testthat::expect_identical(attr(t, "measures")$sum, 69)
-  testthat::expect_identical(fold_left(t, sum_m), 69)
+  testthat::expect_identical(sum(unlist(as.list(t), use.names = FALSE)), 69)
 })
 
 testthat::test_that("[<- zero-length index is a no-op when replacement is empty", {
   t <- as_flexseq(letters[1:5])
-  cat_m <- measure_monoid(paste0, "", as.character)
-  before <- fold_left(t, cat_m)
+  before <- tree_chars(t)
   t2 <- t
   t2[integer(0)] <- list()
 
-  testthat::expect_identical(fold_left(t2, cat_m), before)
+  testthat::expect_identical(tree_chars(t2), before)
   testthat::expect_identical(attr(t2, "measures")$.size, attr(t, "measures")$.size)
 })
 

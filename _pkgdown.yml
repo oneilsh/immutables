@@ -57,11 +57,11 @@ reference:
       - priority_queue
       - as_priority_queue
       - insert
-      - "length.priority_queue"
       - peek_min
       - peek_max
       - pop_min
       - pop_max
+      - "length.priority_queue"
       - "apply.priority_queue"
       - "print.priority_queue"
 

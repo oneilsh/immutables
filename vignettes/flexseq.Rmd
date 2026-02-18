@@ -57,7 +57,7 @@ peek_front(x5)
 peek_back(x5)
 
 pf <- pop_front(x5)
-pf$value
+pf$element
 pf$rest
 ```
 

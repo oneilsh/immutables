@@ -165,11 +165,11 @@ testthat::test_that("pop helpers preserve ordered class", {
   pf <- pop_front(xs)
   pb <- pop_back(xs)
 
-  testthat::expect_identical(pf$value, "x1")
+  testthat::expect_identical(pf$element, "x1")
   testthat::expect_s3_class(pf$rest, "ordered_sequence")
   testthat::expect_equal(as.list(pf$rest), list("x2", "x3"))
 
-  testthat::expect_identical(pb$value, "x3")
+  testthat::expect_identical(pb$element, "x3")
   testthat::expect_s3_class(pb$rest, "ordered_sequence")
   testthat::expect_equal(as.list(pb$rest), list("x1", "x2"))
 })

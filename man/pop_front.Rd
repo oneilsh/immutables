@@ -10,14 +10,14 @@ pop_front(x)
 \item{x}{A `flexseq`.}
 }
 \value{
-A list with fields `value` and `rest`.
+A list with fields `element` and `rest`.
 }
 \description{
-Returns both the popped value and the remaining sequence.
+Returns both the popped element and the remaining sequence.
 }
 \examples{
 s <- as_flexseq(letters[1:3])
 out <- pop_front(s)
-out$value
+out$element
 out$rest
 }

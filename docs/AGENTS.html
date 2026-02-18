@@ -190,6 +190,8 @@
 <code>eb493fd</code>: ordered_sequence key APIs aligned around <code>key</code>/<code>from_key</code>/<code>to_key</code>, <code>extract_key</code> renamed to <code>pop_key</code>, and missing-key reads are non-throwing (<code>peek_key(..., if_missing=...)</code>, <code><a href="reference/pop_key.html">pop_key()</a></code> null-returns on miss). Risk: callers relying on previous argument names/error behavior need updates.</li>
 <li>
 <code>eb493fd</code>: removed <code>delete_one</code>/<code>delete_all</code>; <code><a href="reference/peek_key.html">peek_key()</a></code> and <code><a href="reference/pop_key.html">pop_key()</a></code> now support <code>which = "first"|"all"</code> where <code>"all"</code> operates on full duplicate-key runs and returns an ordered slice. Risk: code using deleted functions or assuming <code><a href="reference/pop_key.html">pop_key()</a></code> always pops one element must migrate.</li>
+<li>
+<code>eb493fd</code>: <code><a href="reference/pop_front.html">pop_front()</a></code>/<code><a href="reference/pop_back.html">pop_back()</a></code> now return <code>element</code> (not <code>value</code>) plus <code>rest</code>; tests/docs/vignette updated. Risk: callers using <code>$value</code> must switch to <code>$element</code>.</li>
 </ul></div>
 </div>
 

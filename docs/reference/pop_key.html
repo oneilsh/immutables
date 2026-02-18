@@ -68,10 +68,16 @@ element among entries whose key equals `key`.</p>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>List with `element`, `key`, and updated `sequence`.
-  When no match exists, returns `list(element = NULL, key = NULL, sequence = x)`
-  for `which = "first"`, or
-  `list(element = &lt;empty ordered_sequence&gt;, key = NULL, sequence = x)` for
-  `which = "all"`.</p>
+  For `which = "first"`:
+  - On match: `element` is the first matching item; `key` is its key.
+  - On miss: `element = NULL`, `key = NULL`, `sequence = x`.</p>
+<p>For `which = "all"`:
+  - `element` is an `ordered_sequence` containing all matching items (in
+  stable order). This may have size 0 (miss), 1 (single match), or &gt;1
+  (multiple matches).
+  - `key` is the normalized key on match, otherwise `NULL`.
+  - `sequence` is the original sequence with that entire key-run removed
+  (or unchanged on miss).</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

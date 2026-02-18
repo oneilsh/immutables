@@ -613,10 +613,17 @@ peek_key <- function(x, key, which = c("first", "all"), if_missing = NULL) {
 #' @param key Query key.
 #' @param which One of `"first"` or `"all"`.
 #' @return List with `element`, `key`, and updated `sequence`.
-#'   When no match exists, returns `list(element = NULL, key = NULL, sequence = x)`
-#'   for `which = "first"`, or
-#'   `list(element = <empty ordered_sequence>, key = NULL, sequence = x)` for
-#'   `which = "all"`.
+#'   For `which = "first"`:
+#'   - On match: `element` is the first matching item; `key` is its key.
+#'   - On miss: `element = NULL`, `key = NULL`, `sequence = x`.
+#'
+#'   For `which = "all"`:
+#'   - `element` is an `ordered_sequence` containing all matching items (in
+#'   stable order). This may have size 0 (miss), 1 (single match), or >1
+#'   (multiple matches).
+#'   - `key` is the normalized key on match, otherwise `NULL`.
+#'   - `sequence` is the original sequence with that entire key-run removed
+#'   (or unchanged on miss).
 #' @export
 pop_key <- function(x, key, which = c("first", "all")) {
   which <- match.arg(which)

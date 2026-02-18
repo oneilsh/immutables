@@ -162,24 +162,20 @@
 }
 
 # Runtime: O(log n) near locate point depth.
-.oms_bound_index <- function(x, key_value, strict = FALSE) {
+.oms_bound_index_prepared <- function(x, key, strict = FALSE) {
   .oms_assert_set(x)
   n <- length(x)
   if(n == 0L) {
     return(1L)
   }
 
-  key_type <- .oms_key_type_state(x)
-  norm <- .oms_normalize_key(key_value)
-  .oms_validate_key_type(key_type, norm$key_type)
-
   pred <- if(!isTRUE(strict)) {
     function(v) {
-      isTRUE(v$has) && .oms_compare_key(v$key, norm$key, v$key_type) >= 0L
+      isTRUE(v$has) && .oms_compare_key(v$key, key, v$key_type) >= 0L
     }
   } else {
     function(v) {
-      isTRUE(v$has) && .oms_compare_key(v$key, norm$key, v$key_type) > 0L
+      isTRUE(v$has) && .oms_compare_key(v$key, key, v$key_type) > 0L
     }
   }
 
@@ -188,6 +184,15 @@
     return(as.integer(n + 1L))
   }
   as.integer(loc$metadata$index)
+}
+
+# Runtime: O(log n) near locate point depth.
+.oms_bound_index <- function(x, key_value, strict = FALSE) {
+  .oms_assert_set(x)
+  key_type <- .oms_key_type_state(x)
+  norm <- .oms_normalize_key(key_value)
+  .oms_validate_key_type(key_type, norm$key_type)
+  .oms_bound_index_prepared(x, norm$key, strict = strict)
 }
 
 # Runtime: O(1).
@@ -489,8 +494,8 @@ insert.ordered_sequence <- function(x, element, key, ...) {
   norm <- .oms_normalize_key(key)
   .oms_validate_key_type(.oms_key_type_state(x), norm$key_type)
 
-  start <- .oms_bound_index(x, norm$key, strict = FALSE)
-  end_excl <- .oms_bound_index(x, norm$key, strict = TRUE)
+  start <- .oms_bound_index_prepared(x, norm$key, strict = FALSE)
+  end_excl <- .oms_bound_index_prepared(x, norm$key, strict = TRUE)
   list(
     found = isTRUE(end_excl > start),
     key = norm$key,
@@ -577,7 +582,6 @@ upper_bound <- function(x, key) {
 #'   (possibly empty).
 #' @export
 peek_key <- function(x, key, which = c("first", "all"), if_missing = NULL) {
-  .oms_assert_set(x)
   which <- match.arg(which)
   span <- .oms_key_span(x, key)
 
@@ -615,7 +619,6 @@ peek_key <- function(x, key, which = c("first", "all"), if_missing = NULL) {
 #'   `which = "all"`.
 #' @export
 pop_key <- function(x, key, which = c("first", "all")) {
-  .oms_assert_set(x)
   which <- match.arg(which)
   span <- .oms_key_span(x, key)
 

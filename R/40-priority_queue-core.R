@@ -114,10 +114,6 @@ as_priority_queue <- function(x, priorities, names = NULL, monoids = NULL) {
     stop("`priorities` length must match elements length.")
   }
 
-  for(i in seq_len(n)) {
-    p_list[[i]] <- .pq_assert_priority(p_list[[i]])
-  }
-
   entries <- vector("list", n)
   for(i in seq_len(n)) {
     entries[[i]] <- .pq_make_entry(x_list[[i]], p_list[[i]])

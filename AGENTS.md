@@ -10,7 +10,6 @@ Treat tests and current source as the source of truth when docs conflict.
   - `flexseq`: general persistent sequence.
   - `priority_queue`: queue-first API layered on `flexseq`.
   - `ordered_sequence`: key-ordered sequence API.
-  - `ordered_multiset`: bag/set semantics on top of ordered keyed entries.
 - Current API direction (important):
   - `push_front/push_back/pop_front/pop_back/peek_front/peek_back` are the preferred flexseq end-ops.
   - `priority_queue` intentionally blocks most sequence-style mutation/traversal; cast with `as_flexseq()` for those.
@@ -22,7 +21,7 @@ Treat tests and current source as the source of truth when docs conflict.
 Useful commit landmarks for intent:
 - `b97a2b5` API alignment work begins (`apply` generic direction, shared method patterns).
 - `3009b10` generalized reuse of flexseq infrastructure for subclasses.
-- `0a5a601` ordered types split into `ordered_sequence` + `ordered_multiset`.
+- `0a5a601` ordered types split into `ordered_sequence` + `ordered_multiset` (now removed).
 - `7b6fced` priority queue surface narrowed (queue-first UX).
 - `ffcb101` removed fold/walk machinery from public surface.
 - `c07b4e6` migrated user-facing sequence endpoints to push/pop/peek names.
@@ -36,14 +35,12 @@ Interpretation:
 ## First Files to Read
 1. `NAMESPACE` (what is exported and dispatched right now).
 2. `R/40-ordered_sequence-core.R`
-3. `R/40-ordered_multiset-core.R`
-4. `R/40-priority_queue-core.R`
-5. `tests/testthat/test-ordered-sequence.R`
-6. `tests/testthat/test-ordered-multiset.R`
-7. `tests/testthat/test-priority-queue.R`
-8. `tests/testthat/test-cpp-parity.R`
-9. `tests/testthat/test-cpp-gc-safety.R`
-10. `meta/bench_runner.R`
+3. `R/40-priority_queue-core.R`
+4. `tests/testthat/test-ordered-sequence.R`
+5. `tests/testthat/test-priority-queue.R`
+6. `tests/testthat/test-cpp-parity.R`
+7. `tests/testthat/test-cpp-gc-safety.R`
+8. `meta/bench_runner.R`
 
 ## Ground Rules
 - Preserve persistence semantics (never mutate user-visible structures in place).
@@ -128,3 +125,4 @@ API or underlying implementations change.
 - `eb493fd`: ordered_sequence key APIs aligned around `key`/`from_key`/`to_key`, `extract_key` renamed to `pop_key`, and missing-key reads are non-throwing (`peek_key(..., if_missing=...)`, `pop_key()` null-returns on miss). Risk: callers relying on previous argument names/error behavior need updates.
 - `eb493fd`: removed `delete_one`/`delete_all`; `peek_key()` and `pop_key()` now support `which = "first"|"all"` where `"all"` operates on full duplicate-key runs and returns an ordered slice. Risk: code using deleted functions or assuming `pop_key()` always pops one element must migrate.
 - `eb493fd`: `pop_front()`/`pop_back()` now return `element` (not `value`) plus `rest`; tests/docs/vignette updated. Risk: callers using `$value` must switch to `$element`.
+- `eb493fd`: removed `ordered_multiset` API/tests and dropped package-level set-op generics (`union`/`intersect`/`setdiff`) tied to that surface. Risk: any code importing those package methods must migrate to explicit sequence operations.

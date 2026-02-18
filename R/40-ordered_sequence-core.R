@@ -64,21 +64,8 @@
 }
 
 # Runtime: O(1).
-.as_ordered_multiset <- function(x, key_type) {
-  if(!is_structural_node(x)) {
-    stop("Expected a structural tree node.")
-  }
-  class(x) <- unique(c("ordered_multiset", "ordered_sequence", "flexseq", setdiff(class(x), "list")))
-  attr(x, "oms_key_type") <- key_type
-  x
-}
-
-# Runtime: O(1).
 .ord_wrap_like <- function(template, tree, key_type = NULL) {
   resolved_key_type <- if(is.null(key_type)) .oms_key_type_state(template) else key_type
-  if(inherits(template, "ordered_multiset")) {
-    return(.as_ordered_multiset(tree, key_type = resolved_key_type))
-  }
   .as_ordered_sequence(tree, key_type = resolved_key_type)
 }
 
@@ -108,18 +95,15 @@
 }
 
 # Runtime: O(n log n) for sorting + O(n) bulk build.
-.oms_build_from_items <- function(items, keys = NULL, monoids = NULL, concrete_class = c("ordered_sequence", "ordered_multiset")) {
-  concrete_class <- match.arg(concrete_class)
+.oms_build_from_items <- function(items, keys = NULL, monoids = NULL) {
   n <- length(items)
-
-  wrap <- if(concrete_class == "ordered_multiset") .as_ordered_multiset else .as_ordered_sequence
 
   if(n == 0L) {
     if(!is.null(keys) && length(as.list(keys)) > 0L) {
       stop("`keys` must be empty when no elements are supplied.")
     }
     base <- as_flexseq(list(), monoids = .oms_merge_monoids(monoids))
-    return(wrap(base, key_type = NULL))
+    return(.as_ordered_sequence(base, key_type = NULL))
   }
 
   if(is.null(keys)) {
@@ -143,7 +127,7 @@
 
   merged_monoids <- .oms_merge_monoids(monoids)
   base <- .oms_tree_from_ordered_entries(entries, merged_monoids)
-  wrap(base, key_type = key_type)
+  .as_ordered_sequence(base, key_type = key_type)
 }
 
 # Runtime: O(1).
@@ -196,20 +180,6 @@
 }
 
 # Runtime: O(1).
-.oms_assert_compat <- function(x, y) {
-  .oms_assert_set(x)
-  .oms_assert_set(y)
-
-  tx <- .oms_key_type_state(x)
-  ty <- .oms_key_type_state(y)
-  if(!identical(tx, ty) && !(is.null(tx) || is.null(ty))) {
-    stop("Ordered key types are incompatible.")
-  }
-
-  invisible(TRUE)
-}
-
-# Runtime: O(1).
 .oms_range_start_index <- function(x, lo, include_lo) {
   if(isTRUE(include_lo)) {
     .oms_bound_index(x, lo, strict = FALSE)
@@ -245,179 +215,6 @@
   as.list.flexseq(x)
 }
 
-# Runtime: O(n).
-.oms_group_end <- function(entries, start_idx, key_type) {
-  n <- length(entries)
-  k <- entries[[start_idx]]$key
-  j <- start_idx
-  while(j <= n && .oms_compare_key(entries[[j]]$key, k, key_type) == 0L) {
-    j <- j + 1L
-  }
-  as.integer(j - 1L)
-}
-
-# Runtime: O(1).
-.oms_merge_engine <- function() {
-  engine <- getOption("immutables.oms.merge_engine", "auto")
-  if(is.null(engine)) {
-    engine <- "auto"
-  }
-  if(!is.character(engine) || length(engine) != 1L || is.na(engine)) {
-    stop("`options(immutables.oms.merge_engine=...)` must be one of: 'auto', 'cpp', 'legacy_r'.")
-  }
-  engine <- as.character(engine)
-  if(!engine %in% c("auto", "cpp", "legacy_r")) {
-    stop("`options(immutables.oms.merge_engine=...)` must be one of: 'auto', 'cpp', 'legacy_r'.")
-  }
-  engine
-}
-
-# Runtime: O(n + m) key merge scan + O(n + m) bulk build.
-.oms_set_merge_legacy_r <- function(x, y, mode, result_key_type) {
-  ex <- .oms_entries(x)
-  ey <- .oms_entries(y)
-  nx <- length(ex)
-  ny <- length(ey)
-  key_type <- .oms_key_type_state(x)
-  ms <- attr(x, "monoids", exact = TRUE)
-
-  out <- vector("list", nx + ny)
-  out_len <- 0L
-  i <- 1L
-  j <- 1L
-
-  append_entries <- function(src, start, end_incl) {
-    if(start <= end_incl) {
-      for(k in start:end_incl) {
-        out_len <<- out_len + 1L
-        out[[out_len]] <<- src[[k]]
-      }
-    }
-  }
-
-  while(i <= nx || j <= ny) {
-    if(i > nx) {
-      if(mode == "union") {
-        append_entries(ey, j, ny)
-      }
-      break
-    }
-    if(j > ny) {
-      if(mode %in% c("union", "difference")) {
-        append_entries(ex, i, nx)
-      }
-      break
-    }
-
-    cmp <- .oms_compare_key(ex[[i]]$key, ey[[j]]$key, key_type)
-
-    if(cmp < 0L) {
-      if(mode %in% c("union", "difference")) {
-        ie <- .oms_group_end(ex, i, key_type)
-        append_entries(ex, i, ie)
-        i <- ie + 1L
-      } else {
-        i <- .oms_group_end(ex, i, key_type) + 1L
-      }
-      next
-    }
-
-    if(cmp > 0L) {
-      if(mode == "union") {
-        je <- .oms_group_end(ey, j, key_type)
-        append_entries(ey, j, je)
-        j <- je + 1L
-      } else {
-        j <- .oms_group_end(ey, j, key_type) + 1L
-      }
-      next
-    }
-
-    ie <- .oms_group_end(ex, i, key_type)
-    je <- .oms_group_end(ey, j, key_type)
-
-    cx <- ie - i + 1L
-    cy <- je - j + 1L
-
-    if(mode == "intersection") {
-      k <- min(cx, cy)
-      if(k > 0L) {
-        append_entries(ex, i, i + k - 1L)
-      }
-    } else if(mode == "difference") {
-      k <- min(cx, cy)
-      if(cx > k) {
-        append_entries(ex, i + k, ie)
-      }
-    } else {
-      append_entries(ex, i, ie)
-      if(cy > cx) {
-        append_entries(ey, j, j + (cy - cx) - 1L)
-      }
-    }
-
-    i <- ie + 1L
-    j <- je + 1L
-  }
-
-  if(out_len == 0L) {
-    return(.ord_wrap_like(x, .oms_empty_tree_like(x), key_type = result_key_type))
-  }
-  out <- out[seq_len(out_len)]
-  out_tree <- .oms_tree_from_ordered_entries(out, ms)
-  .ord_wrap_like(x, out_tree, key_type = result_key_type)
-}
-
-# Runtime: O(n + m) key merge + O(n + m) bulk build.
-.oms_set_merge_cpp <- function(x, y, mode, result_key_type) {
-  ms <- attr(x, "monoids", exact = TRUE)
-  key_type <- .oms_key_type_state(x)
-  out_tree <- .as_flexseq(.ft_cpp_oms_set_merge(x, y, mode, ms, key_type))
-  .ord_wrap_like(x, out_tree, key_type = result_key_type)
-}
-
-# Runtime: O(n + m) in the selected engine.
-.oms_set_merge <- function(x, y, mode = c("union", "intersection", "difference")) {
-  mode <- match.arg(mode)
-  .oms_assert_compat(x, y)
-
-  tx <- .oms_key_type_state(x)
-  ty <- .oms_key_type_state(y)
-  result_key_type <- if(!is.null(tx)) tx else ty
-
-  nx <- length(x)
-  ny <- length(y)
-  if(nx == 0L) {
-    if(mode == "union") {
-      return(.ord_wrap_like(x, .as_flexseq(y), key_type = result_key_type))
-    }
-    return(.ord_wrap_like(x, .oms_empty_tree_like(x), key_type = result_key_type))
-  }
-  if(ny == 0L) {
-    if(mode == "intersection") {
-      return(.ord_wrap_like(x, .oms_empty_tree_like(x), key_type = result_key_type))
-    }
-    return(.ord_wrap_like(x, .as_flexseq(x), key_type = result_key_type))
-  }
-
-  engine <- .oms_merge_engine()
-  ms <- attr(x, "monoids", exact = TRUE)
-  can_cpp <- .ft_cpp_can_use(ms)
-
-  if(identical(engine, "cpp")) {
-    if(!can_cpp) {
-      stop("Ordered multiset merge engine 'cpp' requested, but C++ backend is unavailable.")
-    }
-    return(.oms_set_merge_cpp(x, y, mode, result_key_type))
-  }
-
-  if(identical(engine, "auto") && can_cpp) {
-    return(.oms_set_merge_cpp(x, y, mode, result_key_type))
-  }
-
-  .oms_set_merge_legacy_r(x, y, mode, result_key_type)
-}
-
 # Runtime: O(n log n) from build and ordering.
 #' Build an Ordered Sequence from elements
 #'
@@ -435,7 +232,7 @@
 #' length(elements_between(xs, 1, 1))
 #' @export
 as_ordered_sequence <- function(x, keys = NULL, monoids = NULL) {
-  .oms_build_from_items(as.list(x), keys = keys, monoids = monoids, concrete_class = "ordered_sequence")
+  .oms_build_from_items(as.list(x), keys = keys, monoids = monoids)
 }
 
 # Runtime: O(n log n) from build and ordering.
@@ -612,18 +409,26 @@ peek_key <- function(x, key, which = c("first", "all"), if_missing = NULL) {
 #' @param x An `ordered_sequence`.
 #' @param key Query key.
 #' @param which One of `"first"` or `"all"`.
-#' @return List with `element`, `key`, and updated `sequence`.
-#'   For `which = "first"`:
-#'   - On match: `element` is the first matching item; `key` is its key.
-#'   - On miss: `element = NULL`, `key = NULL`, `sequence = x`.
-#'
-#'   For `which = "all"`:
-#'   - `element` is an `ordered_sequence` containing all matching items (in
-#'   stable order). This may have size 0 (miss), 1 (single match), or >1
-#'   (multiple matches).
-#'   - `key` is the normalized key on match, otherwise `NULL`.
-#'   - `sequence` is the original sequence with that entire key-run removed
-#'   (or unchanged on miss).
+#' @return A named list with components \code{element}, \code{key}, and
+#'   \code{sequence}.
+#'   \itemize{
+#'   \item For \code{which = "first"}:
+#'   \itemize{
+#'   \item On match: \code{element} is the first matching item and \code{key}
+#'   is its key.
+#'   \item On miss: \code{element = NULL}, \code{key = NULL},
+#'   \code{sequence = x}.
+#'   }
+#'   \item For \code{which = "all"}:
+#'   \itemize{
+#'   \item \code{element} is an \code{ordered_sequence} of all matching items in
+#'   stable order. It may have size 0 (miss), 1 (single match), or greater than
+#'   1 (multiple matches).
+#'   \item \code{key} is the normalized key on match, otherwise \code{NULL}.
+#'   \item \code{sequence} is the original sequence with that full key-run
+#'   removed (or unchanged on miss).
+#'   }
+#'   }
 #' @export
 pop_key <- function(x, key, which = c("first", "all")) {
   which <- match.arg(which)
@@ -792,32 +597,6 @@ count_between <- function(x, from_key, to_key, include_from = TRUE, include_to =
   start <- .oms_range_start_index(x, from_key, include_from)
   end_excl <- .oms_range_end_exclusive_index(x, to_key, include_to)
   as.integer(max(0L, end_excl - start))
-}
-
-# Runtime: O(1).
-#' Ordered sequence set operations are not supported
-#'
-#' @rdname union
-#' @method union ordered_sequence
-#' @export
-union.ordered_sequence <- function(x, y, ...) {
-  stop("`union()` is only defined for ordered_multiset bag semantics. Convert with `as_ordered_multiset()`.")
-}
-
-# Runtime: O(1).
-#' @rdname union
-#' @method intersect ordered_sequence
-#' @export
-intersect.ordered_sequence <- function(x, y, ...) {
-  stop("`intersect()` is only defined for ordered_multiset bag semantics. Convert with `as_ordered_multiset()`.")
-}
-
-# Runtime: O(1).
-#' @rdname union
-#' @method setdiff ordered_sequence
-#' @export
-setdiff.ordered_sequence <- function(x, y, ...) {
-  stop("`setdiff()` is only defined for ordered_multiset bag semantics. Convert with `as_ordered_multiset()`.")
 }
 
 #' @method as.list ordered_sequence

@@ -52,8 +52,6 @@
 <code>priority_queue</code>: queue-first API layered on <code>flexseq</code>.</li>
 <li>
 <code>ordered_sequence</code>: key-ordered sequence API.</li>
-<li>
-<code>ordered_multiset</code>: bag/set semantics on top of ordered keyed entries.</li>
 </ul></li>
 <li>Current API direction (important):
 <ul><li>
@@ -68,7 +66,7 @@
 </ul></div>
 <div class="section level2">
 <h2 id="recent-branch-trajectory-api-align">Recent Branch Trajectory (api-align)<a class="anchor" aria-label="anchor" href="#recent-branch-trajectory-api-align"></a></h2>
-<p>Useful commit landmarks for intent: - <code>b97a2b5</code> API alignment work begins (<code>apply</code> generic direction, shared method patterns). - <code>3009b10</code> generalized reuse of flexseq infrastructure for subclasses. - <code>0a5a601</code> ordered types split into <code>ordered_sequence</code> + <code>ordered_multiset</code>. - <code>7b6fced</code> priority queue surface narrowed (queue-first UX). - <code>ffcb101</code> removed fold/walk machinery from public surface. - <code>c07b4e6</code> migrated user-facing sequence endpoints to push/pop/peek names. - <code>b276f73</code> removed ordered merge methods for now. - <code>e920165</code> minor pkgdown reference reorder.</p>
+<p>Useful commit landmarks for intent: - <code>b97a2b5</code> API alignment work begins (<code>apply</code> generic direction, shared method patterns). - <code>3009b10</code> generalized reuse of flexseq infrastructure for subclasses. - <code>0a5a601</code> ordered types split into <code>ordered_sequence</code> + <code>ordered_multiset</code> (now removed). - <code>7b6fced</code> priority queue surface narrowed (queue-first UX). - <code>ffcb101</code> removed fold/walk machinery from public surface. - <code>c07b4e6</code> migrated user-facing sequence endpoints to push/pop/peek names. - <code>b276f73</code> removed ordered merge methods for now. - <code>e920165</code> minor pkgdown reference reorder.</p>
 <p>Interpretation: - The codebase is intentionally simplifying and narrowing APIs. - If in doubt, follow current tests + <code>NAMESPACE</code> over historical docs/blog-style examples.</p>
 </div>
 <div class="section level2">
@@ -76,10 +74,8 @@
 <ol style="list-style-type: decimal"><li>
 <code>NAMESPACE</code> (what is exported and dispatched right now).</li>
 <li><code>R/40-ordered_sequence-core.R</code></li>
-<li><code>R/40-ordered_multiset-core.R</code></li>
 <li><code>R/40-priority_queue-core.R</code></li>
 <li><code>tests/testthat/test-ordered-sequence.R</code></li>
-<li><code>tests/testthat/test-ordered-multiset.R</code></li>
 <li><code>tests/testthat/test-priority-queue.R</code></li>
 <li><code>tests/testthat/test-cpp-parity.R</code></li>
 <li><code>tests/testthat/test-cpp-gc-safety.R</code></li>
@@ -192,6 +188,8 @@
 <code>eb493fd</code>: removed <code>delete_one</code>/<code>delete_all</code>; <code><a href="reference/peek_key.html">peek_key()</a></code> and <code><a href="reference/pop_key.html">pop_key()</a></code> now support <code>which = "first"|"all"</code> where <code>"all"</code> operates on full duplicate-key runs and returns an ordered slice. Risk: code using deleted functions or assuming <code><a href="reference/pop_key.html">pop_key()</a></code> always pops one element must migrate.</li>
 <li>
 <code>eb493fd</code>: <code><a href="reference/pop_front.html">pop_front()</a></code>/<code><a href="reference/pop_back.html">pop_back()</a></code> now return <code>element</code> (not <code>value</code>) plus <code>rest</code>; tests/docs/vignette updated. Risk: callers using <code>$value</code> must switch to <code>$element</code>.</li>
+<li>
+<code>eb493fd</code>: removed <code>ordered_multiset</code> API/tests and dropped package-level set-op generics (<code>union</code>/<code>intersect</code>/<code>setdiff</code>) tied to that surface. Risk: any code importing those package methods must migrate to explicit sequence operations.</li>
 </ul></div>
 </div>
 

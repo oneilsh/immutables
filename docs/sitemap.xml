@@ -15,10 +15,8 @@
 <url><loc>https://oneilsh.github.io/immutables/reference/append.flexseq.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/append.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/apply.html</loc></url>
-<url><loc>https://oneilsh.github.io/immutables/reference/apply.ordered_multiset.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/as.list.flexseq.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/as_flexseq.html</loc></url>
-<url><loc>https://oneilsh.github.io/immutables/reference/as_ordered_multiset.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/as_ordered_sequence.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/as_priority_queue.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/c.flexseq.html</loc></url>
@@ -41,13 +39,14 @@
 <url><loc>https://oneilsh.github.io/immutables/reference/immutables-package.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/index.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/insert.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/intersect.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/intersect.ordered_sequence.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/is_empty.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/length.flexseq.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/locate_by_predicate.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/lower_bound.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/measure_monoid.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/merge.ordered_sequence.html</loc></url>
-<url><loc>https://oneilsh.github.io/immutables/reference/ordered_multiset.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/ordered_sequence.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/peek_back.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/peek_front.html</loc></url>
@@ -64,7 +63,6 @@
 <url><loc>https://oneilsh.github.io/immutables/reference/prepend.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/print.FingerTree.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/print.flexseq.html</loc></url>
-<url><loc>https://oneilsh.github.io/immutables/reference/print.ordered_multiset.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/print.ordered_sequence.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/print.priority_queue.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/priority_queue.html</loc></url>
@@ -73,6 +71,8 @@
 <url><loc>https://oneilsh.github.io/immutables/reference/reduce_left.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/reduce_right.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/seq_walk.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/setdiff.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/setdiff.ordered_sequence.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/split.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/split_around_by_predicate.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/split_at.html</loc></url>
@@ -86,7 +86,7 @@
 <url><loc>https://oneilsh.github.io/immutables/reference/subset-.FingerTree.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/subset-.flexseq.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/tree_from.html</loc></url>
-<url><loc>https://oneilsh.github.io/immutables/reference/union.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/union.ordered_sequence.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/upper_bound.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/validate_name_state.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/validate_tree.html</loc></url>

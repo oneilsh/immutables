@@ -32,21 +32,12 @@
     ms <- attr(base_plain, "monoids", exact = TRUE)
     base_names <- paste0("k", seq_len(8))
 
-    x_oms <- as_ordered_multiset(list("aa", "bb", "c", "ddd"), keys = c(2, 2, 1, 3))
-    y_oms <- as_ordered_multiset(list("xx", "z", "qq", "rrrr"), keys = c(2, 1, 2, 4))
+    x_oms <- as_ordered_sequence(list("aa", "bb", "c", "ddd"), keys = c(2, 2, 1, 3))
+    y_oms <- as_ordered_sequence(list("xx", "z", "qq", "rrrr"), keys = c(2, 1, 2, 4))
     ms_oms <- attr(x_oms, "monoids", exact = TRUE)
     key_type_oms <- attr(x_oms, "oms_key_type", exact = TRUE)
 
     options(immutables.use_cpp = TRUE)
-    old_merge_engine <- getOption("immutables.oms.merge_engine")
-    options(immutables.oms.merge_engine = "auto")
-    on.exit({
-      if(is.null(old_merge_engine)) {
-        options(immutables.oms.merge_engine = NULL)
-      } else {
-        options(immutables.oms.merge_engine = old_merge_engine)
-      }
-    }, add = TRUE)
 
     old_torture <- gctorture2(1, inhibit_release = FALSE)
     on.exit(gctorture2(old_torture, inhibit_release = FALSE), add = TRUE)
@@ -83,7 +74,7 @@
     step("ft_cpp_oms_set_merge", .ft_cpp_oms_set_merge(x_oms, y_oms, "union", ms_oms, key_type_oms))
 
     step("insert", insert(x_oms, "newer", key = 2))
-    step("union", union(x_oms, y_oms))
+    step("pop_key_all", pop_key(x_oms, 2, which = "all"))
   }, error = function(e) {
     setup_error <<- conditionMessage(e)
   })
@@ -129,5 +120,5 @@ testthat::test_that("C++ OMS primitives survive GC torture", {
 
 testthat::test_that("OMS public APIs survive GC torture", {
   .expect_step_ok("insert")
-  .expect_step_ok("union")
+  .expect_step_ok("pop_key_all")
 })

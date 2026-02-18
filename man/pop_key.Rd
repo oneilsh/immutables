@@ -14,18 +14,26 @@ pop_key(x, key, which = c("first", "all"))
 \item{which}{One of `"first"` or `"all"`.}
 }
 \value{
-List with `element`, `key`, and updated `sequence`.
-  For `which = "first"`:
-  - On match: `element` is the first matching item; `key` is its key.
-  - On miss: `element = NULL`, `key = NULL`, `sequence = x`.
-
-  For `which = "all"`:
-  - `element` is an `ordered_sequence` containing all matching items (in
-  stable order). This may have size 0 (miss), 1 (single match), or >1
-  (multiple matches).
-  - `key` is the normalized key on match, otherwise `NULL`.
-  - `sequence` is the original sequence with that entire key-run removed
-  (or unchanged on miss).
+A named list with components \code{element}, \code{key}, and
+  \code{sequence}.
+  \itemize{
+  \item For \code{which = "first"}:
+  \itemize{
+  \item On match: \code{element} is the first matching item and \code{key}
+  is its key.
+  \item On miss: \code{element = NULL}, \code{key = NULL},
+  \code{sequence = x}.
+  }
+  \item For \code{which = "all"}:
+  \itemize{
+  \item \code{element} is an \code{ordered_sequence} of all matching items in
+  stable order. It may have size 0 (miss), 1 (single match), or greater than
+  1 (multiple matches).
+  \item \code{key} is the normalized key on match, otherwise \code{NULL}.
+  \item \code{sequence} is the original sequence with that full key-run
+  removed (or unchanged on miss).
+  }
+  }
 }
 \description{
 For `which = "first"`, removes and returns the first (leftmost) sequence

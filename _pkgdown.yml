@@ -81,17 +81,6 @@ reference:
       - count_between
       - "print.ordered_sequence"
 
-  - title: "ordered_multiset"
-    desc: |
-      Bag semantics layered on ordered_sequence.
-    contents:
-      - ordered_multiset
-      - as_ordered_multiset
-      - union
-      - intersect
-      - setdiff
-      - "print.ordered_multiset"
-
   - title: "developer"
     desc: "Lower-level constructors, query primitives, and tooling"
     contents:

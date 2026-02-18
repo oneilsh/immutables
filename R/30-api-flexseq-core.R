@@ -130,7 +130,7 @@ c.flexseq <- function(..., recursive = FALSE) {
 #' @noRd
 # Runtime: O(1).
 c.ordered_sequence <- function(..., recursive = FALSE) {
-  stop("`c()` is not supported for ordered_sequence/ordered_multiset.")
+  stop("`c()` is not supported for ordered_sequence.")
 }
 
 #' @export

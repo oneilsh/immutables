@@ -5,7 +5,6 @@ testthat::test_that("constructor sorts by key and preserves stable duplicate ord
   )
 
   testthat::expect_s3_class(xs, "ordered_sequence")
-  testthat::expect_false(inherits(xs, "ordered_multiset"))
   testthat::expect_equal(as.list(xs), list("a", "e", "cc", "dd", "bbb"))
   testthat::expect_identical(length(xs), 5L)
 })
@@ -113,25 +112,12 @@ testthat::test_that("count helpers match range and key multiplicities", {
   testthat::expect_identical(count_between(xs, 9, 10), 0L)
 })
 
-testthat::test_that("ordered_sequence set ops error with guidance", {
-  x <- as_ordered_sequence(list("a"), keys = 1)
-  y <- as_ordered_sequence(list("b"), keys = 1)
-  testthat::expect_error(union(x, y), "ordered_multiset")
-  testthat::expect_error(intersect(x, y), "ordered_multiset")
-  testthat::expect_error(setdiff(x, y), "ordered_multiset")
-})
-
 testthat::test_that("order-breaking writes are blocked on ordered types", {
   xs <- as_ordered_sequence(list("a", "b"), keys = c(1, 2))
-  ms <- as_ordered_multiset(list("a", "b"), keys = c(1, 2))
 
   testthat::expect_error(c(xs, xs), "not supported")
   testthat::expect_error(push_back(xs, "c"), "not supported")
   testthat::expect_error(push_front(xs, "z"), "not supported")
-
-  testthat::expect_error(c(ms, ms), "not supported")
-  testthat::expect_error(push_back(ms, "c"), "not supported")
-  testthat::expect_error(push_front(ms, "z"), "not supported")
 
   testthat::expect_error({ xs[[1]] <- "z" }, "not supported")
   testthat::expect_error({ xs[1] <- list("z") }, "not supported")

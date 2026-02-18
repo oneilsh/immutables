@@ -32,17 +32,3 @@ print.ordered_sequence <- function(x, max_elements = 8L, ...) {
   cat(sprintf("  preview[%d]: %s\n", k, preview))
   invisible(x)
 }
-
-#' Print an ordered multiset summary
-#'
-#' @param x An `ordered_multiset`.
-#' @param max_elements Maximum number of elements shown in preview.
-#' @param ... Unused.
-#' @return Invisibly returns `x`.
-#' @export
-#' @method print ordered_multiset
-# Runtime: O(min(n, max_elements)).
-print.ordered_multiset <- function(x, max_elements = 8L, ...) {
-  .oms_assert_multiset(x)
-  NextMethod("print")
-}

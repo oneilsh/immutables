@@ -67,18 +67,20 @@ element among entries whose key equals `key`.</p>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>List with `element`, `key`, and updated `sequence`.
-  For `which = "first"`:
-  - On match: `element` is the first matching item; `key` is its key.
-  - On miss: `element = NULL`, `key = NULL`, `sequence = x`.</p>
-<p>For `which = "all"`:
-  - `element` is an `ordered_sequence` containing all matching items (in
-  stable order). This may have size 0 (miss), 1 (single match), or &gt;1
-  (multiple matches).
-  - `key` is the normalized key on match, otherwise `NULL`.
-  - `sequence` is the original sequence with that entire key-run removed
-  (or unchanged on miss).</p>
-    </div>
+    <p>A named list with components <code>element</code>, <code>key</code>, and
+  <code>sequence</code>.</p><ul><li><p>For <code>which = "first"</code>:</p><ul><li><p>On match: <code>element</code> is the first matching item and <code>key</code>
+  is its key.</p></li>
+<li><p>On miss: <code>element = NULL</code>, <code>key = NULL</code>,
+  <code>sequence = x</code>.</p></li>
+</ul></li>
+<li><p>For <code>which = "all"</code>:</p><ul><li><p><code>element</code> is an <code>ordered_sequence</code> of all matching items in
+  stable order. It may have size 0 (miss), 1 (single match), or greater than
+  1 (multiple matches).</p></li>
+<li><p><code>key</code> is the normalized key on match, otherwise <code>NULL</code>.</p></li>
+<li><p><code>sequence</code> is the original sequence with that full key-run
+  removed (or unchanged on miss).</p></li>
+</ul></li>
+</ul></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>For `which = "all"`, removes and returns all matching entries as an ordered

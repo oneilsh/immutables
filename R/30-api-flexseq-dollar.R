@@ -67,7 +67,7 @@
 #' @export
 #' @noRd
 `$<-.ordered_sequence` <- function(x, name, value) {
-  stop("`$<-` is not supported for ordered_sequence/ordered_multiset.")
+  stop("`$<-` is not supported for ordered_sequence.")
 }
 
 #' @export

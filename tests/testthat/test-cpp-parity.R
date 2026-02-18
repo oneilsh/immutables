@@ -90,7 +90,7 @@ parity_scenarios <- c(
   "$ read",
   "$<- replacement",
   "ordered_sequence insert",
-  "ordered_multiset set ops",
+  "ordered key-merge primitive",
   "print.FingerTree output",
   "get_graph_df",
   "validate_tree",
@@ -104,10 +104,10 @@ cpp_wrapper_coverage <- list(
   .ft_cpp_add_left_named = c("prepend named"),
   .ft_cpp_tree_from = c("tree_from unnamed"),
   .ft_cpp_tree_from_prepared = c("tree_from"),
-  .ft_cpp_tree_from_sorted = c("ordered_multiset set ops"),
+  .ft_cpp_tree_from_sorted = c("ordered_sequence insert"),
   .ft_cpp_concat = c("concat_trees"),
   .ft_cpp_oms_insert = c("ordered_sequence insert"),
-  .ft_cpp_oms_set_merge = c("ordered_multiset set ops"),
+  .ft_cpp_oms_set_merge = c("ordered key-merge primitive"),
   .ft_cpp_locate = c("locate_by_predicate"),
   .ft_cpp_split_tree = c("split_around_by_predicate", "split_by_predicate"),
   .ft_cpp_find_name_position = c("$ read", "[ read (integer/logical/name)"),
@@ -315,26 +315,15 @@ testthat::test_that("backend parity: ordered_sequence insert", {
   })
 })
 
-testthat::test_that("backend parity: ordered_multiset set ops", {
+testthat::test_that("backend parity: ordered key-merge primitive", {
   expect_backend_identical({
-    old_engine <- getOption("immutables.oms.merge_engine")
-    on.exit({
-      if(is.null(old_engine)) {
-        options(immutables.oms.merge_engine = NULL)
-      } else {
-        options(immutables.oms.merge_engine = old_engine)
-      }
-    }, add = TRUE)
-    options(immutables.oms.merge_engine = "auto")
+    x <- as_ordered_sequence(list("aa", "bb", "c", "ddd"), keys = c(2, 2, 1, 3))
+    y <- as_ordered_sequence(list("xx", "z", "qq", "rrrr"), keys = c(2, 1, 2, 4))
+    ms <- attr(x, "monoids", exact = TRUE)
+    key_type <- attr(x, "oms_key_type", exact = TRUE)
 
-    x <- as_ordered_multiset(list("aa", "bb", "c", "ddd"), keys = c(2, 2, 1, 3))
-    y <- as_ordered_multiset(list("xx", "z", "qq", "rrrr"), keys = c(2, 1, 2, 4))
-
-    list(
-      union = as.list(union(x, y)),
-      intersection = as.list(intersect(x, y)),
-      difference = as.list(setdiff(x, y))
-    )
+    out <- .as_flexseq(.ft_cpp_oms_set_merge(x, y, "union", ms, key_type))
+    as.list(out)
   })
 })
 

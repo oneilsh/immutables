@@ -114,7 +114,7 @@ For API or behavior changes:
 
 ## Updating AGENTS.md With Notes
 You may add notes about the repo to the Notes section below in this file, located
-at <project root>/.codex/AGENTS.md 
+at <project root>/AGENTS.md
 
 You should also keep the information in this file accurate as the state of the
 API or underlying implementations change.
@@ -125,3 +125,5 @@ API or underlying implementations change.
   - like this
   - and this
 - Keep notes short and concrete (commit SHA + impact + risk).
+- `eb493fd`: ordered_sequence key APIs aligned around `key`/`from_key`/`to_key`, `extract_key` renamed to `pop_key`, and missing-key reads are non-throwing (`peek_key(..., if_missing=...)`, `pop_key()` null-returns on miss). Risk: callers relying on previous argument names/error behavior need updates.
+- `eb493fd`: removed `delete_one`/`delete_all`; `peek_key()` and `pop_key()` now support `which = "first"|"all"` where `"all"` operates on full duplicate-key runs and returns an ordered slice. Risk: code using deleted functions or assuming `pop_key()` always pops one element must migrate.

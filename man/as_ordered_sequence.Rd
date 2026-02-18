@@ -11,7 +11,11 @@ as_ordered_sequence(x, keys = NULL, monoids = NULL)
 
 \item{keys}{Scalar key values matching `x` length.}
 
-\item{monoids}{Optional additional named list of `measure_monoid` objects.}
+\item{monoids}{Optional additional named list of `measure_monoid` objects.
+
+Ordered sequences are always key-sorted. Subsetting with `[` is intentionally
+constrained to strictly increasing mapped positions (no duplicates or
+reordering) so the result remains ordered.}
 }
 \value{
 An `ordered_sequence`.

@@ -1,5 +1,6 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>https://oneilsh.github.io/immutables/404.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/AGENTS.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/LICENSE-text.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/LICENSE.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/articles/flexseq.html</loc></url>
@@ -26,11 +27,10 @@
 <url><loc>https://oneilsh.github.io/immutables/reference/cash-set-.FingerTree.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/cash-set-.flexseq.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/concat_trees.html</loc></url>
-<url><loc>https://oneilsh.github.io/immutables/reference/delete_all.html</loc></url>
-<url><loc>https://oneilsh.github.io/immutables/reference/delete_one.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/count_between.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/count_key.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/elements_between.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/empty_tree.html</loc></url>
-<url><loc>https://oneilsh.github.io/immutables/reference/extract_key.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/extract_max.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/extract_min.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/fingertree-package.html</loc></url>
@@ -58,6 +58,7 @@
 <url><loc>https://oneilsh.github.io/immutables/reference/plot_tree.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/pop_back.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/pop_front.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/pop_key.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/pop_max.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/pop_min.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/prepend.html</loc></url>

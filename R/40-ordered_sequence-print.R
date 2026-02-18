@@ -20,8 +20,15 @@ print.ordered_sequence <- function(x, max_elements = 8L, ...) {
   }
 
   k <- min(as.integer(max_elements), n)
-  vals <- as.list.ordered_sequence(x)[seq_len(k)]
-  preview <- paste(vapply(vals, function(v) paste(capture.output(str(v, give.attr = FALSE, vec.len = 3)), collapse = " "), character(1)), collapse = " | ")
+  entries <- .oms_entries(x)[seq_len(k)]
+  preview <- paste(
+    vapply(entries, function(e) {
+      key_txt <- paste(capture.output(str(e$key, give.attr = FALSE, vec.len = 1)), collapse = " ")
+      item_txt <- paste(capture.output(str(e$item, give.attr = FALSE, vec.len = 3)), collapse = " ")
+      sprintf("{key=%s item=%s}", key_txt, item_txt)
+    }, character(1)),
+    collapse = " | "
+  )
   cat(sprintf("  preview[%d]: %s\n", k, preview))
   invisible(x)
 }

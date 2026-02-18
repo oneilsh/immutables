@@ -419,6 +419,10 @@
 #' @param x Elements to add.
 #' @param keys Scalar key values matching `x` length.
 #' @param monoids Optional additional named list of `measure_monoid` objects.
+#'
+#' Ordered sequences are always key-sorted. Subsetting with `[` is intentionally
+#' constrained to strictly increasing mapped positions (no duplicates or
+#' reordering) so the result remains ordered.
 #' @return An `ordered_sequence`.
 #' @examples
 #' xs <- as_ordered_sequence(c(4, 1, 2, 1), keys = c(4, 1, 2, 1))
@@ -479,63 +483,50 @@ insert.ordered_sequence <- function(x, element, key, ...) {
   .oms_insert_impl(x, element, key)
 }
 
-# Runtime: O(log n) near split points.
-#' Delete one element by key
-#'
-#' @param x An `ordered_sequence`.
-#' @param key_value Key value to delete.
-#' @return Updated `ordered_sequence`.
-#' @export
-delete_one <- function(x, key_value) {
+# Runtime: O(log n).
+.oms_key_span <- function(x, key) {
   .oms_assert_set(x)
-  l <- .oms_bound_index(x, key_value, strict = FALSE)
-  u <- .oms_bound_index(x, key_value, strict = TRUE)
+  norm <- .oms_normalize_key(key)
+  .oms_validate_key_type(.oms_key_type_state(x), norm$key_type)
 
-  if(l >= u) {
-    return(x)
-  }
-
-  s1 <- split_by_predicate(x, function(v) v >= l, ".size")
-  s2 <- split_by_predicate(s1$right, function(v) v >= 2L, ".size")
-  out <- concat_trees(s1$left, s2$right)
-  .ord_wrap_like(x, out)
+  start <- .oms_bound_index(x, norm$key, strict = FALSE)
+  end_excl <- .oms_bound_index(x, norm$key, strict = TRUE)
+  list(
+    found = isTRUE(end_excl > start),
+    key = norm$key,
+    start = as.integer(start),
+    end_excl = as.integer(end_excl)
+  )
 }
 
 # Runtime: O(log n) near split points.
-#' Delete all elements by key
-#'
-#' @param x An `ordered_sequence`.
-#' @param key_value Key value to delete.
-#' @return Updated `ordered_sequence`.
-#' @export
-delete_all <- function(x, key_value) {
+.oms_slice_key_span <- function(x, start, end_excl) {
   .oms_assert_set(x)
-  l <- .oms_bound_index(x, key_value, strict = FALSE)
-  u <- .oms_bound_index(x, key_value, strict = TRUE)
-
-  if(l >= u) {
-    return(x)
+  if(end_excl <= start) {
+    empty <- .oms_empty_tree_like(x)
+    return(list(matched = empty, rest = .as_flexseq(x)))
   }
-
-  s1 <- split_by_predicate(x, function(v) v >= l, ".size")
-  span_len <- as.integer(u - l)
+  s1 <- split_by_predicate(x, function(v) v >= start, ".size")
+  span_len <- as.integer(end_excl - start)
   s2 <- split_by_predicate(s1$right, function(v) v >= (span_len + 1L), ".size")
-  out <- concat_trees(s1$left, s2$right)
-  .ord_wrap_like(x, out)
+  list(
+    matched = s2$left,
+    rest = concat_trees(s1$left, s2$right)
+  )
 }
 
 # Runtime: O(log n).
 #' Find first element with key >= value
 #'
 #' @param x An `ordered_sequence`.
-#' @param key_value Query key.
+#' @param key Query key.
 #' @return Named list with fields `found`, `index`, `element`, and `key`.
 #'   When no match exists, `found` is `FALSE` and the remaining fields
 #'   are `NULL`.
 #' @export
-lower_bound <- function(x, key_value) {
+lower_bound <- function(x, key) {
   .oms_assert_set(x)
-  idx <- .oms_bound_index(x, key_value, strict = FALSE)
+  idx <- .oms_bound_index(x, key, strict = FALSE)
   n <- length(x)
 
   if(idx > n) {
@@ -550,14 +541,14 @@ lower_bound <- function(x, key_value) {
 #' Find first element with key > value
 #'
 #' @param x An `ordered_sequence`.
-#' @param key_value Query key.
+#' @param key Query key.
 #' @return Named list with fields `found`, `index`, `element`, and `key`.
 #'   When no match exists, `found` is `FALSE` and the remaining fields
 #'   are `NULL`.
 #' @export
-upper_bound <- function(x, key_value) {
+upper_bound <- function(x, key) {
   .oms_assert_set(x)
-  idx <- .oms_bound_index(x, key_value, strict = TRUE)
+  idx <- .oms_bound_index(x, key, strict = TRUE)
   n <- length(x)
 
   if(idx > n) {
@@ -568,63 +559,85 @@ upper_bound <- function(x, key_value) {
   list(found = TRUE, index = idx, element = entry$item, key = entry$key)
 }
 
-# Runtime: O(log n).
-#' Peek first element for one key
+# Runtime: O(log n) for `which = "first"`; O(log n) for `which = "all"`.
+#' Peek elements for one key
 #'
-#' Returns the first (leftmost) sequence element among entries whose key equals
-#' `key_value`.
+#' For `which = "first"`, returns the first (leftmost) sequence element among
+#' entries whose key equals `key`.
+#'
+#' For `which = "all"`, returns an ordered sequence containing exactly the
+#' entries whose key equals `key`.
 #'
 #' @param x An `ordered_sequence`.
-#' @param key_value Query key.
-#' @return Raw stored element.
+#' @param key Query key.
+#' @param which One of `"first"` or `"all"`.
+#' @param if_missing Value returned when no matching key is present.
+#' @return For `which = "first"`, raw stored element or `if_missing` when not
+#'   found. For `which = "all"`, an ordered sequence with matching elements
+#'   (possibly empty).
 #' @export
-peek_key <- function(x, key_value) {
+peek_key <- function(x, key, which = c("first", "all"), if_missing = NULL) {
   .oms_assert_set(x)
-  norm <- .oms_normalize_key(key_value)
-  key_type <- .oms_validate_key_type(.oms_key_type_state(x), norm$key_type)
+  which <- match.arg(which)
+  span <- .oms_key_span(x, key)
 
-  idx <- .oms_bound_index(x, norm$key, strict = FALSE)
-  n <- length(x)
-  if(idx > n) {
-    stop("Key not found in ordered_sequence.")
+  if(!identical(which, "all")) {
+    if(!isTRUE(span$found)) {
+      return(if_missing)
+    }
+    s <- split_around_by_predicate(x, function(v) v >= span$start, ".size")
+    return(s$elem$item)
   }
 
-  s <- split_around_by_predicate(x, function(v) v >= idx, ".size")
-  if(.oms_compare_key(s$elem$key, norm$key, key_type) != 0L) {
-    stop("Key not found in ordered_sequence.")
+  if(!isTRUE(span$found)) {
+    return(.ord_wrap_like(x, .oms_empty_tree_like(x)))
   }
-  s$elem$item
+  parts <- .oms_slice_key_span(x, span$start, span$end_excl)
+  .ord_wrap_like(x, parts$matched)
 }
 
 # Runtime: O(log n) near split point depth.
-#' Extract first element for one key
+#' Pop elements for one key
 #'
-#' Removes and returns the first (leftmost) sequence element among entries whose
-#' key equals `key_value`.
+#' For `which = "first"`, removes and returns the first (leftmost) sequence
+#' element among entries whose key equals `key`.
+#'
+#' For `which = "all"`, removes and returns all matching entries as an ordered
+#' sequence.
 #'
 #' @param x An `ordered_sequence`.
-#' @param key_value Query key.
+#' @param key Query key.
+#' @param which One of `"first"` or `"all"`.
 #' @return List with `element`, `key`, and updated `sequence`.
+#'   When no match exists, returns `list(element = NULL, key = NULL, sequence = x)`
+#'   for `which = "first"`, or
+#'   `list(element = <empty ordered_sequence>, key = NULL, sequence = x)` for
+#'   `which = "all"`.
 #' @export
-extract_key <- function(x, key_value) {
+pop_key <- function(x, key, which = c("first", "all")) {
   .oms_assert_set(x)
-  norm <- .oms_normalize_key(key_value)
-  key_type <- .oms_validate_key_type(.oms_key_type_state(x), norm$key_type)
+  which <- match.arg(which)
+  span <- .oms_key_span(x, key)
 
-  idx <- .oms_bound_index(x, norm$key, strict = FALSE)
-  n <- length(x)
-  if(idx > n) {
-    stop("Key not found in ordered_sequence.")
+  if(!isTRUE(span$found)) {
+    if(identical(which, "all")) {
+      return(list(element = .ord_wrap_like(x, .oms_empty_tree_like(x)), key = NULL, sequence = x))
+    }
+    return(list(element = NULL, key = NULL, sequence = x))
   }
 
-  s <- split_around_by_predicate(x, function(v) v >= idx, ".size")
-  if(.oms_compare_key(s$elem$key, norm$key, key_type) != 0L) {
-    stop("Key not found in ordered_sequence.")
+  if(!identical(which, "all")) {
+    s <- split_around_by_predicate(x, function(v) v >= span$start, ".size")
+    out <- concat_trees(s$left, s$right)
+    seq_out <- .ord_wrap_like(x, out)
+    return(list(element = s$elem$item, key = s$elem$key, sequence = seq_out))
   }
-
-  out <- concat_trees(s$left, s$right)
-  seq_out <- .ord_wrap_like(x, out)
-  list(element = s$elem$item, key = s$elem$key, sequence = seq_out)
+  parts <- .oms_slice_key_span(x, span$start, span$end_excl)
+  list(
+    element = .ord_wrap_like(x, parts$matched),
+    key = span$key,
+    sequence = .ord_wrap_like(x, parts$rest)
+  )
 }
 
 # Runtime: O(n log n) total from traversal + reordering + rebuild.
@@ -715,19 +728,19 @@ apply.ordered_sequence <- function(X, MARGIN = NULL, FUN = NULL, ...) {
 #' Return elements in a key range
 #'
 #' @param x An `ordered_sequence`.
-#' @param lo Lower bound key.
-#' @param hi Upper bound key.
-#' @param include_lo Include lower bound when `TRUE`.
-#' @param include_hi Include upper bound when `TRUE`.
+#' @param from_key Lower bound key.
+#' @param to_key Upper bound key.
+#' @param include_from Include lower bound when `TRUE`.
+#' @param include_to Include upper bound when `TRUE`.
 #' @return List of raw elements.
 #' @export
-elements_between <- function(x, lo, hi, include_lo = TRUE, include_hi = TRUE) {
+elements_between <- function(x, from_key, to_key, include_from = TRUE, include_to = TRUE) {
   .oms_assert_set(x)
-  include_lo <- .oms_coerce_lgl_scalar(include_lo, "include_lo")
-  include_hi <- .oms_coerce_lgl_scalar(include_hi, "include_hi")
+  include_from <- .oms_coerce_lgl_scalar(include_from, "include_from")
+  include_to <- .oms_coerce_lgl_scalar(include_to, "include_to")
 
-  start <- .oms_range_start_index(x, lo, include_lo)
-  end_excl <- .oms_range_end_exclusive_index(x, hi, include_hi)
+  start <- .oms_range_start_index(x, from_key, include_from)
+  end_excl <- .oms_range_end_exclusive_index(x, to_key, include_to)
 
   if(end_excl <= start || start > length(x)) {
     return(list())
@@ -735,6 +748,40 @@ elements_between <- function(x, lo, hi, include_lo = TRUE, include_hi = TRUE) {
 
   entries <- .oms_entries(x)[seq.int(start, end_excl - 1L)]
   .oms_extract_items(entries)
+}
+
+# Runtime: O(log n).
+#' Count elements matching one key
+#'
+#' @param x An `ordered_sequence`.
+#' @param key Query key.
+#' @return Integer count of matching elements.
+#' @export
+count_key <- function(x, key) {
+  .oms_assert_set(x)
+  lo <- .oms_bound_index(x, key, strict = FALSE)
+  hi <- .oms_bound_index(x, key, strict = TRUE)
+  as.integer(max(0L, hi - lo))
+}
+
+# Runtime: O(log n).
+#' Count elements in a key range
+#'
+#' @param x An `ordered_sequence`.
+#' @param from_key Lower bound key.
+#' @param to_key Upper bound key.
+#' @param include_from Include lower bound when `TRUE`.
+#' @param include_to Include upper bound when `TRUE`.
+#' @return Integer count of matching elements.
+#' @export
+count_between <- function(x, from_key, to_key, include_from = TRUE, include_to = TRUE) {
+  .oms_assert_set(x)
+  include_from <- .oms_coerce_lgl_scalar(include_from, "include_from")
+  include_to <- .oms_coerce_lgl_scalar(include_to, "include_to")
+
+  start <- .oms_range_start_index(x, from_key, include_from)
+  end_excl <- .oms_range_end_exclusive_index(x, to_key, include_to)
+  as.integer(max(0L, end_excl - start))
 }
 
 # Runtime: O(1).

@@ -73,12 +73,12 @@ reference:
       - as_ordered_sequence
       - insert
       - peek_key
-      - extract_key
-      - delete_one
-      - delete_all
+      - pop_key
       - lower_bound
       - upper_bound
       - elements_between
+      - count_key
+      - count_between
       - "print.ordered_sequence"
 
   - title: "ordered_multiset"

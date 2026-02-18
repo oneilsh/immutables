@@ -4,12 +4,12 @@
 \alias{upper_bound}
 \title{Find first element with key > value}
 \usage{
-upper_bound(x, key_value)
+upper_bound(x, key)
 }
 \arguments{
 \item{x}{An `ordered_sequence`.}
 
-\item{key_value}{Query key.}
+\item{key}{Query key.}
 }
 \value{
 Named list with fields `found`, `index`, `element`, and `key`.

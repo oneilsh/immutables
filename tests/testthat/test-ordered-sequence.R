@@ -17,8 +17,8 @@ testthat::test_that("insert appends at right edge of equal-key block (FIFO ties)
   testthat::expect_equal(as.list(xs2), list("c", "bb", "aa", "dd"))
   testthat::expect_equal(peek_key(xs2, 2), "bb")
 
-  out1 <- extract_key(xs2, 2)
-  out2 <- extract_key(out1$sequence, 2)
+  out1 <- pop_key(xs2, 2)
+  out2 <- pop_key(out1$sequence, 2)
   testthat::expect_equal(out1$element, "bb")
   testthat::expect_equal(out2$element, "aa")
 })
@@ -42,25 +42,34 @@ testthat::test_that("lower_bound and upper_bound behave at boundaries", {
   testthat::expect_null(lb9$index)
 })
 
-testthat::test_that("delete operations follow key spans", {
+testthat::test_that("pop_key supports first/all removal by key span", {
   xs <- as_ordered_sequence(list("aa", "bb", "c", "dd", "e"), keys = c(2, 2, 1, 2, 1))
 
-  xs_one <- delete_one(xs, 2)
-  testthat::expect_equal(as.list(xs_one), list("c", "e", "bb", "dd"))
+  one <- pop_key(xs, 2)
+  testthat::expect_equal(one$element, "aa")
+  testthat::expect_equal(as.list(one$sequence), list("c", "e", "bb", "dd"))
 
-  xs_all <- delete_all(xs, 2)
-  testthat::expect_equal(as.list(xs_all), list("c", "e"))
+  all <- pop_key(xs, 2, which = "all")
+  testthat::expect_s3_class(all$element, "ordered_sequence")
+  testthat::expect_equal(as.list(all$element), list("aa", "bb", "dd"))
+  testthat::expect_equal(as.list(all$sequence), list("c", "e"))
 
-  xs_absent <- delete_one(xs, 99)
-  testthat::expect_equal(as.list(xs_absent), as.list(xs))
+  miss_one <- pop_key(xs, 99)
+  testthat::expect_null(miss_one$element)
+  testthat::expect_equal(as.list(miss_one$sequence), as.list(xs))
+
+  miss_all <- pop_key(xs, 99, which = "all")
+  testthat::expect_s3_class(miss_all$element, "ordered_sequence")
+  testthat::expect_identical(length(miss_all$element), 0L)
+  testthat::expect_equal(as.list(miss_all$sequence), as.list(xs))
 })
 
 testthat::test_that("elements_between supports inclusivity flags", {
   xs <- as_ordered_sequence(list("a", "bb", "cc", "ddd", "eeee"), keys = c(1, 2, 2, 3, 4))
 
   e_closed <- elements_between(xs, 2, 3)
-  e_open_hi <- elements_between(xs, 2, 3, include_hi = FALSE)
-  e_open_lo <- elements_between(xs, 2, 3, include_lo = FALSE)
+  e_open_hi <- elements_between(xs, 2, 3, include_to = FALSE)
+  e_open_lo <- elements_between(xs, 2, 3, include_from = FALSE)
   e_miss <- elements_between(xs, 9, 10)
 
   testthat::expect_equal(e_closed, list("bb", "cc", "ddd"))
@@ -69,17 +78,39 @@ testthat::test_that("elements_between supports inclusivity flags", {
   testthat::expect_equal(e_miss, list())
 })
 
-testthat::test_that("peek_key and extract_key are stable within duplicate key blocks", {
+testthat::test_that("peek_key and pop_key are stable within duplicate key blocks", {
   xs <- as_ordered_sequence(list("a1", "b1", "a2", "a3"), keys = c(1, 2, 1, 1))
 
   testthat::expect_equal(peek_key(xs, 1), "a1")
-  out <- extract_key(xs, 1)
+  peek_all <- peek_key(xs, 1, which = "all")
+  testthat::expect_s3_class(peek_all, "ordered_sequence")
+  testthat::expect_equal(as.list(peek_all), list("a1", "a2", "a3"))
+  out <- pop_key(xs, 1)
   testthat::expect_equal(out$element, "a1")
   testthat::expect_equal(out$key, 1)
   testthat::expect_equal(as.list(out$sequence), list("a2", "a3", "b1"))
 
-  testthat::expect_error(peek_key(xs, 9), "not found")
-  testthat::expect_error(extract_key(xs, 9), "not found")
+  testthat::expect_null(peek_key(xs, 9))
+  peek_miss_all <- peek_key(xs, 9, which = "all")
+  testthat::expect_s3_class(peek_miss_all, "ordered_sequence")
+  testthat::expect_identical(length(peek_miss_all), 0L)
+  testthat::expect_identical(peek_key(xs, 9, if_missing = NA_character_), NA_character_)
+  miss <- pop_key(xs, 9)
+  testthat::expect_null(miss$element)
+  testthat::expect_null(miss$key)
+  testthat::expect_equal(as.list(miss$sequence), as.list(xs))
+})
+
+testthat::test_that("count helpers match range and key multiplicities", {
+  xs <- as_ordered_sequence(list("a", "bb", "cc", "ddd", "eeee"), keys = c(1, 2, 2, 3, 4))
+
+  testthat::expect_identical(count_key(xs, 2), 2L)
+  testthat::expect_identical(count_key(xs, 9), 0L)
+
+  testthat::expect_identical(count_between(xs, 2, 3), 3L)
+  testthat::expect_identical(count_between(xs, 2, 3, include_to = FALSE), 2L)
+  testthat::expect_identical(count_between(xs, 2, 3, include_from = FALSE), 1L)
+  testthat::expect_identical(count_between(xs, 9, 10), 0L)
 })
 
 testthat::test_that("ordered_sequence set ops error with guidance", {

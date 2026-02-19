@@ -85,6 +85,12 @@
     index_name_single_read = list(required = c("as_flexseq")),
     as_flexseq_only = list(required = c("as_flexseq")),
     ordered_sequence_insert = list(required = c("as_ordered_sequence", "insert")),
+    ordered_sequence_bounds = list(required = c("as_ordered_sequence", "lower_bound", "upper_bound")),
+    ordered_sequence_range_queries = list(required = c("as_ordered_sequence", "count_between", "elements_between")),
+    ordered_sequence_pop_cycle = list(required = c("as_ordered_sequence", "pop_key", "insert")),
+    pq_peek_min_max = list(required = c("priority_queue", "insert", "peek_min", "peek_max")),
+    pq_pop_min_drain = list(required = c("priority_queue", "insert", "pop_min")),
+    pq_mixed_ops = list(required = c("priority_queue", "insert", "pop_min", "peek_min")),
     pq_insert_pop = list(required = c("priority_queue", "insert", "pop_min"))
   )
 }
@@ -169,6 +175,70 @@
     if(!inherits(y, "ordered_sequence")) stop("Scenario contract failed: insert(ordered_sequence, ...) changed.")
     return(invisible(TRUE))
   }
+  if(identical(scenario, "ordered_sequence_bounds")) {
+    x <- as_ordered_sequence(list("a", "b", "c"), keys = c(1, 2, 2))
+    lb <- lower_bound(x, 2)
+    ub <- upper_bound(x, 2)
+    if(!is.list(lb) || is.null(lb$found) || !is.list(ub) || is.null(ub$found)) {
+      stop("Scenario contract failed: lower_bound()/upper_bound() output shape changed.")
+    }
+    return(invisible(TRUE))
+  }
+  if(identical(scenario, "ordered_sequence_range_queries")) {
+    x <- as_ordered_sequence(list("a", "b", "c"), keys = c(1, 2, 3))
+    n <- count_between(x, 1, 2)
+    ys <- elements_between(x, 1, 2)
+    if(!is.integer(n) || !is.list(ys)) {
+      stop("Scenario contract failed: range query helpers changed.")
+    }
+    return(invisible(TRUE))
+  }
+  if(identical(scenario, "ordered_sequence_pop_cycle")) {
+    x <- as_ordered_sequence(list("a", "b", "c"), keys = c(1, 2, 3))
+    out <- pop_key(x, 2, which = "first")
+    if(!is.list(out) || is.null(out$sequence) || !inherits(out$sequence, "ordered_sequence")) {
+      stop("Scenario contract failed: pop_key() output shape changed.")
+    }
+    y <- insert(out$sequence, out$element, key = 2)
+    if(!inherits(y, "ordered_sequence")) {
+      stop("Scenario contract failed: insert(pop_key(...)) changed.")
+    }
+    return(invisible(TRUE))
+  }
+  if(identical(scenario, "pq_peek_min_max")) {
+    q <- priority_queue()
+    q <- insert(q, "a", priority = 2)
+    q <- insert(q, "b", priority = 1)
+    a <- peek_min(q)
+    b <- peek_max(q)
+    if(is.null(a) || is.null(b)) {
+      stop("Scenario contract failed: peek_min()/peek_max() returned NULL.")
+    }
+    return(invisible(TRUE))
+  }
+  if(identical(scenario, "pq_pop_min_drain")) {
+    q <- priority_queue()
+    q <- insert(q, "a", priority = 2)
+    q <- insert(q, "b", priority = 1)
+    out <- pop_min(q)
+    if(!is.list(out) || is.null(out$queue) || !inherits(out$queue, "priority_queue")) {
+      stop("Scenario contract failed: pop_min() output shape changed.")
+    }
+    return(invisible(TRUE))
+  }
+  if(identical(scenario, "pq_mixed_ops")) {
+    q <- priority_queue()
+    q <- insert(q, "a", priority = 2)
+    q <- insert(q, "b", priority = 1)
+    q <- pop_min(q)$queue
+    if(length(q) > 0L) {
+      invisible(peek_min(q))
+    }
+    if(!inherits(q, "priority_queue")) {
+      stop("Scenario contract failed: priority queue mixed operations changed class.")
+    }
+    return(invisible(TRUE))
+  }
   if(identical(scenario, "pq_insert_pop")) {
     q <- priority_queue()
     q <- insert(q, "a", priority = 2)
@@ -195,7 +265,14 @@
       index_integer_single_read = list(n = 1000L, queries = 200L),
       index_name_single_read = list(n = 1000L, queries = 200L),
       as_flexseq_only = list(n = 40000L),
-      ordered_sequence_insert = list(n = 300L, inserts = 40L, key_space = 250L)
+      ordered_sequence_insert = list(n = 300L, inserts = 40L, key_space = 250L),
+      ordered_sequence_bounds = list(n = 160L, queries = 30L, key_space = 120L),
+      ordered_sequence_range_queries = list(n = 160L, queries = 30L, key_space = 120L),
+      ordered_sequence_pop_cycle = list(n = 120L, steps = 30L, key_space = 100L),
+      pq_peek_min_max = list(n = 100L, key_space = 80L, queries = 60L),
+      pq_pop_min_drain = list(n = 100L, key_space = 80L, pops = 50L),
+      pq_mixed_ops = list(n = 90L, key_space = 70L, ops = 110L, insert_prob = 0.55),
+      pq_insert_pop = list(n = 100L, key_space = 80L, pops = 50L)
     ))
   }
   list(
@@ -208,7 +285,14 @@
     index_integer_single_read = list(n = 5000L, queries = 800L),
     index_name_single_read = list(n = 320L, queries = 60L),
     as_flexseq_only = list(n = 12000L),
-    ordered_sequence_insert = list(n = 500L, inserts = 70L, key_space = 400L)
+    ordered_sequence_insert = list(n = 500L, inserts = 70L, key_space = 400L),
+    ordered_sequence_bounds = list(n = 220L, queries = 44L, key_space = 170L),
+    ordered_sequence_range_queries = list(n = 220L, queries = 44L, key_space = 170L),
+    ordered_sequence_pop_cycle = list(n = 160L, steps = 44L, key_space = 130L),
+    pq_peek_min_max = list(n = 140L, key_space = 100L, queries = 80L),
+    pq_pop_min_drain = list(n = 140L, key_space = 100L, pops = 70L),
+    pq_mixed_ops = list(n = 120L, key_space = 90L, ops = 150L, insert_prob = 0.55),
+    pq_insert_pop = list(n = 140L, key_space = 100L, pops = 70L)
   )
 }
 
@@ -314,17 +398,126 @@
   invisible(seq)
 }
 
-.bench_scenario_pq_insert_pop <- function(n, key_space, pops) {
+.bench_scenario_ordered_sequence_bounds <- function(n, queries, key_space) {
   n <- as.integer(n)
-  pops <- as.integer(pops)
-  priorities <- sample.int(as.integer(key_space), n, replace = TRUE)
+  queries <- as.integer(queries)
+  key_space <- as.integer(key_space)
+
+  vals <- as.list(seq_len(n))
+  keys <- sample.int(key_space, n, replace = TRUE)
+  seq <- as_ordered_sequence(vals, keys = keys)
+
+  q <- sample.int(key_space, queries, replace = TRUE)
+  for(k in q) {
+    invisible(lower_bound(seq, k))
+    invisible(upper_bound(seq, k))
+  }
+  invisible(NULL)
+}
+
+.bench_scenario_ordered_sequence_range_queries <- function(n, queries, key_space) {
+  n <- as.integer(n)
+  queries <- as.integer(queries)
+  key_space <- as.integer(key_space)
+
+  vals <- as.list(seq_len(n))
+  keys <- sample.int(key_space, n, replace = TRUE)
+  seq <- as_ordered_sequence(vals, keys = keys)
+
+  lo <- sample.int(key_space, queries, replace = TRUE)
+  hi <- sample.int(key_space, queries, replace = TRUE)
+  for(i in seq_len(queries)) {
+    a <- min(lo[[i]], hi[[i]])
+    b <- max(lo[[i]], hi[[i]])
+    invisible(count_between(seq, a, b))
+    invisible(elements_between(seq, a, b))
+  }
+  invisible(NULL)
+}
+
+.bench_scenario_ordered_sequence_pop_cycle <- function(n, steps, key_space) {
+  n <- as.integer(n)
+  steps <- as.integer(steps)
+  key_space <- as.integer(key_space)
+
+  vals <- as.list(seq_len(n))
+  keys <- sample.int(key_space, n, replace = TRUE)
+  seq <- as_ordered_sequence(vals, keys = keys)
+
+  q <- sample.int(key_space, steps, replace = TRUE)
+  for(k in q) {
+    out <- pop_key(seq, k, which = "first")
+    if(!is.null(out$element)) {
+      seq <- insert(out$sequence, out$element, key = as.integer(k))
+    } else {
+      seq <- out$sequence
+    }
+  }
+  invisible(seq)
+}
+
+.bench_build_priority_queue <- function(n, key_space) {
+  n <- as.integer(n)
+  key_space <- as.integer(key_space)
+  priorities <- sample.int(key_space, n, replace = TRUE)
   q <- priority_queue()
   for(i in seq_len(n)) {
     q <- insert(q, i, priority = priorities[[i]])
   }
+  q
+}
+
+.bench_scenario_pq_insert_pop <- function(n, key_space, pops) {
+  pops <- as.integer(pops)
+  q <- .bench_build_priority_queue(n, key_space)
   k <- min(pops, n)
   for(i in seq_len(k)) {
     q <- pop_min(q)$queue
+  }
+  invisible(q)
+}
+
+.bench_scenario_pq_peek_min_max <- function(n, key_space, queries) {
+  queries <- as.integer(queries)
+  q <- .bench_build_priority_queue(n, key_space)
+  for(i in seq_len(queries)) {
+    invisible(peek_min(q))
+    invisible(peek_max(q))
+  }
+  invisible(NULL)
+}
+
+.bench_scenario_pq_pop_min_drain <- function(n, key_space, pops) {
+  pops <- as.integer(pops)
+  q <- .bench_build_priority_queue(n, key_space)
+  k <- min(pops, as.integer(n))
+  for(i in seq_len(k)) {
+    q <- pop_min(q)$queue
+    if(length(q) == 0L) {
+      break
+    }
+  }
+  invisible(q)
+}
+
+.bench_scenario_pq_mixed_ops <- function(n, key_space, ops, insert_prob = 0.55) {
+  n <- as.integer(n)
+  ops <- as.integer(ops)
+  key_space <- as.integer(key_space)
+  insert_prob <- as.numeric(insert_prob)
+  q <- .bench_build_priority_queue(n, key_space)
+  next_id <- n
+  for(i in seq_len(ops)) {
+    do_insert <- (length(q) == 0L) || (runif(1) < insert_prob)
+    if(do_insert) {
+      next_id <- next_id + 1L
+      q <- insert(q, next_id, priority = sample.int(key_space, 1L))
+    } else {
+      q <- pop_min(q)$queue
+      if(length(q) > 0L) {
+        invisible(peek_min(q))
+      }
+    }
   }
   invisible(q)
 }
@@ -341,6 +534,12 @@
     "index_name_single_read",
     "as_flexseq_only",
     "ordered_sequence_insert",
+    "ordered_sequence_bounds",
+    "ordered_sequence_range_queries",
+    "ordered_sequence_pop_cycle",
+    "pq_peek_min_max",
+    "pq_pop_min_drain",
+    "pq_mixed_ops",
     "pq_insert_pop"
   )
 }
@@ -360,6 +559,12 @@
     index_name_single_read = do.call(.bench_scenario_index_name_single_read, params),
     as_flexseq_only = do.call(.bench_scenario_as_flexseq_only, params),
     ordered_sequence_insert = do.call(.bench_scenario_ordered_sequence_insert, params),
+    ordered_sequence_bounds = do.call(.bench_scenario_ordered_sequence_bounds, params),
+    ordered_sequence_range_queries = do.call(.bench_scenario_ordered_sequence_range_queries, params),
+    ordered_sequence_pop_cycle = do.call(.bench_scenario_ordered_sequence_pop_cycle, params),
+    pq_peek_min_max = do.call(.bench_scenario_pq_peek_min_max, params),
+    pq_pop_min_drain = do.call(.bench_scenario_pq_pop_min_drain, params),
+    pq_mixed_ops = do.call(.bench_scenario_pq_mixed_ops, params),
     pq_insert_pop = do.call(.bench_scenario_pq_insert_pop, params),
     stop("Unknown benchmark scenario: ", name)
   )

@@ -68,16 +68,16 @@ element among entries whose key equals `key`.</p>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A named list with components <code>element</code>, <code>key</code>, and
-  <code>sequence</code>.</p><ul><li><p>For <code>which = "first"</code>:</p><ul><li><p>On match: <code>element</code> is the first matching item and <code>key</code>
+  <code>remaining</code>.</p><ul><li><p>For <code>which = "first"</code>:</p><ul><li><p>On match: <code>element</code> is the first matching item and <code>key</code>
   is its key.</p></li>
 <li><p>On miss: <code>element = NULL</code>, <code>key = NULL</code>,
-  <code>sequence = x</code>.</p></li>
+  <code>remaining = x</code>.</p></li>
 </ul></li>
 <li><p>For <code>which = "all"</code>:</p><ul><li><p><code>element</code> is an <code>ordered_sequence</code> of all matching items in
   stable order. It may have size 0 (miss), 1 (single match), or greater than
   1 (multiple matches).</p></li>
 <li><p><code>key</code> is the normalized key on match, otherwise <code>NULL</code>.</p></li>
-<li><p><code>sequence</code> is the original sequence with that full key-run
+<li><p><code>remaining</code> is the original sequence with that full key-run
   removed (or unchanged on miss).</p></li>
 </ul></li>
 </ul></div>

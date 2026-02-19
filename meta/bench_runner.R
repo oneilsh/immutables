@@ -196,10 +196,10 @@
   if(identical(scenario, "ordered_sequence_pop_cycle")) {
     x <- as_ordered_sequence(list("a", "b", "c"), keys = c(1, 2, 3))
     out <- pop_key(x, 2, which = "first")
-    if(!is.list(out) || is.null(out$sequence) || !inherits(out$sequence, "ordered_sequence")) {
+    if(!is.list(out) || is.null(out$remaining) || !inherits(out$remaining, "ordered_sequence")) {
       stop("Scenario contract failed: pop_key() output shape changed.")
     }
-    y <- insert(out$sequence, out$element, key = 2)
+    y <- insert(out$remaining, out$element, key = 2)
     if(!inherits(y, "ordered_sequence")) {
       stop("Scenario contract failed: insert(pop_key(...)) changed.")
     }
@@ -448,9 +448,9 @@
   for(k in q) {
     out <- pop_key(seq, k, which = "first")
     if(!is.null(out$element)) {
-      seq <- insert(out$sequence, out$element, key = as.integer(k))
+      seq <- insert(out$remaining, out$element, key = as.integer(k))
     } else {
-      seq <- out$sequence
+      seq <- out$remaining
     }
   }
   invisible(seq)

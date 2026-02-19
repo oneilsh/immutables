@@ -190,7 +190,7 @@ Each update returns a new object.</p>
 <span><span class="va">pf</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pop_front.html">pop_front</a></span><span class="op">(</span><span class="va">x5</span><span class="op">)</span></span>
 <span><span class="va">pf</span><span class="op">$</span><span class="va">element</span></span>
 <span><span class="co">#&gt; [1] "start"</span></span>
-<span><span class="va">pf</span><span class="op">$</span><span class="va">rest</span></span>
+<span><span class="va">pf</span><span class="op">$</span><span class="va">remaining</span></span>
 <span><span class="co">#&gt; FingerTree &lt;size=6, named=no&gt;</span></span>
 <span><span class="co">#&gt;   monoids: none</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -268,7 +268,7 @@ Each update returns a new object.</p>
 </h2>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">x8</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/as_flexseq.html">as_flexseq</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/apply.html">apply</a></span><span class="op">(</span><span class="va">x8</span>, <span class="kw">function</span><span class="op">(</span><span class="va">el</span><span class="op">)</span> <span class="va">el</span> <span class="op">*</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/lapply.html">lapply</a></span><span class="op">(</span><span class="va">x8</span>, <span class="kw">function</span><span class="op">(</span><span class="va">el</span><span class="op">)</span> <span class="va">el</span> <span class="op">*</span> <span class="fl">10</span><span class="op">)</span></span>
 <span><span class="co">#&gt; FingerTree &lt;size=5, named=no&gt;</span></span>
 <span><span class="co">#&gt;   monoids: none</span></span>
 <span><span class="co">#&gt; </span></span>

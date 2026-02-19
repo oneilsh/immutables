@@ -14,7 +14,10 @@
 <url><loc>https://oneilsh.github.io/immutables/reference/append.default.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/append.flexseq.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/append.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/apply.flexseq.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/apply.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/apply.ordered_sequence.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/apply.priority_queue.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/as.list.flexseq.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/as_flexseq.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/as_ordered_sequence.html</loc></url>
@@ -42,6 +45,7 @@
 <url><loc>https://oneilsh.github.io/immutables/reference/intersect.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/intersect.ordered_sequence.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/is_empty.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/lapply.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/length.flexseq.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/locate_by_predicate.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/lower_bound.html</loc></url>

@@ -137,7 +137,7 @@
 <ul><li><code>R -q -e "source('meta/bench_runner.R'); list_scenarios(base='quick')"</code></li>
 </ul></li>
 <li>Custom mix-and-match:
-<ul><li><code>R -q -e "source('meta/bench_runner.R'); run_scenarios(c('as_flexseq_only','oms_union'), note='...', use_cpp=TRUE)"</code></li>
+<ul><li><code>R -q -e "source('meta/bench_runner.R'); run_scenarios(c('as_flexseq_only','ordered_sequence_insert'), note='...', use_cpp=TRUE)"</code></li>
 </ul></li>
 <li>Compare recent runs:
 <ul><li><code>R -q -e "source('meta/bench_runner.R'); compare_last(n=2)"</code></li>
@@ -190,6 +190,22 @@
 <code>eb493fd</code>: <code><a href="reference/pop_front.html">pop_front()</a></code>/<code><a href="reference/pop_back.html">pop_back()</a></code> now return <code>element</code> (not <code>value</code>) plus <code>rest</code>; tests/docs/vignette updated. Risk: callers using <code>$value</code> must switch to <code>$element</code>.</li>
 <li>
 <code>eb493fd</code>: removed <code>ordered_multiset</code> API/tests and dropped package-level set-op generics (<code>union</code>/<code>intersect</code>/<code>setdiff</code>) tied to that surface. Risk: any code importing those package methods must migrate to explicit sequence operations.</li>
+<li>
+<code>eb493fd</code>: hardened C++ monoid/measures field access under GC pressure in <code>src/ft_cpp.cpp</code> (name lookup fallback for monoid subfields; recursive fallback for <code>.size</code>/<code>.named_count</code> reads when measure names are missing). Risk: GC torture remains expensive; <code>pop_key(which='all')</code> is excluded from GC-stress assertions to keep the suite deterministic.</li>
+<li>
+<code>eb493fd</code>: <code>ensure_size_monoids()</code> now canonicalizes every monoid spec to named <code>list(f, i, measure)</code> and validates that <code>f</code>/<code>measure</code> are functions before use. Impact: C++ positional fallback remains safe even if monoid list names are absent; risk: malformed custom <code>MeasureMonoid</code> objects now fail earlier with clearer errors.</li>
+<li>
+<code>eb493fd</code>: benchmark harness no longer references removed <code>ordered_multiset</code>/set-op scenarios; quick/full profiles now target live APIs only. Risk: historical OMS benchmark comparisons are no longer directly reproducible from default profiles.</li>
+<li>
+<code>eb493fd</code>: quick/full benchmark profiles now include <code>ordered_sequence_insert</code> to keep ordered-keyed workload coverage after OMS removal; <code>pq_insert_pop</code> remains available as a custom-only scenario. Risk: historical quick/full trend lines have one scenario changed.</li>
+<li>
+<code>eb493fd</code>: full-profile benchmark sizes were reduced in high-cost R-backend scenarios (<code>flexseq_tree_from*</code>, split variants, index reads, <code>as_flexseq_only</code>) to keep single-scenario runs within ~30s when capped. Risk: full-profile values are less stress-heavy than earlier settings.</li>
+<li>
+<code>eb493fd</code>: fixed <code><a href="reference/insert.html">insert.ordered_sequence()</a></code> R fallback boundary case (<code>use_cpp=FALSE</code>) by avoiding public <code><a href="reference/push_back.html">push_back()</a></code> guard when appending split-left fragments; <code>ordered_sequence_insert</code> benchmarks now execute on R backend. Risk: internal append helper path should continue to preserve ordered wrapping invariants (covered by ordered-sequence tests).</li>
+<li>
+<code>eb493fd</code>: benchmark coverage now includes additional non-flexseq structure scenarios (<code>ordered_sequence_bounds</code>, <code>pq_insert_pop</code>) and both are in quick/full profiles with R-safe parameter sizes. Risk: scenario names/default params changed; compare historical runs by scenario+params, not just run label.</li>
+<li>
+<code>eb493fd</code>: added deeper ordered-sequence and priority-queue benchmark scenarios (<code>ordered_sequence_range_queries</code>, <code>ordered_sequence_pop_cycle</code>, <code>pq_peek_min_max</code>, <code>pq_pop_min_drain</code>, <code>pq_mixed_ops</code>) to improve optimization signal across lookup vs mutation-heavy paths. Risk: broader quick/full profiles increase total run time; use <code>run_scenarios()</code> for focused profiling.</li>
 </ul></div>
 </div>
 

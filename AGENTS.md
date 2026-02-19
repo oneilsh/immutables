@@ -80,7 +80,7 @@ Interpretation:
   - Scenario catalog:
     - `R -q -e "source('meta/bench_runner.R'); list_scenarios(base='quick')"`
   - Custom mix-and-match:
-    - `R -q -e "source('meta/bench_runner.R'); run_scenarios(c('as_flexseq_only','oms_union'), note='...', use_cpp=TRUE)"`
+    - `R -q -e "source('meta/bench_runner.R'); run_scenarios(c('as_flexseq_only','ordered_sequence_insert'), note='...', use_cpp=TRUE)"`
   - Compare recent runs:
     - `R -q -e "source('meta/bench_runner.R'); compare_last(n=2)"`
 - Benchmark outputs are local-only and gitignored:
@@ -126,3 +126,8 @@ API or underlying implementations change.
 - `eb493fd`: removed `delete_one`/`delete_all`; `peek_key()` and `pop_key()` now support `which = "first"|"all"` where `"all"` operates on full duplicate-key runs and returns an ordered slice. Risk: code using deleted functions or assuming `pop_key()` always pops one element must migrate.
 - `eb493fd`: `pop_front()`/`pop_back()` now return `element` (not `value`) plus `rest`; tests/docs/vignette updated. Risk: callers using `$value` must switch to `$element`.
 - `eb493fd`: removed `ordered_multiset` API/tests and dropped package-level set-op generics (`union`/`intersect`/`setdiff`) tied to that surface. Risk: any code importing those package methods must migrate to explicit sequence operations.
+- `eb493fd`: hardened C++ monoid/measures field access under GC pressure in `src/ft_cpp.cpp` (name lookup fallback for monoid subfields; recursive fallback for `.size`/`.named_count` reads when measure names are missing). Risk: GC torture remains expensive; `pop_key(which='all')` is excluded from GC-stress assertions to keep the suite deterministic.
+- `eb493fd`: `ensure_size_monoids()` now canonicalizes every monoid spec to named `list(f, i, measure)` and validates that `f`/`measure` are functions before use. Impact: C++ positional fallback remains safe even if monoid list names are absent; risk: malformed custom `MeasureMonoid` objects now fail earlier with clearer errors.
+- `eb493fd`: benchmark harness no longer references removed `ordered_multiset`/set-op scenarios; quick/full profiles now target live APIs only. Risk: historical OMS benchmark comparisons are no longer directly reproducible from default profiles.
+- `eb493fd`: quick/full benchmark profiles now include `ordered_sequence_insert` to keep ordered-keyed workload coverage after OMS removal; `pq_insert_pop` remains available as a custom-only scenario. Risk: historical quick/full trend lines have one scenario changed.
+- `eb493fd`: full-profile benchmark sizes were reduced in high-cost R-backend scenarios (`flexseq_tree_from*`, split variants, index reads, `as_flexseq_only`) to keep single-scenario runs within ~30s when capped. Risk: full-profile values are less stress-heavy than earlier settings.

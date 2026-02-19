@@ -46,12 +46,12 @@ R -q -e "source('meta/bench_runner.R'); list_scenarios(base='quick')"
 
 6. Run a custom scenario mix:
 ```bash
-R -q -e "source('meta/bench_runner.R'); run_scenarios(c('as_flexseq_only','oms_union'), note='targeted mix', use_cpp=TRUE)"
+R -q -e "source('meta/bench_runner.R'); run_scenarios(c('as_flexseq_only','ordered_sequence_insert'), note='targeted mix', use_cpp=TRUE)"
 ```
 
 7. Run custom mix with parameter overrides:
 ```bash
-R -q -e \"source('meta/bench_runner.R'); run_scenarios(c('as_flexseq_only','oms_union'), note='bigger as_flexseq', use_cpp=TRUE, params=list(as_flexseq_only=list(n=80000), oms_union=list(n=3000,reps=6,key_space=1000)))\"
+R -q -e \"source('meta/bench_runner.R'); run_scenarios(c('as_flexseq_only','ordered_sequence_insert'), note='bigger as_flexseq + ordered inserts', use_cpp=TRUE, params=list(as_flexseq_only=list(n=80000), ordered_sequence_insert=list(n=10000,inserts=1200,key_space=4000)))\"
 ```
 
 ## Outputs

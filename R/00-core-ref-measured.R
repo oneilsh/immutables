@@ -10,6 +10,43 @@ is_measure_monoid_list(x) %as% {
   is.list(x) && length(x) > 0 && all(vapply(x, is_measure_monoid, logical(1)))
 }
 
+# normalize monoid fields to canonical named layout (f, i, measure).
+# Runtime: O(1).
+.normalize_measure_monoid_spec(r, monoid_name = NULL) %::% MeasureMonoid : . : MeasureMonoid
+.normalize_measure_monoid_spec(r, monoid_name = NULL) %as% {
+  lbl <- if(is.null(monoid_name) || is.na(monoid_name) || monoid_name == "") {
+    "measure monoid"
+  } else {
+    paste0("measure monoid `", monoid_name, "`")
+  }
+
+  nms <- names(r)
+  read_field <- function(key, idx) {
+    if(!is.null(nms) && key %in% nms) {
+      return(r[[key]])
+    }
+    if(length(r) >= idx) {
+      return(r[[idx]])
+    }
+    stop(lbl, " must provide fields `f`, `i`, and `measure`.")
+  }
+
+  f <- read_field("f", 1L)
+  i <- read_field("i", 2L)
+  measure <- read_field("measure", 3L)
+
+  if(!is.function(f)) {
+    stop(lbl, " field `f` must be a function.")
+  }
+  if(!is.function(measure)) {
+    stop(lbl, " field `measure` must be a function.")
+  }
+
+  out <- list(f = f, i = i, measure = measure)
+  class(out) <- class(r)
+  out
+}
+
 # default size measure used for indexing and structural operations
 # Runtime: O(1).
 size_measure_monoid() %::% MeasureMonoid
@@ -90,6 +127,11 @@ ensure_size_monoids(monoids) %as% {
   if(any(duplicated(names(out)))) {
     stop("Monoid list names must be unique.")
   }
+
+  for(nm in names(out)) {
+    out[[nm]] <- .normalize_measure_monoid_spec(out[[nm]], monoid_name = nm)
+  }
+
   # reserved monoids are canonicalized so all trees share the same invariants.
   out[[".size"]] <- size_measure_monoid()
   out[[".named_count"]] <- named_count_measure_monoid()

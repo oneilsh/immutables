@@ -34,6 +34,24 @@ testthat::test_that("add_monoids merges and supports overwrite flag", {
   testthat::expect_true(!identical(attr(t2, "measures")$sum, attr(t3, "measures")$sum))
 })
 
+testthat::test_that("monoid specs are normalized to canonical named layout", {
+  raw <- list(
+    function(a, b) a + b,
+    0L,
+    function(el) as.integer(el)
+  )
+  class(raw) <- c("measure_monoid", "MeasureMonoid", "list")
+
+  x <- as_flexseq(1:5, monoids = list(sum = raw))
+  ms <- attr(x, "monoids", exact = TRUE)
+  sum_m <- ms$sum
+
+  testthat::expect_identical(names(sum_m), c("f", "i", "measure"))
+  testthat::expect_true(is.function(sum_m$f))
+  testthat::expect_true(is.function(sum_m$measure))
+  testthat::expect_identical(sum_m$measure(7L), 7L)
+})
+
 testthat::test_that("concat_trees unions monoids on shared names", {
   a <- measure_monoid(function(x, y) x + y, 0, function(el) el)
   b <- measure_monoid(function(x, y) x + y, 0, function(el) 1)

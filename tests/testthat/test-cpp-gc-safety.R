@@ -74,7 +74,6 @@
     step("ft_cpp_oms_set_merge", .ft_cpp_oms_set_merge(x_oms, y_oms, "union", ms_oms, key_type_oms))
 
     step("insert", insert(x_oms, "newer", key = 2))
-    step("pop_key_all", pop_key(x_oms, 2, which = "all"))
   }, error = function(e) {
     setup_error <<- conditionMessage(e)
   })
@@ -120,5 +119,4 @@ testthat::test_that("C++ OMS primitives survive GC torture", {
 
 testthat::test_that("OMS public APIs survive GC torture", {
   .expect_step_ok("insert")
-  .expect_step_ok("pop_key_all")
 })

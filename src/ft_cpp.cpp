@@ -48,6 +48,66 @@ bool has_name_attr(SEXP x) {
   return !Rf_isNull(nm) && XLENGTH(nm) > 0;
 }
 
+SEXP list_get_named_or_index(const List& x, const char* key, int fallback_idx = -1) {
+  if(x.containsElementNamed(key)) {
+    return x[key];
+  }
+  if(fallback_idx >= 0 && fallback_idx < x.size()) {
+    return x[fallback_idx];
+  }
+  stop(std::string("Missing required list field: ") + key);
+}
+
+double compute_tree_size_fallback(SEXP x) {
+  if(!is_structural_node_cpp(x)) {
+    return 1.0;
+  }
+  if(has_class(x, "Empty")) {
+    return 0.0;
+  }
+  if(has_class(x, "Single")) {
+    List s(x);
+    return compute_tree_size_fallback(s[0]);
+  }
+  if(has_class(x, "Deep")) {
+    List d(x);
+    return compute_tree_size_fallback(d["prefix"]) +
+      compute_tree_size_fallback(d["middle"]) +
+      compute_tree_size_fallback(d["suffix"]);
+  }
+  List xs(x);
+  double total = 0.0;
+  for(int i = 0; i < xs.size(); ++i) {
+    total += compute_tree_size_fallback(xs[i]);
+  }
+  return total;
+}
+
+int compute_tree_named_count_fallback(SEXP x) {
+  if(!is_structural_node_cpp(x)) {
+    return has_name_attr(x) ? 1 : 0;
+  }
+  if(has_class(x, "Empty")) {
+    return 0;
+  }
+  if(has_class(x, "Single")) {
+    List s(x);
+    return compute_tree_named_count_fallback(s[0]);
+  }
+  if(has_class(x, "Deep")) {
+    List d(x);
+    return compute_tree_named_count_fallback(d["prefix"]) +
+      compute_tree_named_count_fallback(d["middle"]) +
+      compute_tree_named_count_fallback(d["suffix"]);
+  }
+  List xs(x);
+  int total = 0;
+  for(int i = 0; i < xs.size(); ++i) {
+    total += compute_tree_named_count_fallback(xs[i]);
+  }
+  return total;
+}
+
 bool name_equals(SEXP x, const std::string& target) {
   SEXP nm = Rf_getAttrib(x, ft_name_sym);
   if(Rf_isNull(nm) || XLENGTH(nm) == 0) {
@@ -59,7 +119,10 @@ bool name_equals(SEXP x, const std::string& target) {
 double child_size(SEXP x) {
   if(has_class(x, "FingerTree") || has_class(x, "Digit") || has_class(x, "Node")) {
     List ms = Rf_getAttrib(x, measures_sym);
-    return as<double>(ms[".size"]);
+    if(ms.containsElementNamed(".size")) {
+      return as<double>(ms[".size"]);
+    }
+    return compute_tree_size_fallback(x);
   }
   return 1.0;
 }
@@ -67,7 +130,10 @@ double child_size(SEXP x) {
 int child_named_count(SEXP x) {
   if(has_class(x, "FingerTree") || has_class(x, "Digit") || has_class(x, "Node")) {
     List ms = Rf_getAttrib(x, measures_sym);
-    return as<int>(ms[".named_count"]);
+    if(ms.containsElementNamed(".named_count")) {
+      return as<int>(ms[".named_count"]);
+    }
+    return compute_tree_named_count_fallback(x);
   }
   return has_name_attr(x) ? 1 : 0;
 }
@@ -309,7 +375,7 @@ List measures_from_children(const List& children, const List& monoids) {
   List out(nms.size());
   out.attr("names") = nms;
   for(int i = 0; i < nms.size(); ++i) {
-    std::string nm = as<std::string>(nms[i]);
+    std::string nm = CharacterVector::is_na(nms[i]) ? std::string() : as<std::string>(nms[i]);
     if(nm == ".size") {
       double s = 0.0;
       for(int j = 0; j < children.size(); ++j) {
@@ -328,9 +394,9 @@ List measures_from_children(const List& children, const List& monoids) {
     }
 
     List r = as<List>(monoids[i]);
-    Function f = as<Function>(r["f"]);
-    Function measure = as<Function>(r["measure"]);
-    ReprotectSEXP acc(static_cast<SEXP>(r["i"]));
+    Function f = as<Function>(list_get_named_or_index(r, "f", 0));
+    Function measure = as<Function>(list_get_named_or_index(r, "measure", 2));
+    ReprotectSEXP acc(list_get_named_or_index(r, "i", 1));
     for(int j = 0; j < children.size(); ++j) {
       SEXP ch = children[j];
       SEXP mv = R_NilValue;
@@ -355,12 +421,12 @@ List measures_empty(const List& monoids) {
   List out(nms.size());
   out.attr("names") = nms;
   for(int i = 0; i < nms.size(); ++i) {
-    std::string nm = as<std::string>(nms[i]);
+    std::string nm = CharacterVector::is_na(nms[i]) ? std::string() : as<std::string>(nms[i]);
     if(nm == ".size") out[i] = 0.0;
     else if(nm == ".named_count") out[i] = 0;
     else {
       List r = as<List>(monoids[i]);
-      out[i] = r["i"];
+      out[i] = list_get_named_or_index(r, "i", 1);
     }
   }
   return out;

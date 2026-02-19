@@ -83,12 +83,8 @@
     split_default = list(required = c("as_flexseq", "split_by_predicate")),
     index_integer_single_read = list(required = c("as_flexseq")),
     index_name_single_read = list(required = c("as_flexseq")),
-    oms_build = list(required = c("as_ordered_multiset")),
-    oms_union = list(required = c("as_ordered_multiset", "union")),
-    oms_intersection = list(required = c("as_ordered_multiset", "intersect")),
-    oms_difference = list(required = c("as_ordered_multiset", "setdiff")),
-    oms_insert = list(required = c("as_ordered_multiset", "insert")),
     as_flexseq_only = list(required = c("as_flexseq")),
+    ordered_sequence_insert = list(required = c("as_ordered_sequence", "insert")),
     pq_insert_pop = list(required = c("priority_queue", "insert", "pop_min"))
   )
 }
@@ -162,41 +158,15 @@
     if(!identical(v, 2L) && !identical(v, 2)) stop("Scenario contract failed: name [[ on flexseq changed.")
     return(invisible(TRUE))
   }
-  if(identical(scenario, "oms_build")) {
-    ms <- as_ordered_multiset(list(2, 1), keys = list(2, 1))
-    if(!inherits(ms, "ordered_multiset")) stop("Scenario contract failed: as_ordered_multiset class changed.")
-    return(invisible(TRUE))
-  }
-  if(identical(scenario, "oms_union")) {
-    x <- as_ordered_multiset(list(2, 1), keys = list(2, 1))
-    y <- as_ordered_multiset(list(2, 3), keys = list(2, 3))
-    z <- union(x, y)
-    if(!inherits(z, "ordered_multiset")) stop("Scenario contract failed: union(ordered_multiset, ...) changed.")
-    return(invisible(TRUE))
-  }
-  if(identical(scenario, "oms_intersection")) {
-    x <- as_ordered_multiset(list(2, 1), keys = list(2, 1))
-    y <- as_ordered_multiset(list(2, 3), keys = list(2, 3))
-    z <- intersect(x, y)
-    if(!inherits(z, "ordered_multiset")) stop("Scenario contract failed: intersect(ordered_multiset, ...) changed.")
-    return(invisible(TRUE))
-  }
-  if(identical(scenario, "oms_difference")) {
-    x <- as_ordered_multiset(list(2, 1), keys = list(2, 1))
-    y <- as_ordered_multiset(list(2, 3), keys = list(2, 3))
-    z <- setdiff(x, y)
-    if(!inherits(z, "ordered_multiset")) stop("Scenario contract failed: setdiff(ordered_multiset, ...) changed.")
-    return(invisible(TRUE))
-  }
-  if(identical(scenario, "oms_insert")) {
-    x <- as_ordered_multiset(list(2, 1), keys = list(2, 1))
-    y <- insert(x, 4, key = 4)
-    if(!inherits(y, "ordered_multiset")) stop("Scenario contract failed: insert(ordered_multiset, ...) changed.")
-    return(invisible(TRUE))
-  }
   if(identical(scenario, "as_flexseq_only")) {
     x <- as_flexseq(as.list(1:3))
     if(!inherits(x, "flexseq")) stop("Scenario contract failed: as_flexseq_only requires flexseq return.")
+    return(invisible(TRUE))
+  }
+  if(identical(scenario, "ordered_sequence_insert")) {
+    x <- as_ordered_sequence(list("b", "a"), keys = c(2, 1))
+    y <- insert(x, "c", key = 2)
+    if(!inherits(y, "ordered_sequence")) stop("Scenario contract failed: insert(ordered_sequence, ...) changed.")
     return(invisible(TRUE))
   }
   if(identical(scenario, "pq_insert_pop")) {
@@ -224,29 +194,21 @@
       split_default = list(n = 2000L, queries = 30L),
       index_integer_single_read = list(n = 1000L, queries = 200L),
       index_name_single_read = list(n = 1000L, queries = 200L),
-      oms_build = list(n = 1500L, key_space = 1000L),
-      oms_union = list(n = 1200L, reps = 4L, key_space = 1000L),
-      oms_intersection = list(n = 1200L, reps = 4L, key_space = 1000L),
-      oms_difference = list(n = 1200L, reps = 4L, key_space = 1000L),
-      oms_insert = list(n = 1000L, inserts = 80L, key_space = 1000L),
-      as_flexseq_only = list(n = 40000L)
+      as_flexseq_only = list(n = 40000L),
+      ordered_sequence_insert = list(n = 1800L, inserts = 200L, key_space = 1500L)
     ))
   }
   list(
-    flexseq_tree_from = list(n = 40000L),
-    flexseq_tree_from_named = list(n = 30000L),
+    flexseq_tree_from = list(n = 26000L),
+    flexseq_tree_from_named = list(n = 23000L),
     flexseq_concat = list(n = 8000L, reps = 200L),
     locate_default = list(n = 10000L, queries = 200L),
-    split_tree_default = list(n = 10000L, queries = 160L),
-    split_default = list(n = 10000L, queries = 160L),
-    index_integer_single_read = list(n = 10000L, queries = 2000L),
-    index_name_single_read = list(n = 6000L, queries = 1200L),
-    oms_build = list(n = 20000L, key_space = 2000L),
-    oms_union = list(n = 12000L, reps = 120L, key_space = 2000L),
-    oms_intersection = list(n = 12000L, reps = 120L, key_space = 2000L),
-    oms_difference = list(n = 12000L, reps = 120L, key_space = 2000L),
-    oms_insert = list(n = 12000L, inserts = 2500L, key_space = 2000L),
-    as_flexseq_only = list(n = 120000L)
+    split_tree_default = list(n = 5000L, queries = 80L),
+    split_default = list(n = 5000L, queries = 80L),
+    index_integer_single_read = list(n = 5000L, queries = 800L),
+    index_name_single_read = list(n = 320L, queries = 60L),
+    as_flexseq_only = list(n = 12000L),
+    ordered_sequence_insert = list(n = 18000L, inserts = 3500L, key_space = 12000L)
   )
 }
 
@@ -330,67 +292,26 @@
   invisible(NULL)
 }
 
-.bench_oms_random_keys <- function(n, key_space) {
-  as.list(sample.int(as.integer(key_space), as.integer(n), replace = TRUE))
-}
-
-.bench_scenario_oms_build <- function(n, key_space) {
-  vals <- .bench_oms_random_keys(n, key_space)
-  invisible(as_ordered_multiset(vals, keys = vals))
-}
-
-.bench_scenario_oms_union <- function(n, reps, key_space) {
-  reps <- as.integer(reps)
-  x_vals <- .bench_oms_random_keys(n, key_space)
-  y_vals <- .bench_oms_random_keys(n, key_space)
-  x <- as_ordered_multiset(x_vals, keys = x_vals)
-  y <- as_ordered_multiset(y_vals, keys = y_vals)
-  for(i in seq_len(reps)) {
-    invisible(union(x, y))
-  }
-  invisible(NULL)
-}
-
-.bench_scenario_oms_intersection <- function(n, reps, key_space) {
-  reps <- as.integer(reps)
-  x_vals <- .bench_oms_random_keys(n, key_space)
-  y_vals <- .bench_oms_random_keys(n, key_space)
-  x <- as_ordered_multiset(x_vals, keys = x_vals)
-  y <- as_ordered_multiset(y_vals, keys = y_vals)
-  for(i in seq_len(reps)) {
-    invisible(intersect(x, y))
-  }
-  invisible(NULL)
-}
-
-.bench_scenario_oms_difference <- function(n, reps, key_space) {
-  reps <- as.integer(reps)
-  x_vals <- .bench_oms_random_keys(n, key_space)
-  y_vals <- .bench_oms_random_keys(n, key_space)
-  x <- as_ordered_multiset(x_vals, keys = x_vals)
-  y <- as_ordered_multiset(y_vals, keys = y_vals)
-  for(i in seq_len(reps)) {
-    invisible(setdiff(x, y))
-  }
-  invisible(NULL)
-}
-
-.bench_scenario_oms_insert <- function(n, inserts, key_space) {
-  inserts <- as.integer(inserts)
-  base_vals <- .bench_oms_random_keys(n, key_space)
-  ins_keys <- sample.int(as.integer(key_space), inserts, replace = TRUE)
-  ms <- as_ordered_multiset(base_vals, keys = base_vals)
-  for(i in seq_len(inserts)) {
-    k <- as.integer(ins_keys[[i]])
-    ms <- insert(ms, k, key = k)
-  }
-  invisible(ms)
-}
-
 .bench_scenario_as_flexseq_only <- function(n) {
   n <- as.integer(n)
   x <- as.list(seq_len(n))
   invisible(as_flexseq(x))
+}
+
+.bench_scenario_ordered_sequence_insert <- function(n, inserts, key_space) {
+  n <- as.integer(n)
+  inserts <- as.integer(inserts)
+  key_space <- as.integer(key_space)
+
+  base_vals <- as.list(seq_len(n))
+  base_keys <- sample.int(key_space, n, replace = TRUE)
+  seq <- as_ordered_sequence(base_vals, keys = base_keys)
+
+  ins_keys <- sample.int(key_space, inserts, replace = TRUE)
+  for(i in seq_len(inserts)) {
+    seq <- insert(seq, i, key = ins_keys[[i]])
+  }
+  invisible(seq)
 }
 
 .bench_scenario_pq_insert_pop <- function(n, key_space, pops) {
@@ -418,12 +339,8 @@
     "split_default",
     "index_integer_single_read",
     "index_name_single_read",
-    "oms_build",
-    "oms_union",
-    "oms_intersection",
-    "oms_difference",
-    "oms_insert",
     "as_flexseq_only",
+    "ordered_sequence_insert",
     "pq_insert_pop"
   )
 }
@@ -441,12 +358,8 @@
     split_default = do.call(.bench_scenario_split_default, params),
     index_integer_single_read = do.call(.bench_scenario_index_integer_single_read, params),
     index_name_single_read = do.call(.bench_scenario_index_name_single_read, params),
-    oms_build = do.call(.bench_scenario_oms_build, params),
-    oms_union = do.call(.bench_scenario_oms_union, params),
-    oms_intersection = do.call(.bench_scenario_oms_intersection, params),
-    oms_difference = do.call(.bench_scenario_oms_difference, params),
-    oms_insert = do.call(.bench_scenario_oms_insert, params),
     as_flexseq_only = do.call(.bench_scenario_as_flexseq_only, params),
+    ordered_sequence_insert = do.call(.bench_scenario_ordered_sequence_insert, params),
     pq_insert_pop = do.call(.bench_scenario_pq_insert_pop, params),
     stop("Unknown benchmark scenario: ", name)
   )

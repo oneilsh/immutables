@@ -17,6 +17,7 @@ reference:
       - as_flexseq
       - push_front
       - push_back
+      - insert_at
       - pop_front
       - pop_back
       - peek_front

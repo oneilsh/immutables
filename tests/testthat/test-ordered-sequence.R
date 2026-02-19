@@ -133,6 +133,7 @@ testthat::test_that("order-breaking writes are blocked on ordered types", {
   testthat::expect_error(c(xs, xs), "not supported")
   testthat::expect_error(push_back(xs, "c"), "not supported")
   testthat::expect_error(push_front(xs, "z"), "not supported")
+  testthat::expect_error(insert_at(xs, 1, "z"), "not supported")
 
   testthat::expect_error({ xs[[1]] <- "z" }, "not supported")
   testthat::expect_error({ xs[1] <- list("z") }, "not supported")

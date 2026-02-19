@@ -84,6 +84,7 @@ parity_scenarios <- c(
   "split_by_predicate",
   "locate_by_predicate",
   "peek/pop_at helpers",
+  "insert_at helper",
   "[ read (integer/logical/name)",
   "[[ read (integer/name)",
   "[<- replacement (integer/logical/name)",
@@ -257,6 +258,14 @@ testthat::test_that("backend parity: peek/pop_at helpers", {
       popped = out$element,
       remaining = snapshot_tree(out$remaining)
     )
+  })
+})
+
+testthat::test_that("backend parity: insert_at helper", {
+  expect_backend_identical({
+    t <- as_flexseq(setNames(as.list(letters[1:8]), LETTERS[1:8]))
+    out <- insert_at(t, 4, setNames(as.list(c("x", "y")), c("X1", "X2")))
+    snapshot_tree(out)
   })
 })
 

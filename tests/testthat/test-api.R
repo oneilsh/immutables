@@ -110,3 +110,51 @@ testthat::test_that("peek_at/pop_at validate positional index shape and bounds",
   testthat::expect_error(pop_at(x, 5), "out of bounds")
   testthat::expect_error(pop_at(x, c(1, 2)), "single positive integer")
 })
+
+testthat::test_that("insert_at inserts before index and preserves source persistence", {
+  x <- as_flexseq(letters[1:4])
+
+  a <- insert_at(x, 1, "z")
+  testthat::expect_identical(as.list(a), as.list(c("z", "a", "b", "c", "d")))
+
+  b <- insert_at(x, 3, c("x", "y"))
+  testthat::expect_identical(as.list(b), as.list(c("a", "b", "x", "y", "c", "d")))
+
+  c <- insert_at(x, 5, list("q"))
+  testthat::expect_identical(as.list(c), as.list(c("a", "b", "c", "d", "q")))
+
+  ins <- as_flexseq(c("m", "n"))
+  d <- insert_at(x, 2, ins)
+  testthat::expect_identical(as.list(d), as.list(c("a", "m", "n", "b", "c", "d")))
+
+  testthat::expect_identical(as.list(x), as.list(letters[1:4]))
+})
+
+testthat::test_that("insert_at validates bounds and supports empty insert payload", {
+  x <- as_flexseq(letters[1:4])
+  testthat::expect_error(insert_at(x, 0, "z"), "positive integer")
+  testthat::expect_error(insert_at(x, 6, "z"), "out of bounds")
+  testthat::expect_error(insert_at(x, c(1, 2), "z"), "single positive integer")
+
+  x2 <- insert_at(x, 2, list())
+  testthat::expect_identical(as.list(x2), as.list(x))
+})
+
+testthat::test_that("insert_at enforces global named/unnamed consistency", {
+  unnamed <- as_flexseq(1:3)
+  named <- as_flexseq(setNames(as.list(1:3), c("a", "b", "c")))
+
+  testthat::expect_error(
+    insert_at(unnamed, 2, setNames(as.list(9), "k")),
+    "mixed named and unnamed"
+  )
+  testthat::expect_error(
+    insert_at(named, 2, list(9)),
+    "mixed named and unnamed"
+  )
+
+  out <- insert_at(named, 2, setNames(as.list(c(9, 8)), c("k1", "k2")))
+  testthat::expect_identical(out[["k1"]], 9)
+  testthat::expect_identical(out[["k2"]], 8)
+  testthat::expect_identical(length(out), 5L)
+})

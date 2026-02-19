@@ -51,6 +51,7 @@
 <url><loc>https://oneilsh.github.io/immutables/reference/insert.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/insert.ordered_sequence.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/insert.priority_queue.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/insert_at.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/intersect.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/intersect.ordered_sequence.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/is_empty.html</loc></url>
@@ -66,6 +67,7 @@
 <url><loc>https://oneilsh.github.io/immutables/reference/measure_monoid.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/merge.ordered_sequence.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/ordered_sequence.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/peek_at.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/peek_back.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/peek_front.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/peek_key.html</loc></url>
@@ -75,6 +77,7 @@
 <url><loc>https://oneilsh.github.io/immutables/reference/plot.ordered_sequence.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/plot.priority_queue.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/plot_tree.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/pop_at.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/pop_back.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/pop_front.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/pop_key.html</loc></url>

@@ -180,6 +180,61 @@ push_front <- function(x, value) {
   idx
 }
 
+# validate one insertion index in [1, n + 1].
+# Runtime: O(1).
+.ft_assert_insert_index <- function(index, n) {
+  idx <- .ft_assert_int_indices(index, n + 1L)
+  if(length(idx) != 1L) {
+    stop("`index` must be a single positive integer.")
+  }
+  idx
+}
+
+# normalize insert_at payload into a plain list of elements.
+# Runtime: O(k), where k = number of inserted elements.
+.ft_insert_values_list <- function(values) {
+  if(inherits(values, "priority_queue")) {
+    stop("`values` cannot be a priority_queue. Cast first with `as_flexseq()`.")
+  }
+  if(inherits(values, "ordered_sequence")) {
+    stop("`values` cannot be an ordered_sequence. Cast first with `as_flexseq()`.")
+  }
+  if(inherits(values, "flexseq")) {
+    return(as.list(values))
+  }
+  if(is.list(values)) {
+    return(values)
+  }
+  as.list(values)
+}
+
+# enforce global named/unnamed consistency for insert_at.
+# Runtime: O(1) from cached size/name counts.
+.ft_assert_insert_name_state <- function(x, ins, context = "insert_at()") {
+  m_x <- attr(x, "measures", exact = TRUE)
+  m_i <- attr(ins, "measures", exact = TRUE)
+  if(is.null(m_x) || is.null(m_i)) {
+    stop("Tree has no measures attribute.")
+  }
+  n_x <- as.integer(m_x[[".size"]])
+  nn_x <- as.integer(m_x[[".named_count"]])
+  n_i <- as.integer(m_i[[".size"]])
+  nn_i <- as.integer(m_i[[".named_count"]])
+
+  if((n_x > 0L && nn_x != 0L && nn_x != n_x) || (n_i > 0L && nn_i != 0L && nn_i != n_i)) {
+    stop("Invalid tree name state: mixed named/unnamed elements.")
+  }
+  if(n_x == 0L || n_i == 0L) {
+    return(invisible(TRUE))
+  }
+  x_named <- (nn_x == n_x)
+  i_named <- (nn_i == n_i)
+  if(x_named != i_named) {
+    stop("Cannot mix named and unnamed elements (", context, " would create mixed named and unnamed tree).")
+  }
+  invisible(TRUE)
+}
+
 #' Peek at the front element
 #'
 #' @param x A `flexseq`.
@@ -339,4 +394,52 @@ pop_at <- function(x, index) {
     x[c(seq_len(idx - 1L), seq.int(idx + 1L, n))]
   }
   list(element = element, remaining = remaining)
+}
+
+#' Insert elements at a position
+#'
+#' Inserts one or more elements before the current element at `index`.
+#'
+#' @param x A `flexseq`.
+#' @param index One-based insertion position in `[1, length(x) + 1]`.
+#' @param values Elements to insert. Supports scalar/vector/list/flexseq inputs.
+#' @return Updated sequence with inserted elements.
+#' @examples
+#' s <- as_flexseq(letters[1:4])
+#' insert_at(s, 3, c("x", "y"))
+#' @export
+# Runtime: O(k log k) to build inserted payload + O(log n) split + concat work.
+insert_at <- function(x, index, values) {
+  if(inherits(x, "ordered_sequence")) {
+    stop("`insert_at()` is not supported for ordered_sequence. Use `insert()`.")
+  }
+  if(inherits(x, "priority_queue")) {
+    stop("`insert_at()` is not supported for priority_queue. Cast first with `as_flexseq()`.")
+  }
+  if(!inherits(x, "flexseq")) {
+    stop("`x` must be a flexseq.")
+  }
+
+  n <- length(x)
+  idx <- .ft_assert_insert_index(index, n)
+  vals <- .ft_insert_values_list(values)
+  if(length(vals) == 0L) {
+    return(x)
+  }
+
+  ms <- resolve_tree_monoids(x, required = TRUE)
+  ins <- tree_from(vals, monoids = ms)
+  .ft_assert_insert_name_state(x, ins, context = "insert_at()")
+
+  out <- if(n == 0L) {
+    ins
+  } else if(idx == 1L) {
+    concat_trees(ins, x)
+  } else if(idx == (n + 1L)) {
+    concat_trees(x, ins)
+  } else {
+    s <- split_by_predicate(x, function(v) v >= idx, ".size")
+    concat_trees(concat_trees(s$left, ins), s$right)
+  }
+  .ft_restore_subclass(out, x, context = "insert_at()")
 }

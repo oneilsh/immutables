@@ -85,6 +85,7 @@
     index_name_single_read = list(required = c("as_flexseq")),
     peek_at_single_read = list(required = c("as_flexseq", "peek_at")),
     pop_at_single_remove = list(required = c("as_flexseq", "pop_at")),
+    flexseq_insert_at = list(required = c("as_flexseq", "insert_at")),
     as_flexseq_only = list(required = c("as_flexseq")),
     ordered_sequence_insert = list(required = c("as_ordered_sequence", "insert")),
     ordered_sequence_bounds = list(required = c("as_ordered_sequence", "lower_bound", "upper_bound")),
@@ -178,6 +179,13 @@
     if(!is.list(out) || is.null(out$remaining) || !inherits(out$remaining, "flexseq")) {
       stop("Scenario contract failed: pop_at() output shape changed.")
     }
+    return(invisible(TRUE))
+  }
+  if(identical(scenario, "flexseq_insert_at")) {
+    t <- as_flexseq(as.list(1:3))
+    out <- insert_at(t, 2, 99L)
+    if(!inherits(out, "flexseq")) stop("Scenario contract failed: insert_at() must return flexseq.")
+    if(length(out) != 4L) stop("Scenario contract failed: insert_at() did not change size as expected.")
     return(invisible(TRUE))
   }
   if(identical(scenario, "as_flexseq_only")) {
@@ -282,6 +290,7 @@
       index_name_single_read = list(n = 1000L, queries = 200L),
       peek_at_single_read = list(n = 300L, queries = 60L),
       pop_at_single_remove = list(n = 50L, queries = 5L),
+      flexseq_insert_at = list(n = 80L, inserts = 24L),
       as_flexseq_only = list(n = 40000L),
       ordered_sequence_insert = list(n = 300L, inserts = 40L, key_space = 250L),
       ordered_sequence_bounds = list(n = 160L, queries = 30L, key_space = 120L),
@@ -304,6 +313,7 @@
     index_name_single_read = list(n = 320L, queries = 60L),
     peek_at_single_read = list(n = 800L, queries = 160L),
     pop_at_single_remove = list(n = 80L, queries = 8L),
+    flexseq_insert_at = list(n = 180L, inserts = 52L),
     as_flexseq_only = list(n = 12000L),
     ordered_sequence_insert = list(n = 500L, inserts = 70L, key_space = 400L),
     ordered_sequence_bounds = list(n = 220L, queries = 44L, key_space = 170L),
@@ -416,6 +426,17 @@
     invisible(pop_at(t, i))
   }
   invisible(NULL)
+}
+
+.bench_scenario_flexseq_insert_at <- function(n, inserts) {
+  n <- as.integer(n)
+  inserts <- as.integer(inserts)
+  t <- as_flexseq(as.list(seq_len(n)))
+  for(i in seq_len(inserts)) {
+    at <- sample.int(length(t) + 1L, 1L)
+    t <- insert_at(t, at, i)
+  }
+  invisible(t)
 }
 
 .bench_scenario_as_flexseq_only <- function(n) {
@@ -576,6 +597,7 @@
     "index_name_single_read",
     "peek_at_single_read",
     "pop_at_single_remove",
+    "flexseq_insert_at",
     "as_flexseq_only",
     "ordered_sequence_insert",
     "ordered_sequence_bounds",
@@ -603,6 +625,7 @@
     index_name_single_read = do.call(.bench_scenario_index_name_single_read, params),
     peek_at_single_read = do.call(.bench_scenario_peek_at_single_read, params),
     pop_at_single_remove = do.call(.bench_scenario_pop_at_single_remove, params),
+    flexseq_insert_at = do.call(.bench_scenario_flexseq_insert_at, params),
     as_flexseq_only = do.call(.bench_scenario_as_flexseq_only, params),
     ordered_sequence_insert = do.call(.bench_scenario_ordered_sequence_insert, params),
     ordered_sequence_bounds = do.call(.bench_scenario_ordered_sequence_bounds, params),

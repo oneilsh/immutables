@@ -195,7 +195,7 @@
       index_integer_single_read = list(n = 1000L, queries = 200L),
       index_name_single_read = list(n = 1000L, queries = 200L),
       as_flexseq_only = list(n = 40000L),
-      ordered_sequence_insert = list(n = 1800L, inserts = 200L, key_space = 1500L)
+      ordered_sequence_insert = list(n = 300L, inserts = 40L, key_space = 250L)
     ))
   }
   list(
@@ -208,7 +208,7 @@
     index_integer_single_read = list(n = 5000L, queries = 800L),
     index_name_single_read = list(n = 320L, queries = 60L),
     as_flexseq_only = list(n = 12000L),
-    ordered_sequence_insert = list(n = 18000L, inserts = 3500L, key_space = 12000L)
+    ordered_sequence_insert = list(n = 500L, inserts = 70L, key_space = 400L)
   )
 }
 

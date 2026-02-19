@@ -22,6 +22,24 @@ testthat::test_that("insert appends at right edge of equal-key block (FIFO ties)
   testthat::expect_equal(out2$element, "aa")
 })
 
+testthat::test_that("insert works on R backend when insertion is at right boundary", {
+  old_cpp <- getOption("immutables.use_cpp")
+  options(immutables.use_cpp = FALSE)
+  on.exit({
+    if(is.null(old_cpp)) {
+      options(immutables.use_cpp = NULL)
+    } else {
+      options(immutables.use_cpp = old_cpp)
+    }
+  }, add = TRUE)
+
+  xs <- as_ordered_sequence(list("a", "b"), keys = c(1, 2))
+  ys <- insert(xs, "c", key = 3)
+
+  testthat::expect_s3_class(ys, "ordered_sequence")
+  testthat::expect_equal(as.list(ys), list("a", "b", "c"))
+})
+
 testthat::test_that("lower_bound and upper_bound behave at boundaries", {
   xs <- as_ordered_sequence(list("bbb", "a", "cc", "dddd"), keys = c(3, 1, 2, 4))
 

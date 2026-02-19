@@ -283,8 +283,13 @@ ordered_sequence <- function(..., keys = NULL, monoids = NULL) {
 }
 
 # Runtime: O(log n) near insertion/split point depth.
-#' @rdname insert
+#' Insert an element into an ordered sequence
+#'
+#' @method insert ordered_sequence
+#' @param x An `ordered_sequence`.
+#' @param element Element to insert.
 #' @param key Scalar key for `element`.
+#' @param ... Unused.
 #' @return Updated `ordered_sequence`.
 #' @export
 insert.ordered_sequence <- function(x, element, key, ...) {
@@ -522,12 +527,16 @@ pop_key <- function(x, key, which = c("first", "all")) {
   .ord_wrap_like(x, out_tree, key_type = key_type)
 }
 
-#' Lapply over ordered sequence entries
+#' Apply a function over ordered sequence entries
 #'
-#' @rdname lapply
-#' @method lapply ordered_sequence
+#' @method fapply ordered_sequence
+#' @param X An `ordered_sequence`.
+#' @param FUN Function of `(item, key, name, ...)` returning a named
+#'   list with fields from `item`, `key`, `name`.
+#' @param ... Additional arguments passed to `FUN`.
+#' @return A new `ordered_sequence` with transformed entries.
 #' @export
-lapply.ordered_sequence <- function(X, FUN, ...) {
+fapply.ordered_sequence <- function(X, FUN, ...) {
   if(!is.function(FUN)) {
     stop("`FUN` must be a function.")
   }
@@ -594,7 +603,12 @@ count_between <- function(x, from_key, to_key, include_from = TRUE, include_to =
   as.integer(max(0L, end_excl - start))
 }
 
+#' Coerce Ordered Sequence to List
+#'
 #' @method as.list ordered_sequence
+#' @param x An `ordered_sequence`.
+#' @param ... Unused.
+#' @return A plain list of elements in key order.
 #' @export
 # Runtime: O(n).
 as.list.ordered_sequence <- function(x, ...) {
@@ -602,7 +616,11 @@ as.list.ordered_sequence <- function(x, ...) {
   .oms_extract_items(as.list.flexseq(x, ...))
 }
 
+#' Ordered Sequence Length
+#'
 #' @method length ordered_sequence
+#' @param x An `ordered_sequence`.
+#' @return Integer length.
 #' @export
 # Runtime: O(1).
 length.ordered_sequence <- function(x) {

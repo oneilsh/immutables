@@ -151,6 +151,28 @@ plot.flexseq <- function(x, ...) {
   plot_tree(x, ...)
 }
 
+#' Plot a Priority Queue Tree
+#'
+#' @method plot priority_queue
+#' @param x A `priority_queue`.
+#' @param ... Passed to the internal tree plotting routine.
+#' @export
+# Runtime: O(n) to build plot graph data.
+plot.priority_queue <- function(x, ...) {
+  plot.flexseq(x, ...)
+}
+
+#' Plot an Ordered Sequence Tree
+#'
+#' @method plot ordered_sequence
+#' @param x An `ordered_sequence`.
+#' @param ... Passed to the internal tree plotting routine.
+#' @export
+# Runtime: O(n) to build plot graph data.
+plot.ordered_sequence <- function(x, ...) {
+  plot.flexseq(x, ...)
+}
+
 #' Sequence Length
 #'
 #' @method length flexseq

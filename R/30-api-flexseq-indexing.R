@@ -400,15 +400,17 @@
   list(name_to_pos = name_to_pos, name_vec = name_vec)
 }
 
-#' Subset a flexseq by position or element name
+#' Flexseq Indexing
+#'
+#' Index, replace, and extract elements of a `flexseq` by position or name.
 #'
 #' @method [ flexseq
 #' @param x A `flexseq`.
 #' @param i Positive integer indices, character element names, or logical mask.
+#'   For `[[`, a single integer or character name.
 #' @param ... Unused.
-#' @return A new `flexseq` containing selected elements in query order.
+#' @return For `[`: a new `flexseq` containing selected elements in query order.
 #'   For character indexing, missing names are represented as `NULL` elements.
-#'   For `priority_queue`, missing character names are an error.
 #' @examples
 #' x <- as_flexseq(letters[1:6])
 #' x
@@ -483,8 +485,34 @@
   pos
 }
 
+#' Index an ordered sequence
+#'
+#' Ordered sequences support read indexing while preserving key-order semantics.
+#'
+#' For `[`:
+#' - integer and logical indices must resolve to strictly increasing positions;
+#' - character indices are resolved by names and must also be strictly
+#'   increasing;
+#' - duplicates and reordering are rejected.
+#'
+#' For `[[`:
+#' - ordered sequences use the inherited `[[.flexseq` behavior (scalar integer
+#'   index or scalar character name).
+#'
+#' Replacement indexing (`[<-`, `[[<-`) is intentionally unsupported.
+#'
+#' @rdname sub-.ordered_sequence
+#' @method [ ordered_sequence
+#' @param x An `ordered_sequence`.
+#' @param i For `[`, positive integer indices, character names, or logical mask.
+#' @param ... Unused.
+#' @return For `[`, an `ordered_sequence` subset that preserves key order.
+#' @examples
+#' x <- as_ordered_sequence(list("b", "a", "c"), keys = c(2, 1, 3))
+#' x[1:2]
+#' try(x[c(2, 1)])
+#' @seealso [\[.flexseq], [\[<-.ordered_sequence], [\[\[<-.ordered_sequence]
 #' @export
-#' @noRd
 `[.ordered_sequence` <- function(x, i, ...) {
   if(missing(i)) {
     return(x)
@@ -522,8 +550,32 @@
   .ord_wrap_like(x, tree_from(out, monoids = ms))
 }
 
+#' Index a priority queue by name
+#'
+#' Priority queues intentionally expose only name-based read indexing.
+#'
+#' For `[`:
+#' - `i` must be character (one or more names).
+#'
+#' For `[[`:
+#' - `i` must be a single character name.
+#'
+#' Numeric/logical indexing and replacement indexing are unsupported for
+#' `priority_queue`. Cast with [as_flexseq()] for full sequence-style indexing.
+#'
+#' @rdname sub-.priority_queue
+#' @method [ priority_queue
+#' @param x A `priority_queue`.
+#' @param i For `[`, character names.
+#' @param ... Unused.
+#' @return For `[`, a `priority_queue` containing matched named entries.
+#' @examples
+#' q <- as_priority_queue(c("A", "B"), priorities = c(2, 1), names = c("a", "b"))
+#' q["a"]
+#' q[["b"]]
+#' try(q[[1]])
+#' @seealso [\[.flexseq], [as_flexseq()]
 #' @export
-#' @noRd
 `[.priority_queue` <- function(x, i, ...) {
   if(missing(i)) {
     return(x)
@@ -534,14 +586,12 @@
   `[.flexseq`(x, i, ...)
 }
 
-#' Extract one element by position or unique name
-#'
+#' @rdname sub-.flexseq
 #' @method [[ flexseq
-#' @param x A `flexseq`.
-#' @param i Positive scalar integer index, or scalar character element name.
-#' @param ... Unused.
-#' @return The extracted element (internal name metadata is removed).
+#' @return For `[[`: the extracted element (internal name metadata is removed).
 #' @examples
+#'
+#' # [[ extracts one element
 #' x <- as_flexseq(letters[1:5])
 #' x[[3]]
 #'
@@ -564,8 +614,10 @@
   .ft_strip_name(.ft_get_elem_at(x, idx))
 }
 
+#' @rdname sub-.priority_queue
+#' @method [[ priority_queue
+#' @return For `[[`, one element matched by a single character name.
 #' @export
-#' @noRd
 `[[.priority_queue` <- function(x, i, ...) {
   if(!(is.character(i) && length(i) == 1L && !is.na(i))) {
     stop("`[[.priority_queue` supports scalar character names only. Cast first with `as_flexseq()`.")
@@ -573,14 +625,13 @@
   `[[.flexseq`(x, i, ...)
 }
 
-#' Replace selected elements by position or name
-#'
+#' @rdname sub-.flexseq
 #' @method [<- flexseq
-#' @param x A `flexseq`.
-#' @param i Positive integer indices, character names, or logical mask.
 #' @param value Replacement values; recycled to selected index length.
-#' @return A new `flexseq` with selected elements replaced.
+#' @return For `[<-`: a new `flexseq` with selected elements replaced.
 #' @examples
+#'
+#' # [<- replaces selected elements
 #' x <- as_flexseq(1:6)
 #' x
 #'
@@ -710,14 +761,12 @@
   .ft_restore_subclass(tree_from(xs, monoids = ms), x, context = "[<-")
 }
 
-#' Replace one element by position or unique name
-#'
+#' @rdname sub-.flexseq
 #' @method [[<- flexseq
-#' @param x A `flexseq`.
-#' @param i Positive scalar integer index, or scalar character element name.
-#' @param value Replacement element.
-#' @return A new `flexseq` with one element replaced.
+#' @return For `[[<-`: a new `flexseq` with one element replaced.
 #' @examples
+#'
+#' # [[<- replaces one element
 #' x <- as_flexseq(letters[1:4])
 #' x2 <- x
 #' x2[[2]] <- "ZZ"
@@ -785,26 +834,38 @@
   .ft_restore_subclass(concat(left_plus, s$right, ms), x, context = "[[<-")
 }
 
+#' @rdname sub-.ordered_sequence
+#' @method [<- ordered_sequence
+#' @param value Replacement value (unsupported).
+#' @return No return value; always errors because replacement indexing is unsupported.
 #' @export
-#' @noRd
 `[<-.ordered_sequence` <- function(x, i, value) {
   stop("`[<-` is not supported for ordered_sequence.")
 }
 
+#' @rdname sub-.ordered_sequence
+#' @method [[<- ordered_sequence
+#' @param value Replacement value (unsupported).
+#' @return No return value; always errors because replacement indexing is unsupported.
 #' @export
-#' @noRd
 `[[<-.ordered_sequence` <- function(x, i, value) {
   stop("`[[<-` is not supported for ordered_sequence.")
 }
 
+#' @rdname sub-.priority_queue
+#' @method [<- priority_queue
+#' @param value Replacement value (unsupported).
+#' @return No return value; always errors because replacement indexing is unsupported.
 #' @export
-#' @noRd
 `[<-.priority_queue` <- function(x, i, value) {
   stop("`[<-` is not supported for priority_queue. Cast first with `as_flexseq()`.")
 }
 
+#' @rdname sub-.priority_queue
+#' @method [[<- priority_queue
+#' @param value Replacement value (unsupported).
+#' @return No return value; always errors because replacement indexing is unsupported.
 #' @export
-#' @noRd
 `[[<-.priority_queue` <- function(x, i, value) {
   stop("`[[<-` is not supported for priority_queue. Cast first with `as_flexseq()`.")
 }

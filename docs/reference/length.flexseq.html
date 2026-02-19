@@ -33,7 +33,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Sequence Length</h1>
-      <small class="dont-index">Source: <a href="https://github.com/oneilsh/immutables/blob/HEAD/R/30-api-flexseq-core.R" class="external-link"><code>R/30-api-flexseq-core.R</code></a>, <a href="https://github.com/oneilsh/immutables/blob/HEAD/R/40-priority_queue-core.R" class="external-link"><code>R/40-priority_queue-core.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/oneilsh/immutables/blob/HEAD/R/30-api-flexseq-core.R" class="external-link"><code>R/30-api-flexseq-core.R</code></a>, <a href="https://github.com/oneilsh/immutables/blob/HEAD/R/40-ordered_sequence-core.R" class="external-link"><code>R/40-ordered_sequence-core.R</code></a>, <a href="https://github.com/oneilsh/immutables/blob/HEAD/R/40-priority_queue-core.R" class="external-link"><code>R/40-priority_queue-core.R</code></a></small>
       <div class="d-none name"><code>length.flexseq.Rd</code></div>
     </div>
 
@@ -46,6 +46,9 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S3 method for class 'flexseq'</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># S3 method for class 'ordered_sequence'</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
+<span></span>
 <span><span class="co"># S3 method for class 'priority_queue'</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -55,7 +58,8 @@
 
 
 <dl><dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
-<dd><p>A `flexseq`.</p></dd>
+<dd><p>A `flexseq` (including subclasses like `priority_queue`
+and `ordered_sequence`).</p></dd>
 
 </dl></div>
     <div class="section level2">

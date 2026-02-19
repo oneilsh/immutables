@@ -8,12 +8,10 @@ home:
   description: Monoid-annotated 2-3 finger trees for R
 
 reference:
-  - title: "flexseq"
+  - title: "Flexible Sequence (flexseq)"
     desc: |
-      Persistent sequences with fast push/pop/peek operations for 
-      double-ended queue behavior. Quick and memory-efficient
-      concatenation and splitting by name or index. Other structures
-      below (e.g. priority queues) 
+      General-purpose persistent sequence with O(1) amortized push/pop at
+      both ends, O(log n) indexing and replacement, and efficient split/concat.
     contents:
       - flexseq
       - as_flexseq
@@ -25,53 +23,42 @@ reference:
       - peek_back
       - split_at
       - "c.flexseq"
+      - "[.flexseq"
       - "print.flexseq"
       - "length.flexseq"
       - "as.list.flexseq"
-      - "lapply.flexseq"
+      - "fapply.flexseq"
       - "plot.flexseq"
-  
-  - title: flexseq indexing
+
+  - title: "Priority Queue"
     desc: |
-      Indexing functions for list-like behavior. Note that these 
-      operations are generally $O(k\log(n))$ where $k$ is the
-      size of the index vector and $n$ the size of the sequence.
-    contents:
-      - "[.flexseq"
-      - "[[.flexseq"
-      - "[<-.flexseq"
-      - "[[<-.flexseq"
-      - "$.flexseq"
-      - "$<-.flexseq"
-
-
-  - title: "priority_queue"
-    desc: |
-      Persistent priority queues associate priority values with 
-      items and provide $O(\log(n))$ insertion and min/max operations.
-      Priority queues intentionally expose queue-oriented APIs only;
-      sequence-style edits/traversal should cast first with
-      `as_flexseq()`.
-
+      Persistent priority queue with O(log n) insert and min/max peek/pop.
+      Name-based read indexing only; cast with `as_flexseq()` for full
+      sequence operations.
     contents:
       - priority_queue
       - as_priority_queue
-      - insert
+      - insert.priority_queue
       - peek_min
       - peek_max
       - pop_min
       - pop_max
-      - "length.priority_queue"
-      - "lapply.priority_queue"
+      - "[.priority_queue"
+      - "[[.priority_queue"
       - "print.priority_queue"
+      - "length.priority_queue"
+      - "fapply.priority_queue"
+      - "plot.priority_queue"
 
-  - title: "ordered_sequence"
+  - title: "Ordered Sequence"
     desc: |
-      Persistent key-ordered sequences.
+      Persistent key-ordered sequence with O(log n) insert, key lookup,
+      and range queries. Read indexing preserves key order; replacement
+      indexing is not supported.
     contents:
       - ordered_sequence
       - as_ordered_sequence
-      - insert
+      - insert.ordered_sequence
       - peek_key
       - pop_key
       - lower_bound
@@ -79,11 +66,18 @@ reference:
       - elements_between
       - count_key
       - count_between
+      - "[.ordered_sequence"
       - "print.ordered_sequence"
+      - "length.ordered_sequence"
+      - "as.list.ordered_sequence"
+      - "fapply.ordered_sequence"
+      - "plot.ordered_sequence"
 
-  - title: "developer"
-    desc: "Lower-level constructors, query primitives, and tooling"
+  - title: "Developer Tools"
+    desc: "Lower-level primitives for custom monoids, predicate queries, and validation."
     contents:
+      - insert
+      - fapply
       - add_monoids
       - locate_by_predicate
       - split_around_by_predicate

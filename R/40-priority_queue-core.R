@@ -177,7 +177,7 @@ as_priority_queue <- function(x, priorities, names = NULL, monoids = NULL) {
 #' Construct a Priority Queue
 #'
 #' Priority queues expose queue-oriented operations (`insert`, `peek_*`,
-#' `pop_*`, and `lapply`). For full sequence-style editing and traversal,
+#' `pop_*`, and `fapply`). For full sequence-style editing and traversal,
 #' cast explicitly with `as_flexseq()`.
 #'
 #' @param ... Elements to enqueue.
@@ -220,10 +220,10 @@ priority_queue <- function(..., priorities = NULL, names = NULL, monoids = NULL)
 #'
 #' Generic `insert()` dispatches by class.
 #'
-#' @title Insert an element
 #' @param x Object to insert into.
 #' @param ... Method-specific arguments.
 #' @return Updated object.
+#' @seealso [insert.priority_queue()], [insert.ordered_sequence()]
 #' @export
 insert <- function(x, ...) {
   UseMethod("insert")
@@ -240,10 +240,13 @@ insert.default <- function(x, ...) {
 # Runtime: O(log n) near right edge.
 #' Insert an element into a priority queue
 #'
-#' @rdname insert
+#' @method insert priority_queue
+#' @param x A `priority_queue`.
 #' @param element Element to insert.
 #' @param priority Numeric scalar priority.
 #' @param name Optional element name.
+#' @param ... Unused.
+#' @return Updated `priority_queue`.
 #' @examples
 #' x <- priority_queue("a", "b", priorities = c(2, 1))
 #' x
@@ -371,8 +374,11 @@ pop_max <- function(q) {
   .pq_extract(q, ".pq_max")
 }
 
-#' @rdname length.flexseq
+#' Priority Queue Length
+#'
 #' @method length priority_queue
+#' @param x A `priority_queue`.
+#' @return Integer length.
 #' @export
 length.priority_queue <- function(x) {
   as.integer(node_measure(x, ".size"))
@@ -439,12 +445,16 @@ length.priority_queue <- function(x) {
   .as_priority_queue(q2)
 }
 
-#' Lapply over priority queue entries
+#' Apply a function over priority queue entries
 #'
-#' @rdname lapply
-#' @method lapply priority_queue
+#' @method fapply priority_queue
+#' @param X A `priority_queue`.
+#' @param FUN Function of `(item, priority, name, ...)` returning a named
+#'   list with fields from `item`, `priority`, `name`.
+#' @param ... Additional arguments passed to `FUN`.
+#' @return A new `priority_queue` with transformed entries.
 #' @export
-lapply.priority_queue <- function(X, FUN, ...) {
+fapply.priority_queue <- function(X, FUN, ...) {
   if(!is.function(FUN)) {
     stop("`FUN` must be a function.")
   }

@@ -83,5 +83,5 @@ x7
 
 ```{r}
 x8 <- as_flexseq(1:5)
-lapply(x8, function(el) el * 10)
+fapply(x8, function(el) el * 10)
 ```

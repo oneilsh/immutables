@@ -9,15 +9,13 @@
   nm
 }
 
-#' Extract a named element with `$`
-#'
-#' Exact-name lookup on named trees, equivalent to `x[[\"name\"]]`.
-#'
+#' @rdname sub-.flexseq
 #' @method $ flexseq
-#' @param x A `flexseq`.
-#' @param name Element name.
-#' @return The matched element.
+#' @param name Element name (for `$` and `$<-`).
+#' @return For `$`: the matched element.
 #' @examples
+#'
+#' # $ extracts by name
 #' x <- as_flexseq(setNames(as.list(1:3), c("a", "b", "c")))
 #' x$b
 #' @export
@@ -44,16 +42,12 @@
   `[[.priority_queue`(x, nm)
 }
 
-#' Replace a named element with `$<-`
-#'
-#' Exact-name replacement on named trees, equivalent to `x[[\"name\"]] <- value`.
-#'
+#' @rdname sub-.flexseq
 #' @method $<- flexseq
-#' @param x A `flexseq`.
-#' @param name Element name.
-#' @param value Replacement element.
-#' @return Updated tree.
+#' @return For `$<-`: updated tree with one named element replaced.
 #' @examples
+#'
+#' # $<- replaces by name
 #' x <- as_flexseq(setNames(as.list(1:3), c("a", "b", "c")))
 #' x$b <- 20
 #' x$b

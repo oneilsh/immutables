@@ -1,27 +1,14 @@
-#' Lapply with S3 dispatch
+#' Fapply with S3 dispatch
 #'
-#' `lapply()` is exported as an S3 generic so immutable structures can provide
-#' specialized behavior while preserving base list behavior by default.
-#'
-#' For immutable structures, use `lapply(x, FUN, ...)`:
-#' - `flexseq`: `FUN(value, ...)` returns transformed value.
-#' - `priority_queue`: `FUN(item, priority, name, ...)` returns a named
-#'   list using fields from `item`, `priority`, `name`.
-#' - `ordered_sequence`: `FUN(item, key, name, ...)` returns a named
-#'   list using fields from `item`, `key`, `name`.
+#' `fapply()` is an S3 generic for applying functions over immutable
+#' structures with type-specific dispatch.
 #'
 #' @param X Object to apply over.
 #' @param FUN Function to apply.
 #' @param ... Method-specific arguments.
-#' @param preserve_monoids Logical flag used by `lapply.flexseq()`.
 #' @return Method-dependent result.
+#' @seealso [fapply.flexseq()], [fapply.priority_queue()], [fapply.ordered_sequence()]
 #' @export
-lapply <- function(X, FUN, ...) {
-  UseMethod("lapply")
-}
-
-#' @export
-#' @noRd
-lapply.default <- function(X, FUN, ...) {
-  base::lapply(X, FUN = FUN, ...)
+fapply <- function(X, FUN, ...) {
+  UseMethod("fapply")
 }

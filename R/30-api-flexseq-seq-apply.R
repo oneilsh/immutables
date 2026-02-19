@@ -41,14 +41,17 @@
   as_flexseq(out, monoids = out_monoids)
 }
 
-#' Lapply over flexseq elements
+#' Apply a function over flexseq elements
 #'
-#' @rdname lapply
-#' @method lapply flexseq
+#' @method fapply flexseq
+#' @param X A `flexseq`.
+#' @param FUN Function to apply to each element.
+#' @param ... Additional arguments passed to `FUN`.
 #' @param preserve_monoids Logical; when `TRUE`, carries all input monoids to
 #'   the output. When `FALSE` (default), output keeps only invariant monoids.
+#' @return A new `flexseq` with transformed elements.
 #' @export
-lapply.flexseq <- function(X, FUN, ..., preserve_monoids = FALSE) {
+fapply.flexseq <- function(X, FUN, ..., preserve_monoids = FALSE) {
   if(!is.function(FUN)) {
     stop("`FUN` must be a function.")
   }

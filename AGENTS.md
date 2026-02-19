@@ -15,7 +15,7 @@ Treat tests and current source as the source of truth when docs conflict.
   - `priority_queue` intentionally blocks most sequence-style mutation/traversal; cast with `as_flexseq()` for those.
   - Ordered types block order-breaking writes and block `c()`.
   - Ordered merge was removed (for now); do not assume `merge.ordered_sequence`.
-  - `apply` is an S3 generic across base/flexseq/priority_queue/ordered_sequence.
+  - `fapply` is the package's S3 generic for applying functions over immutable structures (not `lapply`, to avoid masking base).
 
 ## Recent Branch Trajectory (api-align)
 Useful commit landmarks for intent:
@@ -115,6 +115,12 @@ at <project root>/AGENTS.md
 
 You should also keep the information in this file accurate as the state of the
 API or underlying implementations change.
+
+## Documentation Organization Preferences
+- **One pkgdown section per data structure** (flexseq, priority_queue, ordered_sequence) plus a Developer Tools section. Do not fragment into sub-sections like "Indexing" or "Shared Methods".
+- **One man page per type per generic**: each type gets its own standalone roxygen block and man page for methods like `length`, `plot`, `as.list`, `fapply`, `insert`. Do not use `@rdname` to lump multiple types onto a shared page (e.g. no `@rdname length.flexseq` from `length.priority_queue`).
+- **Group indexing methods per type**: all indexing operators (`[`, `[[`, `[<-`, `[[<-`, `$`, `$<-`) for a given type share one man page via `@rdname` (e.g. `sub-.flexseq`). This produces one row in the reference index per type rather than six.
+- **Bare generics** (`fapply`, `insert`) go under Developer Tools in `_pkgdown.yml`.
 
 ## Notes
 - Notes should be added as markdown list items.

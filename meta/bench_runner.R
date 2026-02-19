@@ -83,6 +83,8 @@
     split_default = list(required = c("as_flexseq", "split_by_predicate")),
     index_integer_single_read = list(required = c("as_flexseq")),
     index_name_single_read = list(required = c("as_flexseq")),
+    peek_at_single_read = list(required = c("as_flexseq", "peek_at")),
+    pop_at_single_remove = list(required = c("as_flexseq", "pop_at")),
     as_flexseq_only = list(required = c("as_flexseq")),
     ordered_sequence_insert = list(required = c("as_ordered_sequence", "insert")),
     ordered_sequence_bounds = list(required = c("as_ordered_sequence", "lower_bound", "upper_bound")),
@@ -162,6 +164,20 @@
     t <- as_flexseq(x)
     v <- t[["b"]]
     if(!identical(v, 2L) && !identical(v, 2)) stop("Scenario contract failed: name [[ on flexseq changed.")
+    return(invisible(TRUE))
+  }
+  if(identical(scenario, "peek_at_single_read")) {
+    t <- as_flexseq(as.list(1:3))
+    v <- peek_at(t, 2)
+    if(!identical(v, 2L) && !identical(v, 2)) stop("Scenario contract failed: peek_at() changed.")
+    return(invisible(TRUE))
+  }
+  if(identical(scenario, "pop_at_single_remove")) {
+    t <- as_flexseq(as.list(1:3))
+    out <- pop_at(t, 2)
+    if(!is.list(out) || is.null(out$remaining) || !inherits(out$remaining, "flexseq")) {
+      stop("Scenario contract failed: pop_at() output shape changed.")
+    }
     return(invisible(TRUE))
   }
   if(identical(scenario, "as_flexseq_only")) {
@@ -264,6 +280,8 @@
       split_default = list(n = 2000L, queries = 30L),
       index_integer_single_read = list(n = 1000L, queries = 200L),
       index_name_single_read = list(n = 1000L, queries = 200L),
+      peek_at_single_read = list(n = 300L, queries = 60L),
+      pop_at_single_remove = list(n = 50L, queries = 5L),
       as_flexseq_only = list(n = 40000L),
       ordered_sequence_insert = list(n = 300L, inserts = 40L, key_space = 250L),
       ordered_sequence_bounds = list(n = 160L, queries = 30L, key_space = 120L),
@@ -284,6 +302,8 @@
     split_default = list(n = 5000L, queries = 80L),
     index_integer_single_read = list(n = 5000L, queries = 800L),
     index_name_single_read = list(n = 320L, queries = 60L),
+    peek_at_single_read = list(n = 800L, queries = 160L),
+    pop_at_single_remove = list(n = 80L, queries = 8L),
     as_flexseq_only = list(n = 12000L),
     ordered_sequence_insert = list(n = 500L, inserts = 70L, key_space = 400L),
     ordered_sequence_bounds = list(n = 220L, queries = 44L, key_space = 170L),
@@ -372,6 +392,28 @@
   idx <- sample(names(vals), queries, replace = TRUE)
   for(nm in idx) {
     invisible(t[[nm]])
+  }
+  invisible(NULL)
+}
+
+.bench_scenario_peek_at_single_read <- function(n, queries) {
+  n <- as.integer(n)
+  queries <- as.integer(queries)
+  t <- as_flexseq(as.list(seq_len(n)))
+  idx <- sample.int(n, queries, replace = TRUE)
+  for(i in idx) {
+    invisible(peek_at(t, i))
+  }
+  invisible(NULL)
+}
+
+.bench_scenario_pop_at_single_remove <- function(n, queries) {
+  n <- as.integer(n)
+  queries <- as.integer(queries)
+  t <- as_flexseq(as.list(seq_len(n)))
+  idx <- sample.int(n, queries, replace = TRUE)
+  for(i in idx) {
+    invisible(pop_at(t, i))
   }
   invisible(NULL)
 }
@@ -532,6 +574,8 @@
     "split_default",
     "index_integer_single_read",
     "index_name_single_read",
+    "peek_at_single_read",
+    "pop_at_single_remove",
     "as_flexseq_only",
     "ordered_sequence_insert",
     "ordered_sequence_bounds",
@@ -557,6 +601,8 @@
     split_default = do.call(.bench_scenario_split_default, params),
     index_integer_single_read = do.call(.bench_scenario_index_integer_single_read, params),
     index_name_single_read = do.call(.bench_scenario_index_name_single_read, params),
+    peek_at_single_read = do.call(.bench_scenario_peek_at_single_read, params),
+    pop_at_single_remove = do.call(.bench_scenario_pop_at_single_remove, params),
     as_flexseq_only = do.call(.bench_scenario_as_flexseq_only, params),
     ordered_sequence_insert = do.call(.bench_scenario_ordered_sequence_insert, params),
     ordered_sequence_bounds = do.call(.bench_scenario_ordered_sequence_bounds, params),

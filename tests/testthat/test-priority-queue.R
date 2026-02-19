@@ -46,8 +46,10 @@ testthat::test_that("priority_queue disallows sequence-style mutation helpers", 
   testthat::expect_error(push_back(q, list(item = "d", priority = 4)), "Cast first")
   testthat::expect_error(peek_front(q), "not supported for priority_queue")
   testthat::expect_error(peek_back(q), "not supported for priority_queue")
+  testthat::expect_error(peek_at(q, 1), "not supported for priority_queue")
   testthat::expect_error(pop_front(q), "not supported for priority_queue")
   testthat::expect_error(pop_back(q), "not supported for priority_queue")
+  testthat::expect_error(pop_at(q, 1), "not supported for priority_queue")
   testthat::expect_error(c(q, q), "Cast first")
 })
 

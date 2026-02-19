@@ -170,6 +170,16 @@ push_front <- function(x, value) {
   el
 }
 
+# validate one positional index for public peek/pop-at helpers.
+# Runtime: O(1).
+.ft_assert_one_positional_index <- function(index, n) {
+  idx <- .ft_assert_int_indices(index, n)
+  if(length(idx) != 1L) {
+    stop("`index` must be a single positive integer.")
+  }
+  idx
+}
+
 #' Peek at the front element
 #'
 #' @param x A `flexseq`.
@@ -207,6 +217,29 @@ peek_back <- function(x) {
     stop("Cannot `peek_back()` from an empty sequence.")
   }
   .ft_public_value(x, x[[n]])
+}
+
+#' Peek at an element by position
+#'
+#' @param x A `flexseq`.
+#' @param index One-based position to read.
+#' @return Element at `index`.
+#' @export
+# Runtime: O(log n) lookup by scalar index.
+peek_at <- function(x, index) {
+  if(inherits(x, "priority_queue")) {
+    stop("`peek_at()` is not supported for priority_queue. Use `peek_min()`/`peek_max()`, or cast with `as_flexseq()`.")
+  }
+  if(!inherits(x, "flexseq")) {
+    stop("`x` must be a flexseq.")
+  }
+  n <- length(x)
+  if(n == 0L) {
+    stop("Cannot `peek_at()` from an empty sequence.")
+  }
+  idx <- .ft_assert_one_positional_index(index, n)
+  el <- .ft_strip_name(.ft_get_elem_at(x, idx))
+  .ft_public_value(x, el)
 }
 
 #' Pop the front element
@@ -264,5 +297,46 @@ pop_back <- function(x) {
   }
   element <- .ft_public_value(x, x[[n]])
   remaining <- if(n == 1L) .ft_empty_like(x, context = "pop_back()") else x[seq_len(n - 1L)]
+  list(element = element, remaining = remaining)
+}
+
+#' Pop an element by position
+#'
+#' Returns both the popped element and the remaining sequence.
+#'
+#' @param x A `flexseq`.
+#' @param index One-based position to remove.
+#' @return A list with fields `element` and `remaining`.
+#' @examples
+#' s <- as_flexseq(letters[1:4])
+#' out <- pop_at(s, 3)
+#' out$element
+#' out$remaining
+#' @export
+# Runtime: O(log n) for one read plus O(k log n) index subset to rebuild.
+pop_at <- function(x, index) {
+  if(inherits(x, "priority_queue")) {
+    stop("`pop_at()` is not supported for priority_queue. Use `pop_min()`/`pop_max()`, or cast with `as_flexseq()`.")
+  }
+  if(!inherits(x, "flexseq")) {
+    stop("`x` must be a flexseq.")
+  }
+  n <- length(x)
+  if(n == 0L) {
+    stop("Cannot `pop_at()` from an empty sequence.")
+  }
+  idx <- .ft_assert_one_positional_index(index, n)
+  el <- .ft_strip_name(.ft_get_elem_at(x, idx))
+  element <- .ft_public_value(x, el)
+
+  remaining <- if(n == 1L) {
+    .ft_empty_like(x, context = "pop_at()")
+  } else if(idx == 1L) {
+    x[seq.int(2L, n)]
+  } else if(idx == n) {
+    x[seq_len(n - 1L)]
+  } else {
+    x[c(seq_len(idx - 1L), seq.int(idx + 1L, n))]
+  }
   list(element = element, remaining = remaining)
 }

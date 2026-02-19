@@ -73,6 +73,7 @@ testthat::test_that("peek/pop helpers work and are persistent", {
 
   testthat::expect_identical(peek_front(x), "a")
   testthat::expect_identical(peek_back(x), "d")
+  testthat::expect_identical(peek_at(x, 2), "b")
 
   pf <- pop_front(x)
   testthat::expect_identical(pf$element, "a")
@@ -82,6 +83,10 @@ testthat::test_that("peek/pop helpers work and are persistent", {
   testthat::expect_identical(pb$element, "d")
   testthat::expect_identical(as.list(pb$remaining), as.list(letters[1:3]))
 
+  pm <- pop_at(x, 3)
+  testthat::expect_identical(pm$element, "c")
+  testthat::expect_identical(as.list(pm$remaining), as.list(c("a", "b", "d")))
+
   testthat::expect_identical(as.list(x), as.list(letters[1:4]))
 })
 
@@ -89,6 +94,19 @@ testthat::test_that("peek/pop helpers validate empty input", {
   x <- flexseq()
   testthat::expect_error(peek_front(x), "empty sequence")
   testthat::expect_error(peek_back(x), "empty sequence")
+  testthat::expect_error(peek_at(x, 1), "empty sequence")
   testthat::expect_error(pop_front(x), "empty sequence")
   testthat::expect_error(pop_back(x), "empty sequence")
+  testthat::expect_error(pop_at(x, 1), "empty sequence")
+})
+
+testthat::test_that("peek_at/pop_at validate positional index shape and bounds", {
+  x <- as_flexseq(letters[1:4])
+  testthat::expect_error(peek_at(x, 0), "positive integer")
+  testthat::expect_error(peek_at(x, 5), "out of bounds")
+  testthat::expect_error(peek_at(x, c(1, 2)), "single positive integer")
+
+  testthat::expect_error(pop_at(x, 0), "positive integer")
+  testthat::expect_error(pop_at(x, 5), "out of bounds")
+  testthat::expect_error(pop_at(x, c(1, 2)), "single positive integer")
 })

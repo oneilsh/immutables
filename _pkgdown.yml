@@ -21,6 +21,8 @@ reference:
       - pop_back
       - peek_front
       - peek_back
+      - peek_at
+      - pop_at
       - split_at
       - "c.flexseq"
       - "[.flexseq"

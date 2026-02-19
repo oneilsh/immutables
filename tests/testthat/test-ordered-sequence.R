@@ -165,6 +165,7 @@ testthat::test_that("pop helpers preserve ordered class", {
   xs <- as_ordered_sequence(list("x1", "x2", "x3"), keys = c(1, 2, 3))
   pf <- pop_front(xs)
   pb <- pop_back(xs)
+  pm <- pop_at(xs, 2)
 
   testthat::expect_identical(pf$element, "x1")
   testthat::expect_s3_class(pf$remaining, "ordered_sequence")
@@ -173,6 +174,11 @@ testthat::test_that("pop helpers preserve ordered class", {
   testthat::expect_identical(pb$element, "x3")
   testthat::expect_s3_class(pb$remaining, "ordered_sequence")
   testthat::expect_equal(as.list(pb$remaining), list("x1", "x2"))
+
+  testthat::expect_identical(peek_at(xs, 2), "x2")
+  testthat::expect_identical(pm$element, "x2")
+  testthat::expect_s3_class(pm$remaining, "ordered_sequence")
+  testthat::expect_equal(as.list(pm$remaining), list("x1", "x3"))
 })
 
 testthat::test_that("fapply dispatches for ordered_sequence and no reset_ties arg", {

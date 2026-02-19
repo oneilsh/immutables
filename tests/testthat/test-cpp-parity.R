@@ -83,6 +83,7 @@ parity_scenarios <- c(
   "split_around_by_predicate",
   "split_by_predicate",
   "locate_by_predicate",
+  "peek/pop_at helpers",
   "[ read (integer/logical/name)",
   "[[ read (integer/name)",
   "[<- replacement (integer/logical/name)",
@@ -244,6 +245,18 @@ testthat::test_that("backend parity: locate_by_predicate", {
   expect_backend_identical({
     t <- as_flexseq(letters[1:20])
     snapshot_locate(locate_by_predicate(t, function(v) v >= 10, ".size", include_metadata = TRUE))
+  })
+})
+
+testthat::test_that("backend parity: peek/pop_at helpers", {
+  expect_backend_identical({
+    t <- as_flexseq(setNames(as.list(letters[1:8]), LETTERS[1:8]))
+    out <- pop_at(t, 5)
+    list(
+      peek = peek_at(t, 3),
+      popped = out$element,
+      remaining = snapshot_tree(out$remaining)
+    )
   })
 })
 

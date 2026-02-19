@@ -41,24 +41,16 @@
   as_flexseq(out, monoids = out_monoids)
 }
 
-#' Apply over flexseq elements
+#' Lapply over flexseq elements
 #'
-#' @rdname apply
-#' @method apply flexseq
+#' @rdname lapply
+#' @method lapply flexseq
 #' @param preserve_monoids Logical; when `TRUE`, carries all input monoids to
 #'   the output. When `FALSE` (default), output keeps only invariant monoids.
 #' @export
-apply.flexseq <- function(X, MARGIN = NULL, FUN = NULL, ..., preserve_monoids = FALSE) {
-  if(is.null(FUN)) {
-    if(is.function(MARGIN)) {
-      FUN <- MARGIN
-      MARGIN <- NULL
-    } else {
-      stop("`FUN` must be a function.")
-    }
-  }
-  if(!is.null(MARGIN)) {
-    stop("`MARGIN` is not used for flexseq; call `apply(x, FUN, ...)`.")
+lapply.flexseq <- function(X, FUN, ..., preserve_monoids = FALSE) {
+  if(!is.function(FUN)) {
+    stop("`FUN` must be a function.")
   }
   .seq_apply_impl(X, FUN, preserve_monoids = preserve_monoids, ...)
 }

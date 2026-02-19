@@ -2,25 +2,23 @@
 % Please edit documentation in R/30-api-apply-generics.R,
 %   R/30-api-flexseq-seq-apply.R, R/40-ordered_sequence-core.R,
 %   R/40-priority_queue-core.R
-\name{apply}
-\alias{apply}
-\alias{apply.flexseq}
-\alias{apply.ordered_sequence}
-\alias{apply.priority_queue}
-\title{Apply with S3 dispatch}
+\name{lapply}
+\alias{lapply}
+\alias{lapply.flexseq}
+\alias{lapply.ordered_sequence}
+\alias{lapply.priority_queue}
+\title{Lapply with S3 dispatch}
 \usage{
-apply(X, MARGIN, FUN, ...)
+lapply(X, FUN, ...)
 
-\method{apply}{flexseq}(X, MARGIN = NULL, FUN = NULL, ..., preserve_monoids = FALSE)
+\method{lapply}{flexseq}(X, FUN, ..., preserve_monoids = FALSE)
 
-\method{apply}{ordered_sequence}(X, MARGIN = NULL, FUN = NULL, ...)
+\method{lapply}{ordered_sequence}(X, FUN, ...)
 
-\method{apply}{priority_queue}(X, MARGIN = NULL, FUN = NULL, ...)
+\method{lapply}{priority_queue}(X, FUN, ...)
 }
 \arguments{
 \item{X}{Object to apply over.}
-
-\item{MARGIN}{For base arrays, margin(s) to operate over.}
 
 \item{FUN}{Function to apply.}
 
@@ -33,11 +31,11 @@ the output. When `FALSE` (default), output keeps only invariant monoids.}
 Method-dependent result.
 }
 \description{
-`apply()` is exported as an S3 generic so immutable structures can provide
-specialized behavior while preserving base array behavior by default.
+`lapply()` is exported as an S3 generic so immutable structures can provide
+specialized behavior while preserving base list behavior by default.
 }
 \details{
-For immutable structures, use `apply(x, FUN, ...)` (no `MARGIN`):
+For immutable structures, use `lapply(x, FUN, ...)`:
 - `flexseq`: `FUN(value, ...)` returns transformed value.
 - `priority_queue`: `FUN(item, priority, name, ...)` returns a named
   list using fields from `item`, `priority`, `name`.

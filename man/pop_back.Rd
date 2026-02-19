@@ -10,7 +10,7 @@ pop_back(x)
 \item{x}{A `flexseq`.}
 }
 \value{
-A list with fields `element` and `rest`.
+A list with fields `element` and `remaining`.
 }
 \description{
 Returns both the popped element and the remaining sequence.
@@ -19,5 +19,5 @@ Returns both the popped element and the remaining sequence.
 s <- as_flexseq(letters[1:3])
 out <- pop_back(s)
 out$element
-out$rest
+out$remaining
 }

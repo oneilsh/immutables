@@ -374,26 +374,23 @@ upper_bound <- function(x, key) {
 #' @param x An `ordered_sequence`.
 #' @param key Query key.
 #' @param which One of `"first"` or `"all"`.
-#' @param if_missing Value returned when no matching key is present.
-#' @return For `which = "first"`, raw stored element or `if_missing` when not
-#'   found. For `which = "all"`, an ordered sequence with matching elements
-#'   (possibly empty).
+#' @return For `which = "first"`, raw stored element.
+#'   For `which = "all"`, an ordered sequence with matching elements.
+#'   Throws when no matching key exists.
 #' @export
-peek_key <- function(x, key, which = c("first", "all"), if_missing = NULL) {
+peek_key <- function(x, key, which = c("first", "all")) {
   which <- match.arg(which)
   span <- .oms_key_span(x, key)
 
+  if(!isTRUE(span$found)) {
+    stop("No matching key found.")
+  }
+
   if(!identical(which, "all")) {
-    if(!isTRUE(span$found)) {
-      return(if_missing)
-    }
     s <- split_around_by_predicate(x, function(v) v >= span$start, ".size")
     return(s$elem$item)
   }
 
-  if(!isTRUE(span$found)) {
-    return(.ord_wrap_like(x, .oms_empty_tree_like(x)))
-  }
   parts <- .oms_slice_key_span(x, span$start, span$end_excl)
   .ord_wrap_like(x, parts$matched)
 }
@@ -411,14 +408,14 @@ peek_key <- function(x, key, which = c("first", "all"), if_missing = NULL) {
 #' @param key Query key.
 #' @param which One of `"first"` or `"all"`.
 #' @return A named list with components \code{element}, \code{key}, and
-#'   \code{sequence}.
+#'   \code{remaining}.
 #'   \itemize{
 #'   \item For \code{which = "first"}:
 #'   \itemize{
 #'   \item On match: \code{element} is the first matching item and \code{key}
 #'   is its key.
 #'   \item On miss: \code{element = NULL}, \code{key = NULL},
-#'   \code{sequence = x}.
+#'   \code{remaining = x}.
 #'   }
 #'   \item For \code{which = "all"}:
 #'   \itemize{
@@ -426,7 +423,7 @@ peek_key <- function(x, key, which = c("first", "all"), if_missing = NULL) {
 #'   stable order. It may have size 0 (miss), 1 (single match), or greater than
 #'   1 (multiple matches).
 #'   \item \code{key} is the normalized key on match, otherwise \code{NULL}.
-#'   \item \code{sequence} is the original sequence with that full key-run
+#'   \item \code{remaining} is the original sequence with that full key-run
 #'   removed (or unchanged on miss).
 #'   }
 #'   }
@@ -437,22 +434,22 @@ pop_key <- function(x, key, which = c("first", "all")) {
 
   if(!isTRUE(span$found)) {
     if(identical(which, "all")) {
-      return(list(element = .ord_wrap_like(x, .oms_empty_tree_like(x)), key = NULL, sequence = x))
+      return(list(element = .ord_wrap_like(x, .oms_empty_tree_like(x)), key = NULL, remaining = x))
     }
-    return(list(element = NULL, key = NULL, sequence = x))
+    return(list(element = NULL, key = NULL, remaining = x))
   }
 
   if(!identical(which, "all")) {
     s <- split_around_by_predicate(x, function(v) v >= span$start, ".size")
     out <- concat_trees(s$left, s$right)
     seq_out <- .ord_wrap_like(x, out)
-    return(list(element = s$elem$item, key = s$elem$key, sequence = seq_out))
+    return(list(element = s$elem$item, key = s$elem$key, remaining = seq_out))
   }
   parts <- .oms_slice_key_span(x, span$start, span$end_excl)
   list(
     element = .ord_wrap_like(x, parts$matched),
     key = span$key,
-    sequence = .ord_wrap_like(x, parts$rest)
+    remaining = .ord_wrap_like(x, parts$rest)
   )
 }
 
@@ -520,22 +517,14 @@ pop_key <- function(x, key, which = c("first", "all")) {
   .ord_wrap_like(x, out_tree, key_type = key_type)
 }
 
-#' Apply over ordered sequence entries
+#' Lapply over ordered sequence entries
 #'
-#' @rdname apply
-#' @method apply ordered_sequence
+#' @rdname lapply
+#' @method lapply ordered_sequence
 #' @export
-apply.ordered_sequence <- function(X, MARGIN = NULL, FUN = NULL, ...) {
-  if(is.null(FUN)) {
-    if(is.function(MARGIN)) {
-      FUN <- MARGIN
-      MARGIN <- NULL
-    } else {
-      stop("`FUN` must be a function.")
-    }
-  }
-  if(!is.null(MARGIN)) {
-    stop("`MARGIN` is not used for ordered_sequence; call `apply(x, FUN, ...)`.")
+lapply.ordered_sequence <- function(X, FUN, ...) {
+  if(!is.function(FUN)) {
+    stop("`FUN` must be a function.")
   }
   .oms_apply_impl(X, FUN, ...)
 }

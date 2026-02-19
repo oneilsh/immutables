@@ -10,7 +10,7 @@ pop_max(q)
 \item{q}{A `priority_queue`.}
 }
 \value{
-List with `element`, `priority`, and updated `queue`.
+List with `element`, `priority`, and updated `remaining`.
 }
 \description{
 Pop maximum-priority element
@@ -20,5 +20,5 @@ x <- priority_queue("a", "b", "c", priorities = c(2, 3, 3))
 out <- pop_max(x)
 out$element
 out$priority
-out$queue
+out$remaining
 }

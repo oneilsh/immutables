@@ -76,11 +76,11 @@ testthat::test_that("peek/pop helpers work and are persistent", {
 
   pf <- pop_front(x)
   testthat::expect_identical(pf$element, "a")
-  testthat::expect_identical(as.list(pf$rest), as.list(letters[2:4]))
+  testthat::expect_identical(as.list(pf$remaining), as.list(letters[2:4]))
 
   pb <- pop_back(x)
   testthat::expect_identical(pb$element, "d")
-  testthat::expect_identical(as.list(pb$rest), as.list(letters[1:3]))
+  testthat::expect_identical(as.list(pb$remaining), as.list(letters[1:3]))
 
   testthat::expect_identical(as.list(x), as.list(letters[1:4]))
 })

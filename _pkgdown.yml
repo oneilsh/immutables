@@ -28,7 +28,7 @@ reference:
       - "print.flexseq"
       - "length.flexseq"
       - "as.list.flexseq"
-      - "apply.flexseq"
+      - "lapply.flexseq"
       - "plot.flexseq"
   
   - title: flexseq indexing
@@ -62,7 +62,7 @@ reference:
       - pop_min
       - pop_max
       - "length.priority_queue"
-      - "apply.priority_queue"
+      - "lapply.priority_queue"
       - "print.priority_queue"
 
   - title: "ordered_sequence"

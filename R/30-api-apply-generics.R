@@ -1,9 +1,9 @@
-#' Apply with S3 dispatch
+#' Lapply with S3 dispatch
 #'
-#' `apply()` is exported as an S3 generic so immutable structures can provide
-#' specialized behavior while preserving base array behavior by default.
+#' `lapply()` is exported as an S3 generic so immutable structures can provide
+#' specialized behavior while preserving base list behavior by default.
 #'
-#' For immutable structures, use `apply(x, FUN, ...)` (no `MARGIN`):
+#' For immutable structures, use `lapply(x, FUN, ...)`:
 #' - `flexseq`: `FUN(value, ...)` returns transformed value.
 #' - `priority_queue`: `FUN(item, priority, name, ...)` returns a named
 #'   list using fields from `item`, `priority`, `name`.
@@ -11,18 +11,17 @@
 #'   list using fields from `item`, `key`, `name`.
 #'
 #' @param X Object to apply over.
-#' @param MARGIN For base arrays, margin(s) to operate over.
 #' @param FUN Function to apply.
 #' @param ... Method-specific arguments.
-#' @param preserve_monoids Logical flag used by `apply.flexseq()`.
+#' @param preserve_monoids Logical flag used by `lapply.flexseq()`.
 #' @return Method-dependent result.
 #' @export
-apply <- function(X, MARGIN, FUN, ...) {
-  UseMethod("apply")
+lapply <- function(X, FUN, ...) {
+  UseMethod("lapply")
 }
 
 #' @export
 #' @noRd
-apply.default <- function(X, MARGIN, FUN, ...) {
-  base::apply(X, MARGIN = MARGIN, FUN = FUN, ...)
+lapply.default <- function(X, FUN, ...) {
+  base::lapply(X, FUN = FUN, ...)
 }

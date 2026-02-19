@@ -40,7 +40,7 @@ peek_max(x)
 x2 <- pop_min(x)
 x2$element
 x2$priority
-x2$queue
+x2$remaining
 ```
 
 ## Inserting elements

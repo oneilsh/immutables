@@ -10,7 +10,7 @@ pop_min(q)
 \item{q}{A `priority_queue`.}
 }
 \value{
-List with `element`, `priority`, and updated `queue`.
+List with `element`, `priority`, and updated `remaining`.
 }
 \description{
 Pop minimum-priority element
@@ -20,5 +20,5 @@ x <- priority_queue("a", "b", "c", priorities = c(2, 1, 1))
 out <- pop_min(x)
 out$element
 out$priority
-out$queue
+out$remaining
 }

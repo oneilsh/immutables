@@ -138,7 +138,7 @@ as_priority_queue <- function(x, priorities, names = NULL, monoids = NULL) {
 #' Construct a Priority Queue
 #'
 #' Priority queues expose queue-oriented operations (`insert`, `peek_*`,
-#' `pop_*`, and `apply`). For full sequence-style editing and traversal,
+#' `pop_*`, and `lapply`). For full sequence-style editing and traversal,
 #' cast explicitly with `as_flexseq()`.
 #'
 #' @param ... Elements to enqueue.
@@ -270,7 +270,7 @@ insert.priority_queue <- function(x, element, priority, name = NULL, ...) {
   list(
     element = s$elem[["item"]],
     priority = as.numeric(s$elem[["priority"]]),
-    queue = rest
+    remaining = rest
   )
 }
 
@@ -306,13 +306,13 @@ peek_max <- function(q) {
 #' Pop minimum-priority element
 #'
 #' @param q A `priority_queue`.
-#' @return List with `element`, `priority`, and updated `queue`.
+#' @return List with `element`, `priority`, and updated `remaining`.
 #' @examples
 #' x <- priority_queue("a", "b", "c", priorities = c(2, 1, 1))
 #' out <- pop_min(x)
 #' out$element
 #' out$priority
-#' out$queue
+#' out$remaining
 #' @export
 pop_min <- function(q) {
   .pq_extract(q, ".pq_min")
@@ -322,13 +322,13 @@ pop_min <- function(q) {
 #' Pop maximum-priority element
 #'
 #' @param q A `priority_queue`.
-#' @return List with `element`, `priority`, and updated `queue`.
+#' @return List with `element`, `priority`, and updated `remaining`.
 #' @examples
 #' x <- priority_queue("a", "b", "c", priorities = c(2, 3, 3))
 #' out <- pop_max(x)
 #' out$element
 #' out$priority
-#' out$queue
+#' out$remaining
 #' @export
 pop_max <- function(q) {
   .pq_extract(q, ".pq_max")
@@ -402,22 +402,14 @@ length.priority_queue <- function(x) {
   .as_priority_queue(q2)
 }
 
-#' Apply over priority queue entries
+#' Lapply over priority queue entries
 #'
-#' @rdname apply
-#' @method apply priority_queue
+#' @rdname lapply
+#' @method lapply priority_queue
 #' @export
-apply.priority_queue <- function(X, MARGIN = NULL, FUN = NULL, ...) {
-  if(is.null(FUN)) {
-    if(is.function(MARGIN)) {
-      FUN <- MARGIN
-      MARGIN <- NULL
-    } else {
-      stop("`FUN` must be a function.")
-    }
-  }
-  if(!is.null(MARGIN)) {
-    stop("`MARGIN` is not used for priority_queue; call `apply(x, FUN, ...)`.")
+lapply.priority_queue <- function(X, FUN, ...) {
+  if(!is.function(FUN)) {
+    stop("`FUN` must be a function.")
   }
   .pq_apply_impl(X, FUN, ...)
 }

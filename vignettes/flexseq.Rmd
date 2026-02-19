@@ -58,7 +58,7 @@ peek_back(x5)
 
 pf <- pop_front(x5)
 pf$element
-pf$rest
+pf$remaining
 ```
 
 ## Named sequences
@@ -83,5 +83,5 @@ x7
 
 ```{r}
 x8 <- as_flexseq(1:5)
-apply(x8, function(el) el * 10)
+lapply(x8, function(el) el * 10)
 ```

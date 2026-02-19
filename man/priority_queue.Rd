@@ -20,7 +20,7 @@ A `priority_queue`.
 }
 \description{
 Priority queues expose queue-oriented operations (`insert`, `peek_*`,
-`pop_*`, and `apply`). For full sequence-style editing and traversal,
+`pop_*`, and `lapply`). For full sequence-style editing and traversal,
 cast explicitly with `as_flexseq()`.
 }
 \examples{

@@ -214,12 +214,12 @@ peek_back <- function(x) {
 #' Returns both the popped element and the remaining sequence.
 #'
 #' @param x A `flexseq`.
-#' @return A list with fields `element` and `rest`.
+#' @return A list with fields `element` and `remaining`.
 #' @examples
 #' s <- as_flexseq(letters[1:3])
 #' out <- pop_front(s)
 #' out$element
-#' out$rest
+#' out$remaining
 #' @export
 # Runtime: O(log n) for one read plus one subset.
 pop_front <- function(x) {
@@ -234,8 +234,8 @@ pop_front <- function(x) {
     stop("Cannot `pop_front()` from an empty sequence.")
   }
   element <- .ft_public_value(x, x[[1L]])
-  rest <- if(n == 1L) .ft_empty_like(x, context = "pop_front()") else x[seq.int(2L, n)]
-  list(element = element, rest = rest)
+  remaining <- if(n == 1L) .ft_empty_like(x, context = "pop_front()") else x[seq.int(2L, n)]
+  list(element = element, remaining = remaining)
 }
 
 #' Pop the back element
@@ -243,12 +243,12 @@ pop_front <- function(x) {
 #' Returns both the popped element and the remaining sequence.
 #'
 #' @param x A `flexseq`.
-#' @return A list with fields `element` and `rest`.
+#' @return A list with fields `element` and `remaining`.
 #' @examples
 #' s <- as_flexseq(letters[1:3])
 #' out <- pop_back(s)
 #' out$element
-#' out$rest
+#' out$remaining
 #' @export
 # Runtime: O(log n) for one read plus one subset.
 pop_back <- function(x) {
@@ -263,6 +263,6 @@ pop_back <- function(x) {
     stop("Cannot `pop_back()` from an empty sequence.")
   }
   element <- .ft_public_value(x, x[[n]])
-  rest <- if(n == 1L) .ft_empty_like(x, context = "pop_back()") else x[seq_len(n - 1L)]
-  list(element = element, rest = rest)
+  remaining <- if(n == 1L) .ft_empty_like(x, context = "pop_back()") else x[seq_len(n - 1L)]
+  list(element = element, remaining = remaining)
 }

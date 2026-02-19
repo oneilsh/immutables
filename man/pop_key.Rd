@@ -15,14 +15,14 @@ pop_key(x, key, which = c("first", "all"))
 }
 \value{
 A named list with components \code{element}, \code{key}, and
-  \code{sequence}.
+  \code{remaining}.
   \itemize{
   \item For \code{which = "first"}:
   \itemize{
   \item On match: \code{element} is the first matching item and \code{key}
   is its key.
   \item On miss: \code{element = NULL}, \code{key = NULL},
-  \code{sequence = x}.
+  \code{remaining = x}.
   }
   \item For \code{which = "all"}:
   \itemize{
@@ -30,7 +30,7 @@ A named list with components \code{element}, \code{key}, and
   stable order. It may have size 0 (miss), 1 (single match), or greater than
   1 (multiple matches).
   \item \code{key} is the normalized key on match, otherwise \code{NULL}.
-  \item \code{sequence} is the original sequence with that full key-run
+  \item \code{remaining} is the original sequence with that full key-run
   removed (or unchanged on miss).
   }
   }

@@ -4,7 +4,7 @@
 \alias{peek_key}
 \title{Peek elements for one key}
 \usage{
-peek_key(x, key, which = c("first", "all"), if_missing = NULL)
+peek_key(x, key, which = c("first", "all"))
 }
 \arguments{
 \item{x}{An `ordered_sequence`.}
@@ -12,13 +12,11 @@ peek_key(x, key, which = c("first", "all"), if_missing = NULL)
 \item{key}{Query key.}
 
 \item{which}{One of `"first"` or `"all"`.}
-
-\item{if_missing}{Value returned when no matching key is present.}
 }
 \value{
-For `which = "first"`, raw stored element or `if_missing` when not
-  found. For `which = "all"`, an ordered sequence with matching elements
-  (possibly empty).
+For `which = "first"`, raw stored element.
+  For `which = "all"`, an ordered sequence with matching elements.
+  Throws when no matching key exists.
 }
 \description{
 For `which = "first"`, returns the first (leftmost) sequence element among

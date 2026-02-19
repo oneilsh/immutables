@@ -91,6 +91,45 @@
   x
 }
 
+# Runtime: O(log n) near right edge, with O(1) local name-state checks.
+.pq_append_entry <- function(q, entry) {
+  ms <- attr(q, "monoids", exact = TRUE)
+  if(is.null(ms)) {
+    stop("Tree has no monoids attribute.")
+  }
+  m <- attr(q, "measures", exact = TRUE)
+  if(is.null(m)) {
+    stop("Tree has no measures attribute.")
+  }
+
+  n <- as.integer(m[[".size"]])
+  nn <- as.integer(m[[".named_count"]])
+  if(n > 0L && nn != 0L && nn != n) {
+    stop("Invalid tree name state: mixed named/unnamed elements.")
+  }
+
+  nm <- .ft_get_name(entry)
+  if(nn == 0L) {
+    if(!is.null(nm) && n > 0L) {
+      stop("Cannot mix named and unnamed elements (insert would create mixed named and unnamed tree).")
+    }
+    if(.ft_cpp_can_use(ms)) {
+      out <- if(is.null(nm)) .ft_cpp_add_right(q, entry, ms) else .ft_cpp_add_right_named(q, entry, nm, ms)
+      return(.as_priority_queue(out))
+    }
+    entry2 <- if(is.null(nm)) entry else .ft_set_name(entry, nm)
+    return(.as_priority_queue(.add_right_fast(q, entry2, ms)))
+  }
+
+  if(is.null(nm)) {
+    stop("Cannot mix named and unnamed elements (insert would create mixed named and unnamed tree).")
+  }
+  if(.ft_cpp_can_use(ms)) {
+    return(.as_priority_queue(.ft_cpp_add_right_named(q, entry, nm, ms)))
+  }
+  .as_priority_queue(.add_right_fast(q, .ft_set_name(entry, nm), ms))
+}
+
 # Runtime: O(n log n) from underlying sequence construction.
 #' Build a Priority Queue from elements and priorities
 #'
@@ -221,9 +260,7 @@ insert.priority_queue <- function(x, element, priority, name = NULL, ...) {
   if(!is.null(name)) {
     entry <- .ft_set_name(entry, name)
   }
-
-  q2 <- .ft_push_back_impl(q, entry, context = "insert()")
-  .as_priority_queue(q2)
+  .pq_append_entry(q, entry)
 }
 
 # Runtime: O(log n) near locate point depth.

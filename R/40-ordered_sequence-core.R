@@ -215,6 +215,11 @@
   as.list.flexseq(x)
 }
 
+# Runtime: O(log n) via indexed locate path.
+.oms_entry_at <- function(x, idx) {
+  .ft_get_elem_at(x, as.integer(idx))
+}
+
 # Runtime: O(n log n) from build and ordering.
 #' Build an Ordered Sequence from elements
 #'
@@ -336,7 +341,7 @@ lower_bound <- function(x, key) {
     return(list(found = FALSE, index = NULL, element = NULL, key = NULL))
   }
 
-  entry <- .oms_entries(x)[[idx]]
+  entry <- .oms_entry_at(x, idx)
   list(found = TRUE, index = idx, element = entry$item, key = entry$key)
 }
 
@@ -358,7 +363,7 @@ upper_bound <- function(x, key) {
     return(list(found = FALSE, index = NULL, element = NULL, key = NULL))
   }
 
-  entry <- .oms_entries(x)[[idx]]
+  entry <- .oms_entry_at(x, idx)
   list(found = TRUE, index = idx, element = entry$item, key = entry$key)
 }
 
@@ -551,7 +556,7 @@ elements_between <- function(x, from_key, to_key, include_from = TRUE, include_t
     return(list())
   }
 
-  entries <- .oms_entries(x)[seq.int(start, end_excl - 1L)]
+  entries <- .ft_get_elems_at(x, seq.int(start, end_excl - 1L))
   .oms_extract_items(entries)
 }
 

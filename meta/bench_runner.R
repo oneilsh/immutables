@@ -221,7 +221,7 @@
     q <- insert(q, "a", priority = 2)
     q <- insert(q, "b", priority = 1)
     out <- pop_min(q)
-    if(!is.list(out) || is.null(out$queue) || !inherits(out$queue, "priority_queue")) {
+    if(!is.list(out) || is.null(out$remaining) || !inherits(out$remaining, "priority_queue")) {
       stop("Scenario contract failed: pop_min() output shape changed.")
     }
     return(invisible(TRUE))
@@ -230,7 +230,7 @@
     q <- priority_queue()
     q <- insert(q, "a", priority = 2)
     q <- insert(q, "b", priority = 1)
-    q <- pop_min(q)$queue
+    q <- pop_min(q)$remaining
     if(length(q) > 0L) {
       invisible(peek_min(q))
     }
@@ -244,7 +244,7 @@
     q <- insert(q, "a", priority = 2)
     q <- insert(q, "b", priority = 1)
     out <- pop_min(q)
-    if(!is.list(out) || is.null(out$queue) || !inherits(out$queue, "priority_queue")) {
+    if(!is.list(out) || is.null(out$remaining) || !inherits(out$remaining, "priority_queue")) {
       stop("Scenario contract failed: pop_min() output shape changed.")
     }
     return(invisible(TRUE))
@@ -472,7 +472,7 @@
   q <- .bench_build_priority_queue(n, key_space)
   k <- min(pops, n)
   for(i in seq_len(k)) {
-    q <- pop_min(q)$queue
+    q <- pop_min(q)$remaining
   }
   invisible(q)
 }
@@ -492,7 +492,7 @@
   q <- .bench_build_priority_queue(n, key_space)
   k <- min(pops, as.integer(n))
   for(i in seq_len(k)) {
-    q <- pop_min(q)$queue
+    q <- pop_min(q)$remaining
     if(length(q) == 0L) {
       break
     }
@@ -513,7 +513,7 @@
       next_id <- next_id + 1L
       q <- insert(q, next_id, priority = sample.int(key_space, 1L))
     } else {
-      q <- pop_min(q)$queue
+      q <- pop_min(q)$remaining
       if(length(q) > 0L) {
         invisible(peek_min(q))
       }

@@ -61,7 +61,7 @@
 <li>Ordered types block order-breaking writes and block <code><a href="https://rdrr.io/r/base/c.html" class="external-link">c()</a></code>.</li>
 <li>Ordered merge was removed (for now); do not assume <code>merge.ordered_sequence</code>.</li>
 <li>
-<code>apply</code> is an S3 generic across base/flexseq/priority_queue/ordered_sequence.</li>
+<code>fapply</code> is the package’s S3 generic for applying functions over immutable structures (not <code>lapply</code>, to avoid masking base).</li>
 </ul></li>
 </ul></div>
 <div class="section level2">
@@ -175,6 +175,17 @@
 <p>You should also keep the information in this file accurate as the state of the API or underlying implementations change.</p>
 </div>
 <div class="section level2">
+<h2 id="documentation-organization-preferences">Documentation Organization Preferences<a class="anchor" aria-label="anchor" href="#documentation-organization-preferences"></a></h2>
+<ul><li>
+<strong>One pkgdown section per data structure</strong> (flexseq, priority_queue, ordered_sequence) plus a Developer Tools section. Do not fragment into sub-sections like “Indexing” or “Shared Methods”.</li>
+<li>
+<strong>One man page per type per generic</strong>: each type gets its own standalone roxygen block and man page for methods like <code>length</code>, <code>plot</code>, <code>as.list</code>, <code>fapply</code>, <code>insert</code>. Do not use <code>@rdname</code> to lump multiple types onto a shared page (e.g. no <code>@rdname length.flexseq</code> from <code>length.priority_queue</code>).</li>
+<li>
+<strong>Group indexing methods per type</strong>: all indexing operators (<code>[</code>, <code>[[</code>, <code>[&lt;-</code>, <code>[[&lt;-</code>, <code>$</code>, <code>$&lt;-</code>) for a given type share one man page via <code>@rdname</code> (e.g. <code>sub-.flexseq</code>). This produces one row in the reference index per type rather than six.</li>
+<li>
+<strong>Bare generics</strong> (<code>fapply</code>, <code>insert</code>) go under Developer Tools in <code>_pkgdown.yml</code>.</li>
+</ul></div>
+<div class="section level2">
 <h2 id="notes">Notes<a class="anchor" aria-label="anchor" href="#notes"></a></h2>
 <ul><li>Notes should be added as markdown list items.</li>
 <li>You may use sublists to organize notes
@@ -201,7 +212,7 @@
 <li>
 <code>eb493fd</code>: full-profile benchmark sizes were reduced in high-cost R-backend scenarios (<code>flexseq_tree_from*</code>, split variants, index reads, <code>as_flexseq_only</code>) to keep single-scenario runs within ~30s when capped. Risk: full-profile values are less stress-heavy than earlier settings.</li>
 <li>
-<code>eb493fd</code>: fixed <code><a href="reference/insert.html">insert.ordered_sequence()</a></code> R fallback boundary case (<code>use_cpp=FALSE</code>) by avoiding public <code><a href="reference/push_back.html">push_back()</a></code> guard when appending split-left fragments; <code>ordered_sequence_insert</code> benchmarks now execute on R backend. Risk: internal append helper path should continue to preserve ordered wrapping invariants (covered by ordered-sequence tests).</li>
+<code>eb493fd</code>: fixed <code><a href="reference/insert.ordered_sequence.html">insert.ordered_sequence()</a></code> R fallback boundary case (<code>use_cpp=FALSE</code>) by avoiding public <code><a href="reference/push_back.html">push_back()</a></code> guard when appending split-left fragments; <code>ordered_sequence_insert</code> benchmarks now execute on R backend. Risk: internal append helper path should continue to preserve ordered wrapping invariants (covered by ordered-sequence tests).</li>
 <li>
 <code>eb493fd</code>: benchmark coverage now includes additional non-flexseq structure scenarios (<code>ordered_sequence_bounds</code>, <code>pq_insert_pop</code>) and both are in quick/full profiles with R-safe parameter sizes. Risk: scenario names/default params changed; compare historical runs by scenario+params, not just run label.</li>
 <li>

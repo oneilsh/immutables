@@ -527,7 +527,7 @@
   list(element = matched, start = NULL, end = NULL, remaining = remaining)
 }
 
-# Runtime: O(n log n) from reconstruction.
+# Runtime: O(n) from traversal + ordered bulk rebuild.
 .ivx_apply_impl <- function(x, f, ...) {
   .ivx_assert_index(x)
   if(!is.function(f)) {
@@ -540,63 +540,25 @@
     return(x)
   }
 
-  out_items <- vector("list", n)
-  out_starts <- vector("list", n)
-  out_ends <- vector("list", n)
-  out_names <- if(is.null(names(entries))) rep("", n) else names(entries)
-  endpoint_type <- .ivx_endpoint_type_state(x)
+  out_entries <- vector("list", n)
+  out_names <- names(entries)
+  has_names <- !is.null(out_names) && length(out_names) == n
 
   for(i in seq_len(n)) {
     e <- entries[[i]]
-    cur_name <- out_names[[i]]
+    cur_name <- if(isTRUE(has_names)) out_names[[i]] else ""
 
-    upd <- f(e$item, e$start, e$end, cur_name, ...)
-    if(!is.list(upd)) {
-      stop("`FUN` must return a list.")
-    }
-
-    if(length(upd) > 0L) {
-      nm <- names(upd)
-      if(is.null(nm) || any(is.na(nm)) || any(nm == "")) {
-        stop("`FUN` must return a named list using only: item, start, end, name.")
-      }
-      if(anyDuplicated(nm) > 0L) {
-        stop("`FUN` return list cannot contain duplicated field names.")
-      }
-      bad <- setdiff(nm, c("item", "start", "end", "name"))
-      if(length(bad) > 0L) {
-        stop("`FUN` returned unsupported field(s): ", paste(bad, collapse = ", "))
-      }
-    }
-
-    item2 <- if("item" %in% names(upd)) upd[["item"]] else e$item
-    start2 <- if("start" %in% names(upd)) upd[["start"]] else e$start
-    end2 <- if("end" %in% names(upd)) upd[["end"]] else e$end
-
-    norm <- .ivx_normalize_interval(start2, end2, endpoint_type = endpoint_type)
-    endpoint_type <- norm$endpoint_type
-
-    if("name" %in% names(upd)) {
-      nm2 <- .ft_normalize_name(upd[["name"]])
-      out_names[[i]] <- if(is.null(nm2)) "" else nm2
-    }
-
-    out_items[[i]] <- item2
-    out_starts[[i]] <- norm$start
-    out_ends[[i]] <- norm$end
+    item2 <- f(e$item, e$start, e$end, cur_name, ...)
+    out_entries[[i]] <- .ivx_make_entry(item2, e$start, e$end)
   }
 
-  if(any(out_names != "")) {
-    names(out_items) <- out_names
+  if(isTRUE(has_names)) {
+    names(out_entries) <- out_names
   }
 
-  as_interval_index(
-    out_items,
-    start = out_starts,
-    end = out_ends,
-    bounds = .ivx_bounds_state(x),
-    monoids = .ivx_user_monoids(x)
-  )
+  ms <- resolve_tree_monoids(x, required = TRUE)
+  out_tree <- .ivx_tree_from_ordered_entries(out_entries, ms)
+  .ivx_wrap_like(x, out_tree)
 }
 
 # Runtime: O(n log n) from sort + bulk build.
@@ -659,13 +621,13 @@ insert.interval_index <- function(x, element, start, end, name = NULL, ...) {
   .ivx_insert_entry(x, entry, endpoint_type = norm$endpoint_type)
 }
 
-# Runtime: O(n log n) from reconstruction.
+# Runtime: O(n) from traversal + ordered bulk rebuild.
 #' Apply a function over interval index entries
 #'
 #' @method fapply interval_index
 #' @param X An `interval_index`.
-#' @param FUN Function of `(item, start, end, name, ...)` returning a named
-#'   list with fields from `item`, `start`, `end`, `name`.
+#' @param FUN Function of `(item, start, end, name, ...)` returning the new
+#'   payload item. Interval metadata (`start`, `end`, `name`) is read-only.
 #' @param ... Additional arguments passed to `FUN`.
 #' @return A new `interval_index` with transformed entries.
 #' @export

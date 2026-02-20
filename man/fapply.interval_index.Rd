@@ -9,8 +9,8 @@
 \arguments{
 \item{X}{An `interval_index`.}
 
-\item{FUN}{Function of `(item, start, end, name, ...)` returning a named
-list with fields from `item`, `start`, `end`, `name`.}
+\item{FUN}{Function of `(item, start, end, name, ...)` returning the new
+payload item. Interval metadata (`start`, `end`, `name`) is read-only.}
 
 \item{...}{Additional arguments passed to `FUN`.}
 }

@@ -270,7 +270,7 @@
   if(identical(scenario, "interval_index_fapply")) {
     x <- as_interval_index(list("a", "b"), start = c(1, 2), end = c(2, 3))
     y <- fapply(x, function(item, start, end, name) {
-      list(item = item, start = start + 1L, end = end + 1L)
+      item
     })
     if(!inherits(y, "interval_index")) {
       stop("Scenario contract failed: fapply(interval_index, ...) changed.")
@@ -677,11 +677,7 @@
   for(i in seq_len(reps)) {
     shift <- as.integer((i - 1L) %% 3L)
     ix <- fapply(ix, function(item, start, end, name) {
-      list(
-        item = item,
-        start = start + shift,
-        end = end + shift
-      )
+      item + shift
     })
   }
   invisible(ix)

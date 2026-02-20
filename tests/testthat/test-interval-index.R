@@ -153,30 +153,71 @@ testthat::test_that("pop_front/pop_back preserve interval_index class", {
   testthat::expect_identical(length(pb$remaining), 0L)
 })
 
-testthat::test_that("fapply for interval_index can update item/start/end/name", {
+testthat::test_that("fapply for interval_index updates payload only and keeps interval metadata immutable", {
   ix <- as_interval_index(
     setNames(as.list(c("a", "b", "c")), c("ka", "kb", "kc")),
     start = c(3, 1, 2),
     end = c(4, 2, 3),
     bounds = "[]"
   )
+  b0 <- interval_bounds(ix)
 
   ix2 <- fapply(ix, function(item, start, end, name) {
-    list(item = toupper(item), start = start + 1, end = end + 1, name = paste0(name, "_new"))
+    toupper(item)
   })
 
   testthat::expect_s3_class(ix2, "interval_index")
   testthat::expect_equal(unname(as.list(ix2)), list("B", "C", "A"))
-  testthat::expect_equal(ix2[["kb_new"]], "B")
+  testthat::expect_equal(ix2[["kb"]], "B")
 
   b2 <- interval_bounds(ix2)
-  testthat::expect_equal(unname(lapply(b2$start, identity)), as.list(c(2, 3, 4)))
-  testthat::expect_equal(unname(lapply(b2$end, identity)), as.list(c(3, 4, 5)))
+  testthat::expect_equal(unname(lapply(b2$start, identity)), unname(lapply(b0$start, identity)))
+  testthat::expect_equal(unname(lapply(b2$end, identity)), unname(lapply(b0$end, identity)))
 
   testthat::expect_error(fapply(ix, 1), "`FUN` must be a function")
-  testthat::expect_error(fapply(ix, function(item, start, end, name) 1), "must return a list")
-  testthat::expect_error(
-    fapply(ix, function(item, start, end, name) list(foo = 1)),
-    "unsupported field"
+
+  ix3 <- fapply(ix, function(item, start, end, name) {
+    list(old = item, at = c(start, end), nm = name)
+  })
+  testthat::expect_type(ix3[[1]], "list")
+  testthat::expect_named(ix3[[1]], c("old", "at", "nm"))
+  b3 <- interval_bounds(ix3)
+  testthat::expect_equal(unname(lapply(b3$start, identity)), unname(lapply(b0$start, identity)))
+  testthat::expect_equal(unname(lapply(b3$end, identity)), unname(lapply(b0$end, identity)))
+})
+
+testthat::test_that("interval_index recomputes user monoids across insert, fapply, and slices", {
+  sum_item <- measure_monoid(function(a, b) a + b, 0, function(el) as.numeric(el$item))
+  width_sum <- measure_monoid(function(a, b) a + b, 0, function(el) as.numeric(el$end - el$start))
+
+  ix <- as_interval_index(
+    as.list(c(10, 20, 30)),
+    start = c(1, 2, 4),
+    end = c(3, 5, 6),
+    monoids = list(sum_item = sum_item, width_sum = width_sum)
   )
+  testthat::expect_equal(node_measure(ix, "sum_item"), 60)
+  testthat::expect_equal(node_measure(ix, "width_sum"), 7)
+
+  ix2 <- insert(ix, 40, start = 3, end = 4)
+  testthat::expect_equal(node_measure(ix2, "sum_item"), 100)
+  testthat::expect_equal(node_measure(ix2, "width_sum"), 8)
+
+  ix3 <- fapply(ix2, function(item, start, end, name) item + 1)
+  testthat::expect_equal(node_measure(ix3, "sum_item"), 104)
+  testthat::expect_equal(node_measure(ix3, "width_sum"), 8)
+
+  overlaps <- find_overlaps(ix3, 2, 3, bounds = "[)")
+  testthat::expect_s3_class(overlaps, "interval_index")
+  testthat::expect_equal(as.list(overlaps), as.list(c(11, 21)))
+  testthat::expect_equal(node_measure(overlaps, "sum_item"), 32)
+  testthat::expect_equal(node_measure(overlaps, "width_sum"), 5)
+
+  popped <- pop_overlaps(ix3, 2, 3, which = "all", bounds = "[)")
+  testthat::expect_s3_class(popped$element, "interval_index")
+  testthat::expect_s3_class(popped$remaining, "interval_index")
+  testthat::expect_equal(node_measure(popped$element, "sum_item"), 32)
+  testthat::expect_equal(node_measure(popped$remaining, "sum_item"), 72)
+  testthat::expect_equal(node_measure(popped$element, "width_sum"), 5)
+  testthat::expect_equal(node_measure(popped$remaining, "width_sum"), 3)
 })

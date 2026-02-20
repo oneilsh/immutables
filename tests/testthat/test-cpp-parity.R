@@ -372,6 +372,42 @@ testthat::test_that("backend parity: interval_index insert and queries", {
   })
 })
 
+testthat::test_that("backend parity: interval_index user monoid recomputation", {
+  expect_backend_identical({
+    sum_item <- measure_monoid(function(a, b) a + b, 0, function(el) as.numeric(el$item))
+    width_sum <- measure_monoid(function(a, b) a + b, 0, function(el) as.numeric(el$end - el$start))
+
+    x <- as_interval_index(
+      as.list(c(10, 20, 30)),
+      start = c(1, 2, 4),
+      end = c(3, 5, 6),
+      monoids = list(sum_item = sum_item, width_sum = width_sum)
+    )
+    y <- insert(x, 40, start = 3, end = 4)
+    z <- fapply(y, function(item, start, end, name) item + 1)
+    s <- find_overlaps(z, 2, 3, bounds = "[)")
+    p <- pop_overlaps(z, 2, 3, which = "all", bounds = "[)")
+
+    list(
+      base = c(sum_item = node_measure(x, "sum_item"), width_sum = node_measure(x, "width_sum")),
+      inserted = c(sum_item = node_measure(y, "sum_item"), width_sum = node_measure(y, "width_sum")),
+      applied = c(sum_item = node_measure(z, "sum_item"), width_sum = node_measure(z, "width_sum")),
+      slice = c(sum_item = node_measure(s, "sum_item"), width_sum = node_measure(s, "width_sum")),
+      pop_element = c(
+        sum_item = node_measure(p$element, "sum_item"),
+        width_sum = node_measure(p$element, "width_sum")
+      ),
+      pop_remaining = c(
+        sum_item = node_measure(p$remaining, "sum_item"),
+        width_sum = node_measure(p$remaining, "width_sum")
+      ),
+      slice_values = as.list(s),
+      pop_values = as.list(p$element),
+      remaining_values = as.list(p$remaining)
+    )
+  })
+})
+
 testthat::test_that("backend parity: ordered key-merge primitive", {
   expect_backend_identical({
     x <- as_ordered_sequence(list("aa", "bb", "c", "ddd"), keys = c(2, 2, 1, 3))

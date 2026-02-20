@@ -409,7 +409,8 @@ List measures_from_children(const List& children, const List& monoids) {
       if(Rf_isNull(mv)) {
         mv = measure(ch);
       }
-      acc.set(f(acc.get(), mv));
+      Shield<SEXP> mv_protected(mv);
+      acc.set(f(acc.get(), (SEXP)mv_protected));
     }
     out[i] = acc.get();
   }
@@ -642,20 +643,25 @@ List measured_nodes_cpp(const List& xs, const List& monoids) {
   while(i < n) {
     const int rem = n - i;
     if(rem == 2) {
-      out.push_back(make_node2(xs[i], xs[i + 1], monoids));
+      Shield<SEXP> node(make_node2(xs[i], xs[i + 1], monoids));
+      out.push_back(node);
       break;
     }
     if(rem == 3) {
-      out.push_back(make_node3(xs[i], xs[i + 1], xs[i + 2], monoids));
+      Shield<SEXP> node(make_node3(xs[i], xs[i + 1], xs[i + 2], monoids));
+      out.push_back(node);
       break;
     }
     if(rem == 4) {
-      out.push_back(make_node2(xs[i], xs[i + 1], monoids));
-      out.push_back(make_node2(xs[i + 2], xs[i + 3], monoids));
+      Shield<SEXP> node1(make_node2(xs[i], xs[i + 1], monoids));
+      out.push_back(node1);
+      Shield<SEXP> node2(make_node2(xs[i + 2], xs[i + 3], monoids));
+      out.push_back(node2);
       break;
     }
 
-    out.push_back(make_node3(xs[i], xs[i + 1], xs[i + 2], monoids));
+    Shield<SEXP> node(make_node3(xs[i], xs[i + 1], xs[i + 2], monoids));
+    out.push_back(node);
     i += 3;
   }
   return out;
@@ -670,28 +676,22 @@ SEXP tree_from_sorted_list_cpp(const List& xs, const List& monoids) {
     return make_single(xs[0], monoids);
   }
   if(n == 2) {
-    return make_deep(
-      make_digit(List::create(xs[0]), monoids),
-      make_empty(monoids),
-      make_digit(List::create(xs[1]), monoids),
-      monoids
-    );
+    Shield<SEXP> p(make_digit(List::create(xs[0]), monoids));
+    Shield<SEXP> m(make_empty(monoids));
+    Shield<SEXP> s(make_digit(List::create(xs[1]), monoids));
+    return make_deep(p, m, s, monoids);
   }
   if(n == 3) {
-    return make_deep(
-      make_digit(List::create(xs[0], xs[1]), monoids),
-      make_empty(monoids),
-      make_digit(List::create(xs[2]), monoids),
-      monoids
-    );
+    Shield<SEXP> p(make_digit(List::create(xs[0], xs[1]), monoids));
+    Shield<SEXP> m(make_empty(monoids));
+    Shield<SEXP> s(make_digit(List::create(xs[2]), monoids));
+    return make_deep(p, m, s, monoids);
   }
   if(n == 4) {
-    return make_deep(
-      make_digit(List::create(xs[0], xs[1]), monoids),
-      make_empty(monoids),
-      make_digit(List::create(xs[2], xs[3]), monoids),
-      monoids
-    );
+    Shield<SEXP> p(make_digit(List::create(xs[0], xs[1]), monoids));
+    Shield<SEXP> m(make_empty(monoids));
+    Shield<SEXP> s(make_digit(List::create(xs[2], xs[3]), monoids));
+    return make_deep(p, m, s, monoids);
   }
 
   const int prefix_len = (n == 5) ? 1 : 2;
@@ -881,8 +881,8 @@ SEXP measure_sequence(const List& xs, const std::string& monoid_name, const List
   Function f = as<Function>(monoid_spec["f"]);
   ReprotectSEXP acc(static_cast<SEXP>(monoid_spec["i"]));
   for(int i = 0; i < xs.size(); ++i) {
-    SEXP m = monoid_measure_for_child(xs[i], monoid_name, monoid_spec);
-    acc.set(f(acc.get(), m));
+    Shield<SEXP> m(monoid_measure_for_child(xs[i], monoid_name, monoid_spec));
+    acc.set(f(acc.get(), (SEXP)m));
   }
   return acc.get();
 }
@@ -930,9 +930,9 @@ List locate_digit_impl_cpp(
 
   for(int idx = 0; idx < digit.size(); ++idx) {
     SEXP el = digit[idx];
-    SEXP m_el = monoid_measure_for_child(el, monoid_name, monoid_spec);
+    Shield<SEXP> m_el(monoid_measure_for_child(el, monoid_name, monoid_spec));
     int n_el = size_for_child(el, size_monoid);
-    Shield<SEXP> acc_after(f(acc.get(), m_el));
+    Shield<SEXP> acc_after(f(acc.get(), (SEXP)m_el));
 
     if(predicate_true(predicate, acc_after)) {
       if(is_structural_node_cpp(el)) {
@@ -1084,28 +1084,22 @@ SEXP digit_to_tree_cpp(const List& d, const List& monoids) {
     return make_single(d[0], monoids);
   }
   if(n == 2) {
-    return make_deep(
-      make_digit(List::create(d[0]), monoids),
-      make_empty(monoids),
-      make_digit(List::create(d[1]), monoids),
-      monoids
-    );
+    Shield<SEXP> p(make_digit(List::create(d[0]), monoids));
+    Shield<SEXP> m(make_empty(monoids));
+    Shield<SEXP> s(make_digit(List::create(d[1]), monoids));
+    return make_deep(p, m, s, monoids);
   }
   if(n == 3) {
-    return make_deep(
-      make_digit(List::create(d[0], d[1]), monoids),
-      make_empty(monoids),
-      make_digit(List::create(d[2]), monoids),
-      monoids
-    );
+    Shield<SEXP> p(make_digit(List::create(d[0], d[1]), monoids));
+    Shield<SEXP> m(make_empty(monoids));
+    Shield<SEXP> s(make_digit(List::create(d[2]), monoids));
+    return make_deep(p, m, s, monoids);
   }
   if(n == 4) {
-    return make_deep(
-      make_digit(List::create(d[0], d[1]), monoids),
-      make_empty(monoids),
-      make_digit(List::create(d[2], d[3]), monoids),
-      monoids
-    );
+    Shield<SEXP> p(make_digit(List::create(d[0], d[1]), monoids));
+    Shield<SEXP> m(make_empty(monoids));
+    Shield<SEXP> s(make_digit(List::create(d[2], d[3]), monoids));
+    return make_deep(p, m, s, monoids);
   }
   stop("digit_to_tree expects a digit of size 0..4");
 }
@@ -1229,8 +1223,8 @@ List split_digit_cpp(
   ReprotectSEXP acc(i);
   for(int idx = 0; idx < digit.size(); ++idx) {
     SEXP el = digit[idx];
-    SEXP m_el = monoid_measure_for_child(el, monoid_name, monoid_spec);
-    Shield<SEXP> acc_after(f(acc.get(), m_el));
+    Shield<SEXP> m_el(monoid_measure_for_child(el, monoid_name, monoid_spec));
+    Shield<SEXP> acc_after(f(acc.get(), (SEXP)m_el));
     if(predicate_true(predicate, acc_after)) {
       List left(idx);
       for(int j = 0; j < idx; ++j) left[j] = digit[j];

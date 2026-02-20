@@ -7,6 +7,14 @@
 }
 
 # Runtime: O(1).
+.oms_stop_interval_index <- function(x, fn_name) {
+  if(inherits(x, "interval_index")) {
+    stop(sprintf("`%s()` is not supported for interval_index. Use interval query helpers (`find_*`, `pop_*`).", fn_name))
+  }
+  invisible(TRUE)
+}
+
+# Runtime: O(1).
 .oms_key_type_state <- function(x) {
   attr(x, "oms_key_type", exact = TRUE)
 }
@@ -338,6 +346,7 @@ insert.ordered_sequence <- function(x, element, key, ...) {
 #'   are `NULL`.
 #' @export
 lower_bound <- function(x, key) {
+  .oms_stop_interval_index(x, "lower_bound")
   .oms_assert_set(x)
   idx <- .oms_bound_index(x, key, strict = FALSE)
   n <- length(x)
@@ -360,6 +369,7 @@ lower_bound <- function(x, key) {
 #'   are `NULL`.
 #' @export
 upper_bound <- function(x, key) {
+  .oms_stop_interval_index(x, "upper_bound")
   .oms_assert_set(x)
   idx <- .oms_bound_index(x, key, strict = TRUE)
   n <- length(x)
@@ -389,6 +399,7 @@ upper_bound <- function(x, key) {
 #'   Throws when no matching key exists.
 #' @export
 peek_key <- function(x, key, which = c("first", "all")) {
+  .oms_stop_interval_index(x, "peek_key")
   which <- match.arg(which)
   span <- .oms_key_span(x, key)
 
@@ -439,6 +450,7 @@ peek_key <- function(x, key, which = c("first", "all")) {
 #'   }
 #' @export
 pop_key <- function(x, key, which = c("first", "all")) {
+  .oms_stop_interval_index(x, "pop_key")
   which <- match.arg(which)
   span <- .oms_key_span(x, key)
 
@@ -554,6 +566,7 @@ fapply.ordered_sequence <- function(X, FUN, ...) {
 #' @return List of raw elements.
 #' @export
 elements_between <- function(x, from_key, to_key, include_from = TRUE, include_to = TRUE) {
+  .oms_stop_interval_index(x, "elements_between")
   .oms_assert_set(x)
   include_from <- .oms_coerce_lgl_scalar(include_from, "include_from")
   include_to <- .oms_coerce_lgl_scalar(include_to, "include_to")
@@ -577,6 +590,7 @@ elements_between <- function(x, from_key, to_key, include_from = TRUE, include_t
 #' @return Integer count of matching elements.
 #' @export
 count_key <- function(x, key) {
+  .oms_stop_interval_index(x, "count_key")
   .oms_assert_set(x)
   lo <- .oms_bound_index(x, key, strict = FALSE)
   hi <- .oms_bound_index(x, key, strict = TRUE)
@@ -594,6 +608,7 @@ count_key <- function(x, key) {
 #' @return Integer count of matching elements.
 #' @export
 count_between <- function(x, from_key, to_key, include_from = TRUE, include_to = TRUE) {
+  .oms_stop_interval_index(x, "count_between")
   .oms_assert_set(x)
   include_from <- .oms_coerce_lgl_scalar(include_from, "include_from")
   include_to <- .oms_coerce_lgl_scalar(include_to, "include_to")

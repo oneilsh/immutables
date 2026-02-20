@@ -36,6 +36,7 @@
     y_oms <- as_ordered_sequence(list("xx", "z", "qq", "rrrr"), keys = c(2, 1, 2, 4))
     ms_oms <- attr(x_oms, "monoids", exact = TRUE)
     key_type_oms <- attr(x_oms, "oms_key_type", exact = TRUE)
+    x_ivx <- as_interval_index(list("a", "b", "c"), start = c(1, 2, 2), end = c(3, 2, 4), bounds = "[]")
 
     options(immutables.use_cpp = TRUE)
 
@@ -74,6 +75,7 @@
     step("ft_cpp_oms_set_merge", .ft_cpp_oms_set_merge(x_oms, y_oms, "union", ms_oms, key_type_oms))
 
     step("insert", insert(x_oms, "newer", key = 2))
+    step("insert_interval_index", insert(x_ivx, "newer", start = 2, end = 5))
   }, error = function(e) {
     setup_error <<- conditionMessage(e)
   })
@@ -119,4 +121,8 @@ testthat::test_that("C++ OMS primitives survive GC torture", {
 
 testthat::test_that("OMS public APIs survive GC torture", {
   .expect_step_ok("insert")
+})
+
+testthat::test_that("interval_index public APIs survive GC torture", {
+  .expect_step_ok("insert_interval_index")
 })

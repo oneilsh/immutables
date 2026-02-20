@@ -7,7 +7,7 @@
 #' @param FUN Function to apply.
 #' @param ... Method-specific arguments.
 #' @return Method-dependent result.
-#' @seealso [fapply.flexseq()], [fapply.priority_queue()], [fapply.ordered_sequence()]
+#' @seealso [fapply.flexseq()], [fapply.priority_queue()], [fapply.ordered_sequence()], [fapply.interval_index()]
 #' @export
 fapply <- function(X, FUN, ...) {
   UseMethod("fapply")

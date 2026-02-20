@@ -18,5 +18,5 @@ Updated object.
 Generic `insert()` dispatches by class.
 }
 \seealso{
-[insert.priority_queue()], [insert.ordered_sequence()]
+[insert.priority_queue()], [insert.ordered_sequence()], [insert.interval_index()]
 }

@@ -156,6 +156,9 @@ push_front <- function(x, value) {
 .ft_empty_like <- function(x, context = "pop") {
   ms <- resolve_tree_monoids(x, required = TRUE)
   e <- empty_tree(monoids = ms)
+  if(inherits(x, "interval_index")) {
+    return(.ivx_wrap_like(x, e))
+  }
   if(inherits(x, "ordered_sequence")) {
     return(.ord_wrap_like(x, e))
   }
@@ -164,6 +167,12 @@ push_front <- function(x, value) {
 
 # Runtime: O(1).
 .ft_public_value <- function(x, el) {
+  if(inherits(x, "interval_index")) {
+    if(is.list(el) && ("item" %in% names(el))) {
+      return(el$item)
+    }
+    return(el)
+  }
   if(inherits(x, "ordered_sequence")) {
     return(el$item)
   }

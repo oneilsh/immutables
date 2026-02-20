@@ -14,6 +14,9 @@
   if(!is_structural_node(out)) {
     stop("Expected a structural tree node.")
   }
+  if(inherits(source, "interval_index")) {
+    return(.ivx_restore_tree(out, template = source, context = context))
+  }
   if(inherits(source, "priority_queue")) {
     return(.pq_restore_tree(out, context = context))
   }

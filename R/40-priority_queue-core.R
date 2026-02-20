@@ -223,7 +223,7 @@ priority_queue <- function(..., priorities = NULL, names = NULL, monoids = NULL)
 #' @param x Object to insert into.
 #' @param ... Method-specific arguments.
 #' @return Updated object.
-#' @seealso [insert.priority_queue()], [insert.ordered_sequence()]
+#' @seealso [insert.priority_queue()], [insert.ordered_sequence()], [insert.interval_index()]
 #' @export
 insert <- function(x, ...) {
   UseMethod("insert")

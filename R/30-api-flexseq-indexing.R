@@ -550,6 +550,74 @@
   .ord_wrap_like(x, tree_from(out, monoids = ms))
 }
 
+#' Index an interval index
+#'
+#' Interval indexes support read indexing while preserving interval-order
+#' semantics.
+#'
+#' For `[`:
+#' - integer and logical indices must resolve to strictly increasing positions;
+#' - character indices are resolved by names and must also be strictly
+#'   increasing;
+#' - duplicates and reordering are rejected.
+#'
+#' For `[[`:
+#' - accepts scalar integer position or scalar character name and returns the
+#'   payload element.
+#'
+#' Replacement indexing (`[<-`, `[[<-`) is intentionally unsupported.
+#'
+#' @rdname sub-.interval_index
+#' @method [ interval_index
+#' @param x An `interval_index`.
+#' @param i For `[`, positive integer indices, character names, or logical mask.
+#' @param ... Unused.
+#' @return For `[`, an `interval_index` subset that preserves interval order.
+#' @examples
+#' x <- as_interval_index(list("a", "b", "c"), start = c(1, 2, 3), end = c(2, 4, 5))
+#' x[1:2]
+#' try(x[c(2, 1)])
+#' @seealso [\[.flexseq], [\[<-.interval_index], [\[\[<-.interval_index]
+#' @export
+`[.interval_index` <- function(x, i, ...) {
+  if(missing(i)) {
+    return(x)
+  }
+  .ivx_assert_index(x)
+
+  ms <- resolve_tree_monoids(x, required = TRUE)
+  n <- as.integer(node_measure(x, ".size"))
+
+  if(is.logical(i)) {
+    mask <- .ft_assert_lgl_indices(i, n)
+    idx <- .ft_true_positions(mask)
+    if(length(idx) == 0L) {
+      return(.ivx_wrap_like(x, empty_tree(monoids = ms)))
+    }
+    out <- lapply(.ft_get_elems_at(x, idx), .ft_strip_name)
+    return(.ivx_wrap_like(x, tree_from(out, monoids = ms)))
+  }
+
+  if(is.character(i)) {
+    idx <- .ft_assert_chr_indices(i)
+    if(length(idx) == 0L) {
+      return(.ivx_wrap_like(x, empty_tree(monoids = ms)))
+    }
+    pos <- .ft_match_name_indices(x, idx, strict_missing = TRUE)
+    pos <- .ord_assert_positions_strict(pos)
+    out <- lapply(.ft_get_elems_at(x, pos), .ft_strip_name)
+    return(.ivx_wrap_like(x, tree_from(out, monoids = ms)))
+  }
+
+  idx <- .ft_assert_int_indices(i, n)
+  if(length(idx) == 0L) {
+    return(.ivx_wrap_like(x, empty_tree(monoids = ms)))
+  }
+  idx <- .ord_assert_positions_strict(idx)
+  out <- lapply(.ft_get_elems_at(x, idx), .ft_strip_name)
+  .ivx_wrap_like(x, tree_from(out, monoids = ms))
+}
+
 #' Index a priority queue by name
 #'
 #' Priority queues intentionally expose only name-based read indexing.
@@ -623,6 +691,20 @@
     stop("`[[.priority_queue` supports scalar character names only. Cast first with `as_flexseq()`.")
   }
   `[[.flexseq`(x, i, ...)
+}
+
+#' @rdname sub-.interval_index
+#' @method [[ interval_index
+#' @return For `[[`, one payload element by scalar integer position or scalar
+#'   character name.
+#' @export
+`[[.interval_index` <- function(x, i, ...) {
+  .ivx_assert_index(x)
+  entry <- `[[.flexseq`(x, i, ...)
+  if(!is.list(entry) || !("item" %in% names(entry))) {
+    stop("Malformed interval_index entry.")
+  }
+  entry$item
 }
 
 #' @rdname sub-.flexseq
@@ -832,6 +914,24 @@
   s <- split_around_by_predicate(x, function(v) v >= idx, ".size")
   left_plus <- push_back(s$left, value)
   .ft_restore_subclass(concat(left_plus, s$right, ms), x, context = "[[<-")
+}
+
+#' @rdname sub-.interval_index
+#' @method [<- interval_index
+#' @param value Replacement value (unsupported).
+#' @return No return value; always errors because replacement indexing is unsupported.
+#' @export
+`[<-.interval_index` <- function(x, i, value) {
+  stop("`[<-` is not supported for interval_index.")
+}
+
+#' @rdname sub-.interval_index
+#' @method [[<- interval_index
+#' @param value Replacement value (unsupported).
+#' @return No return value; always errors because replacement indexing is unsupported.
+#' @export
+`[[<-.interval_index` <- function(x, i, value) {
+  stop("`[[<-` is not supported for interval_index.")
 }
 
 #' @rdname sub-.ordered_sequence

@@ -91,6 +91,11 @@
     ordered_sequence_bounds = list(required = c("as_ordered_sequence", "lower_bound", "upper_bound")),
     ordered_sequence_range_queries = list(required = c("as_ordered_sequence", "count_between", "elements_between")),
     ordered_sequence_pop_cycle = list(required = c("as_ordered_sequence", "pop_key", "insert")),
+    interval_index_insert = list(required = c("as_interval_index", "insert")),
+    interval_index_queries = list(required = c("as_interval_index", "find_point", "find_overlaps", "find_containing", "find_within")),
+    interval_index_pop_cycle = list(required = c("as_interval_index", "pop_overlaps", "insert")),
+    interval_index_fapply = list(required = c("as_interval_index", "fapply")),
+    interval_index_bounds_override = list(required = c("as_interval_index", "find_point", "find_overlaps", "pop_overlaps")),
     pq_peek_min_max = list(required = c("priority_queue", "insert", "peek_min", "peek_max")),
     pq_pop_min_drain = list(required = c("priority_queue", "insert", "pop_min")),
     pq_mixed_ops = list(required = c("priority_queue", "insert", "pop_min", "peek_min")),
@@ -229,6 +234,59 @@
     }
     return(invisible(TRUE))
   }
+  if(identical(scenario, "interval_index_insert")) {
+    x <- as_interval_index(list("a", "b"), start = c(1, 3), end = c(2, 4))
+    y <- insert(x, "c", start = 2, end = 5)
+    if(!inherits(y, "interval_index")) {
+      stop("Scenario contract failed: insert(interval_index, ...) changed.")
+    }
+    return(invisible(TRUE))
+  }
+  if(identical(scenario, "interval_index_queries")) {
+    x <- as_interval_index(list("a", "b", "c"), start = c(1, 2, 3), end = c(2, 4, 5))
+    p <- find_point(x, 2)
+    o <- find_overlaps(x, 2, 3)
+    c <- find_containing(x, 2, 3)
+    w <- find_within(x, 2, 3)
+    if(!inherits(p, "interval_index") || !inherits(o, "interval_index") || !inherits(c, "interval_index") || !inherits(w, "interval_index")) {
+      stop("Scenario contract failed: interval query helper output shape changed.")
+    }
+    return(invisible(TRUE))
+  }
+  if(identical(scenario, "interval_index_pop_cycle")) {
+    x <- as_interval_index(list("a", "b", "c"), start = c(1, 2, 3), end = c(2, 4, 5))
+    out <- pop_overlaps(x, 2, 3, which = "first")
+    if(!is.list(out) || is.null(out$remaining) || !inherits(out$remaining, "interval_index")) {
+      stop("Scenario contract failed: pop_overlaps() output shape changed.")
+    }
+    if(!is.null(out$element)) {
+      y <- insert(out$remaining, out$element, start = out$start, end = out$end)
+      if(!inherits(y, "interval_index")) {
+        stop("Scenario contract failed: pop/insert interval cycle changed.")
+      }
+    }
+    return(invisible(TRUE))
+  }
+  if(identical(scenario, "interval_index_fapply")) {
+    x <- as_interval_index(list("a", "b"), start = c(1, 2), end = c(2, 3))
+    y <- fapply(x, function(item, start, end, name) {
+      list(item = item, start = start + 1L, end = end + 1L)
+    })
+    if(!inherits(y, "interval_index")) {
+      stop("Scenario contract failed: fapply(interval_index, ...) changed.")
+    }
+    return(invisible(TRUE))
+  }
+  if(identical(scenario, "interval_index_bounds_override")) {
+    x <- as_interval_index(list("a", "b", "c"), start = c(1, 2, 3), end = c(2, 4, 5), bounds = "[)")
+    p <- find_point(x, 2, bounds = "[]")
+    o <- find_overlaps(x, 2, 3, bounds = "()")
+    r <- pop_overlaps(x, 2, 3, which = "first", bounds = "(]")
+    if(!inherits(p, "interval_index") || !inherits(o, "interval_index") || !is.list(r) || !inherits(r$remaining, "interval_index")) {
+      stop("Scenario contract failed: interval bounds override paths changed.")
+    }
+    return(invisible(TRUE))
+  }
   if(identical(scenario, "pq_peek_min_max")) {
     q <- priority_queue()
     q <- insert(q, "a", priority = 2)
@@ -296,6 +354,11 @@
       ordered_sequence_bounds = list(n = 160L, queries = 30L, key_space = 120L),
       ordered_sequence_range_queries = list(n = 160L, queries = 30L, key_space = 120L),
       ordered_sequence_pop_cycle = list(n = 120L, steps = 30L, key_space = 100L),
+      interval_index_insert = list(n = 45L, inserts = 6L, coord_space = 100L, width_max = 10L),
+      interval_index_queries = list(n = 45L, queries = 6L, coord_space = 100L, width_max = 10L),
+      interval_index_pop_cycle = list(n = 40L, steps = 4L, coord_space = 100L, width_max = 10L),
+      interval_index_fapply = list(n = 45L, reps = 1L, coord_space = 100L, width_max = 10L),
+      interval_index_bounds_override = list(n = 45L, queries = 5L, coord_space = 100L, width_max = 10L),
       pq_peek_min_max = list(n = 100L, key_space = 80L, queries = 60L),
       pq_pop_min_drain = list(n = 100L, key_space = 80L, pops = 50L),
       pq_mixed_ops = list(n = 90L, key_space = 70L, ops = 110L, insert_prob = 0.55),
@@ -319,6 +382,11 @@
     ordered_sequence_bounds = list(n = 220L, queries = 44L, key_space = 170L),
     ordered_sequence_range_queries = list(n = 220L, queries = 44L, key_space = 170L),
     ordered_sequence_pop_cycle = list(n = 160L, steps = 44L, key_space = 130L),
+    interval_index_insert = list(n = 140L, inserts = 20L, coord_space = 260L, width_max = 18L),
+    interval_index_queries = list(n = 140L, queries = 20L, coord_space = 260L, width_max = 18L),
+    interval_index_pop_cycle = list(n = 110L, steps = 16L, coord_space = 260L, width_max = 18L),
+    interval_index_fapply = list(n = 120L, reps = 4L, coord_space = 260L, width_max = 18L),
+    interval_index_bounds_override = list(n = 140L, queries = 20L, coord_space = 260L, width_max = 18L),
     pq_peek_min_max = list(n = 140L, key_space = 100L, queries = 80L),
     pq_pop_min_drain = list(n = 140L, key_space = 100L, pops = 70L),
     pq_mixed_ops = list(n = 120L, key_space = 90L, ops = 150L, insert_prob = 0.55),
@@ -519,6 +587,136 @@
   invisible(seq)
 }
 
+.bench_build_interval_index <- function(n, coord_space, width_max, bounds = "[)") {
+  n <- as.integer(n)
+  coord_space <- as.integer(coord_space)
+  width_max <- as.integer(width_max)
+  if(coord_space < 2L) {
+    stop("`coord_space` must be >= 2.")
+  }
+  if(width_max < 0L) {
+    stop("`width_max` must be >= 0.")
+  }
+  starts <- sample.int(coord_space, n, replace = TRUE) - 1L
+  widths <- sample.int(width_max + 1L, n, replace = TRUE) - 1L
+  ends <- pmin(starts + widths, coord_space)
+  payload <- as.list(seq_len(n))
+  as_interval_index(payload, start = as.list(starts), end = as.list(ends), bounds = bounds)
+}
+
+.bench_scenario_interval_index_insert <- function(n, inserts, coord_space, width_max) {
+  n <- as.integer(n)
+  inserts <- as.integer(inserts)
+  coord_space <- as.integer(coord_space)
+  width_max <- as.integer(width_max)
+  ix <- .bench_build_interval_index(n, coord_space, width_max, bounds = "[)")
+
+  ins_start <- sample.int(coord_space, inserts, replace = TRUE) - 1L
+  ins_w <- sample.int(width_max + 1L, inserts, replace = TRUE) - 1L
+  ins_end <- pmin(ins_start + ins_w, coord_space)
+
+  for(i in seq_len(inserts)) {
+    ix <- insert(ix, n + i, start = ins_start[[i]], end = ins_end[[i]])
+  }
+  invisible(ix)
+}
+
+.bench_scenario_interval_index_queries <- function(n, queries, coord_space, width_max) {
+  n <- as.integer(n)
+  queries <- as.integer(queries)
+  coord_space <- as.integer(coord_space)
+  width_max <- as.integer(width_max)
+  ix <- .bench_build_interval_index(n, coord_space, width_max, bounds = "[)")
+
+  points <- sample.int(coord_space + 1L, queries, replace = TRUE) - 1L
+  q_start <- sample.int(coord_space + 1L, queries, replace = TRUE) - 1L
+  q_w <- sample.int(width_max + 1L, queries, replace = TRUE) - 1L
+  q_end <- pmin(q_start + q_w, coord_space)
+
+  for(i in seq_len(queries)) {
+    a <- q_start[[i]]
+    b <- q_end[[i]]
+    p <- points[[i]]
+    invisible(find_point(ix, p))
+    invisible(find_overlaps(ix, a, b))
+    invisible(find_containing(ix, a, b))
+    invisible(find_within(ix, a, b))
+  }
+  invisible(NULL)
+}
+
+.bench_scenario_interval_index_pop_cycle <- function(n, steps, coord_space, width_max) {
+  n <- as.integer(n)
+  steps <- as.integer(steps)
+  coord_space <- as.integer(coord_space)
+  width_max <- as.integer(width_max)
+  ix <- .bench_build_interval_index(n, coord_space, width_max, bounds = "[)")
+
+  q_start <- sample.int(coord_space + 1L, steps, replace = TRUE) - 1L
+  q_w <- sample.int(width_max + 1L, steps, replace = TRUE) - 1L
+  q_end <- pmin(q_start + q_w, coord_space)
+
+  for(i in seq_len(steps)) {
+    out <- pop_overlaps(ix, q_start[[i]], q_end[[i]], which = "first")
+    if(!is.null(out$element)) {
+      ix <- insert(out$remaining, out$element, start = out$start, end = out$end)
+    } else {
+      ix <- out$remaining
+    }
+  }
+  invisible(ix)
+}
+
+.bench_scenario_interval_index_fapply <- function(n, reps, coord_space, width_max) {
+  n <- as.integer(n)
+  reps <- as.integer(reps)
+  coord_space <- as.integer(coord_space)
+  width_max <- as.integer(width_max)
+  ix <- .bench_build_interval_index(n, coord_space, width_max, bounds = "[)")
+
+  for(i in seq_len(reps)) {
+    shift <- as.integer((i - 1L) %% 3L)
+    ix <- fapply(ix, function(item, start, end, name) {
+      list(
+        item = item,
+        start = start + shift,
+        end = end + shift
+      )
+    })
+  }
+  invisible(ix)
+}
+
+.bench_scenario_interval_index_bounds_override <- function(n, queries, coord_space, width_max) {
+  n <- as.integer(n)
+  queries <- as.integer(queries)
+  coord_space <- as.integer(coord_space)
+  width_max <- as.integer(width_max)
+  ix <- .bench_build_interval_index(n, coord_space, width_max, bounds = "[)")
+
+  bounds_tokens <- c("[)", "[]", "()", "(]")
+  points <- sample.int(coord_space + 1L, queries, replace = TRUE) - 1L
+  q_start <- sample.int(coord_space + 1L, queries, replace = TRUE) - 1L
+  q_w <- sample.int(width_max + 1L, queries, replace = TRUE) - 1L
+  q_end <- pmin(q_start + q_w, coord_space)
+
+  for(i in seq_len(queries)) {
+    b <- bounds_tokens[[(i - 1L) %% length(bounds_tokens) + 1L]]
+    a <- q_start[[i]]
+    z <- q_end[[i]]
+    p <- points[[i]]
+    invisible(find_point(ix, p, bounds = b))
+    invisible(find_overlaps(ix, a, z, bounds = b))
+    out <- pop_overlaps(ix, a, z, which = "first", bounds = b)
+    if(!is.null(out$element)) {
+      ix <- insert(out$remaining, out$element, start = out$start, end = out$end)
+    } else {
+      ix <- out$remaining
+    }
+  }
+  invisible(ix)
+}
+
 .bench_build_priority_queue <- function(n, key_space) {
   n <- as.integer(n)
   key_space <- as.integer(key_space)
@@ -603,6 +801,11 @@
     "ordered_sequence_bounds",
     "ordered_sequence_range_queries",
     "ordered_sequence_pop_cycle",
+    "interval_index_insert",
+    "interval_index_queries",
+    "interval_index_pop_cycle",
+    "interval_index_fapply",
+    "interval_index_bounds_override",
     "pq_peek_min_max",
     "pq_pop_min_drain",
     "pq_mixed_ops",
@@ -631,6 +834,11 @@
     ordered_sequence_bounds = do.call(.bench_scenario_ordered_sequence_bounds, params),
     ordered_sequence_range_queries = do.call(.bench_scenario_ordered_sequence_range_queries, params),
     ordered_sequence_pop_cycle = do.call(.bench_scenario_ordered_sequence_pop_cycle, params),
+    interval_index_insert = do.call(.bench_scenario_interval_index_insert, params),
+    interval_index_queries = do.call(.bench_scenario_interval_index_queries, params),
+    interval_index_pop_cycle = do.call(.bench_scenario_interval_index_pop_cycle, params),
+    interval_index_fapply = do.call(.bench_scenario_interval_index_fapply, params),
+    interval_index_bounds_override = do.call(.bench_scenario_interval_index_bounds_override, params),
     pq_peek_min_max = do.call(.bench_scenario_pq_peek_min_max, params),
     pq_pop_min_drain = do.call(.bench_scenario_pq_pop_min_drain, params),
     pq_mixed_ops = do.call(.bench_scenario_pq_mixed_ops, params),

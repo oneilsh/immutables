@@ -21,5 +21,5 @@ Method-dependent result.
 structures with type-specific dispatch.
 }
 \seealso{
-[fapply.flexseq()], [fapply.priority_queue()], [fapply.ordered_sequence()]
+[fapply.flexseq()], [fapply.priority_queue()], [fapply.ordered_sequence()], [fapply.interval_index()]
 }

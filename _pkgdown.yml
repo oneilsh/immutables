@@ -76,6 +76,29 @@ reference:
       - "fapply.ordered_sequence"
       - "plot.ordered_sequence"
 
+  - title: "Interval Index"
+    desc: |
+      Persistent interval index with O(log n) insertion and immutable
+      interval query/pop helpers over ordered interval endpoints.
+    contents:
+      - interval_index
+      - as_interval_index
+      - insert.interval_index
+      - find_point
+      - find_overlaps
+      - find_containing
+      - find_within
+      - pop_overlaps
+      - pop_containing
+      - pop_within
+      - interval_bounds
+      - "[.interval_index"
+      - "print.interval_index"
+      - "length.interval_index"
+      - "as.list.interval_index"
+      - "fapply.interval_index"
+      - "plot.interval_index"
+
   - title: "Developer Tools"
     desc: "Lower-level primitives for custom monoids, predicate queries, and validation."
     contents:

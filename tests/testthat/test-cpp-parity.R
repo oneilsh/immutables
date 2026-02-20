@@ -92,6 +92,7 @@ parity_scenarios <- c(
   "$ read",
   "$<- replacement",
   "ordered_sequence insert",
+  "interval_index insert and queries",
   "ordered key-merge primitive",
   "print.FingerTree output",
   "get_graph_df",
@@ -107,11 +108,11 @@ cpp_wrapper_coverage <- list(
   .ft_cpp_tree_from = c("tree_from unnamed"),
   .ft_cpp_tree_from_prepared = c("tree_from"),
   .ft_cpp_tree_from_sorted = c("ordered_sequence insert"),
-  .ft_cpp_concat = c("concat_trees"),
+  .ft_cpp_concat = c("concat_trees", "interval_index insert and queries"),
   .ft_cpp_oms_insert = c("ordered_sequence insert"),
   .ft_cpp_oms_set_merge = c("ordered key-merge primitive"),
   .ft_cpp_locate = c("locate_by_predicate"),
-  .ft_cpp_split_tree = c("split_around_by_predicate", "split_by_predicate"),
+  .ft_cpp_split_tree = c("split_around_by_predicate", "split_by_predicate", "interval_index insert and queries"),
   .ft_cpp_find_name_position = c("$ read", "[ read (integer/logical/name)"),
   .ft_cpp_get_by_index = c("[[ read (integer/name)"),
   .ft_cpp_get_many_by_index = c("[ read (integer/logical/name)"),
@@ -334,6 +335,40 @@ testthat::test_that("backend parity: ordered_sequence insert", {
     x <- as_ordered_sequence(list("aa", "bb", "c", "ddd"), keys = c(2, 2, 1, 3))
     out <- insert(x, "qq", key = 2)
     as.list(out)
+  })
+})
+
+testthat::test_that("backend parity: interval_index insert and queries", {
+  expect_backend_identical({
+    x <- as_interval_index(
+      list("a", "b", "c"),
+      start = c(1, 2, 2),
+      end = c(3, 2, 4),
+      bounds = "[]"
+    )
+    y <- insert(x, "d", start = 2, end = 5)
+
+    p1 <- pop_overlaps(y, 2, 3, which = "first")
+    p2 <- pop_within(y, 2, 5, which = "all")
+
+    list(
+      values = as.list(y),
+      bounds = interval_bounds(y),
+      point = as.list(find_point(y, 2)),
+      overlaps = as.list(find_overlaps(y, 2, 3)),
+      containing = as.list(find_containing(y, 2, 3)),
+      within = as.list(find_within(y, 2, 5)),
+      pop_first = list(
+        element = p1$element,
+        start = p1$start,
+        end = p1$end,
+        remaining = as.list(p1$remaining)
+      ),
+      pop_all = list(
+        element = as.list(p2$element),
+        remaining = as.list(p2$remaining)
+      )
+    )
   })
 })
 

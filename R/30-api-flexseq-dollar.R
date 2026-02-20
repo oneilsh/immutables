@@ -42,6 +42,16 @@
   `[[.priority_queue`(x, nm)
 }
 
+#' @rdname sub-.interval_index
+#' @method $ interval_index
+#' @param name Element name (for `$` and `$<-`).
+#' @return For `$`: the matched payload element.
+#' @export
+`$.interval_index` <- function(x, name) {
+  nm <- .ft_dollar_name(substitute(name))
+  `[[.interval_index`(x, nm)
+}
+
 #' @rdname sub-.flexseq
 #' @method $<- flexseq
 #' @return For `$<-`: updated tree with one named element replaced.
@@ -68,4 +78,13 @@
 #' @noRd
 `$<-.priority_queue` <- function(x, name, value) {
   stop("`$<-` is not supported for priority_queue. Cast first with `as_flexseq()`.")
+}
+
+#' @rdname sub-.interval_index
+#' @method $<- interval_index
+#' @param value Replacement value (unsupported).
+#' @return No return value; always errors because replacement indexing is unsupported.
+#' @export
+`$<-.interval_index` <- function(x, name, value) {
+  stop("`$<-` is not supported for interval_index.")
 }

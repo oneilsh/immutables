@@ -249,7 +249,7 @@
 # Runtime: O(m), where m = number of attached monoids.
 .ivx_user_monoids <- function(x) {
   ms <- attr(x, "monoids", exact = TRUE)
-  out <- ms[setdiff(names(ms), c(".size", ".named_count", ".ivx_max_start"))]
+  out <- ms[setdiff(names(ms), c(".size", ".named_count", ".ivx_max_start", ".oms_max_key"))]
   if(length(out) == 0L) {
     return(NULL)
   }
@@ -264,11 +264,27 @@
 
 # Runtime: O(log n) near insertion/split point depth.
 .ivx_insert_entry <- function(x, entry, endpoint_type = NULL) {
-  .ivx_assert_index(x)
-
   ep <- if(is.null(endpoint_type)) .ivx_endpoint_type_state(x) else endpoint_type
+  ms <- resolve_tree_monoids(x, required = TRUE)
+  can_use_cpp_key_insert <- isTRUE(
+    .ivx_supports_oms_key_type(ep) &&
+      .ft_cpp_can_use(ms) &&
+      !is.null(ms[[".oms_max_key"]])
+  )
+
   out <- if(length(x) == 0L) {
-    .ft_push_back_impl(x, entry, context = "insert()")
+    if(.ivx_supports_oms_key_type(ep)) {
+      ms0 <- .ivx_merge_monoids(.ivx_user_monoids(x), endpoint_type = ep)
+      if(.ft_cpp_can_use(ms0) && !is.null(ms0[[".oms_max_key"]])) {
+        .ft_cpp_oms_insert(empty_tree(monoids = ms0), entry, ms0, ep)
+      } else {
+        .ft_push_back_impl(empty_tree(monoids = ms0), entry, context = "insert()")
+      }
+    } else {
+      .ft_push_back_impl(x, entry, context = "insert()")
+    }
+  } else if(can_use_cpp_key_insert) {
+    .ft_cpp_oms_insert(x, entry, ms, ep)
   } else {
     s <- split_by_predicate(
       x,
@@ -418,7 +434,7 @@
   }
 
   entries <- .ivx_order_entries(entries, endpoint_type)
-  merged_monoids <- .ivx_merge_monoids(monoids)
+  merged_monoids <- .ivx_merge_monoids(monoids, endpoint_type = endpoint_type)
   base <- .ivx_tree_from_ordered_entries(entries, merged_monoids)
   .as_interval_index(base, endpoint_type = endpoint_type, bounds = bounds)
 }
@@ -527,11 +543,11 @@
   as.integer(loc$metadata$index)
 }
 
-# Runtime: O(log n + c log n), where c = candidate count.
-.ivx_query_candidate_entries <- function(x, lower = NULL, lower_strict = FALSE, upper = NULL, upper_strict = FALSE) {
+# Runtime: O(log n) near bound locate points.
+.ivx_query_candidate_span <- function(x, lower = NULL, lower_strict = FALSE, upper = NULL, upper_strict = FALSE) {
   n <- length(x)
   if(n == 0L) {
-    return(list())
+    return(list(start = 1L, end_excl = 1L, empty = TRUE))
   }
 
   start <- if(is.null(lower)) {
@@ -548,10 +564,43 @@
   }
 
   if(start > n || end_excl <= start) {
-    return(list())
+    return(list(start = as.integer(start), end_excl = as.integer(end_excl), empty = TRUE))
   }
 
-  .ft_get_elems_at(x, seq.int(start, end_excl - 1L))
+  list(start = as.integer(start), end_excl = as.integer(end_excl), empty = FALSE)
+}
+
+# Runtime: O(log n + c log n), where c = candidate count.
+.ivx_query_candidate_entries <- function(x, lower = NULL, lower_strict = FALSE, upper = NULL, upper_strict = FALSE) {
+  span <- .ivx_query_candidate_span(
+    x,
+    lower = lower,
+    lower_strict = lower_strict,
+    upper = upper,
+    upper_strict = upper_strict
+  )
+  if(isTRUE(span$empty)) {
+    return(list())
+  }
+  .ft_get_elems_at(x, seq.int(span$start, span$end_excl - 1L))
+}
+
+# Runtime: O(log n + c log n), where c = candidate count.
+.ivx_query_candidate_window <- function(x, lower = NULL, lower_strict = FALSE, upper = NULL, upper_strict = FALSE) {
+  span <- .ivx_query_candidate_span(
+    x,
+    lower = lower,
+    lower_strict = lower_strict,
+    upper = upper,
+    upper_strict = upper_strict
+  )
+  if(isTRUE(span$empty)) {
+    return(list(entries = list(), start = span$start))
+  }
+  list(
+    entries = .ft_get_elems_at(x, seq.int(span$start, span$end_excl - 1L)),
+    start = span$start
+  )
 }
 
 # Runtime: O(k log n), where k = length(positions).
@@ -562,7 +611,7 @@
   x[as.integer(positions)]
 }
 
-# Runtime: O(n log n) from indexed subset rebuild.
+# Runtime: O(log n) for single index removal; O(n log n) for multi-index rebuild.
 .ivx_remove_positions <- function(x, positions) {
   n <- length(x)
   if(length(positions) == 0L) {
@@ -571,12 +620,17 @@
   if(length(positions) >= n) {
     return(.ivx_empty_like(x))
   }
+  if(length(positions) == 1L) {
+    idx <- as.integer(positions[[1]])
+    s <- split_around_by_predicate(x, function(v) v >= idx, ".size")
+    return(.ivx_wrap_like(x, concat_trees(s$left, s$right)))
+  }
 
   keep <- setdiff(seq_len(n), as.integer(positions))
   x[as.integer(keep)]
 }
 
-# Runtime: O(n log n) from slice/remove operations.
+# Runtime: O(log n + c) for `which = "first"`; O(n log n) for `which = "all"`.
 .ivx_pop_positions <- function(x, positions, which = c("first", "all")) {
   which <- match.arg(which)
 
@@ -906,7 +960,7 @@ find_within <- function(x, start, end, bounds = NULL) {
   })
 }
 
-# Runtime: O(n log n) from matching + immutable rebuild.
+# Runtime: O(log n + c) for `which = "first"`; O(n log n) for `which = "all"`.
 #' Pop overlapping intervals
 #'
 #' @param x An `interval_index`.
@@ -920,17 +974,51 @@ find_within <- function(x, start, end, bounds = NULL) {
 #' @export
 pop_overlaps <- function(x, start, end, which = c("first", "all"), bounds = NULL) {
   .ivx_assert_index(x)
+  pop_which <- match.arg(which)
   b <- .ivx_resolve_bounds(x, bounds)
   q <- .ivx_normalize_interval(start, end, endpoint_type = .ivx_endpoint_type_state(x))
+  f <- .ivx_bounds_flags(b)
+  touching_is_overlap <- isTRUE(f$include_start) && isTRUE(f$include_end)
 
-  pos <- .ivx_match_positions(x, function(e) {
-    .ivx_overlaps_interval(e$start, e$end, q$start, q$end, b, q$endpoint_type)
-  })
+  window <- .ivx_query_candidate_window(
+    x,
+    upper = q$end,
+    upper_strict = !isTRUE(touching_is_overlap)
+  )
+  entries <- window$entries
+  n <- length(entries)
+  if(n == 0L) {
+    return(.ivx_pop_positions(x, integer(0), which = pop_which))
+  }
 
-  .ivx_pop_positions(x, pos, which = which)
+  hit <- logical(n)
+  if(.ivx_is_fast_endpoint_type(q$endpoint_type)) {
+    for(i in seq_len(n)) {
+      e <- entries[[i]]
+      a_before_b <- if(touching_is_overlap) isTRUE(e$end < q$start) else isTRUE(e$end <= q$start)
+      b_before_a <- if(touching_is_overlap) isTRUE(q$end < e$start) else isTRUE(q$end <= e$start)
+      hit[[i]] <- !isTRUE(a_before_b || b_before_a)
+    }
+  } else {
+    for(i in seq_len(n)) {
+      e <- entries[[i]]
+      hit[[i]] <- .ivx_overlaps_interval(e$start, e$end, q$start, q$end, b, q$endpoint_type)
+    }
+  }
+
+  pos_local <- base::which(hit)
+  if(length(pos_local) == 0L) {
+    return(.ivx_pop_positions(x, integer(0), which = pop_which))
+  }
+  pos_abs <- as.integer(window$start + pos_local - 1L)
+
+  if(identical(pop_which, "first")) {
+    return(.ivx_pop_positions(x, pos_abs[[1L]], which = pop_which))
+  }
+  .ivx_pop_positions(x, pos_abs, which = pop_which)
 }
 
-# Runtime: O(n log n) from matching + immutable rebuild.
+# Runtime: O(log n + c) for `which = "first"`; O(n log n) for `which = "all"`.
 #' Pop intervals containing a query interval
 #'
 #' @param x An `interval_index`.
@@ -944,18 +1032,57 @@ pop_overlaps <- function(x, start, end, which = c("first", "all"), bounds = NULL
 #' @export
 pop_containing <- function(x, start, end, which = c("first", "all"), bounds = NULL) {
   .ivx_assert_index(x)
+  pop_which <- match.arg(which)
   b <- .ivx_resolve_bounds(x, bounds)
   q <- .ivx_normalize_interval(start, end, endpoint_type = .ivx_endpoint_type_state(x))
+  f <- .ivx_bounds_flags(b)
+  touching_is_overlap <- isTRUE(f$include_start) && isTRUE(f$include_end)
 
-  pos <- .ivx_match_positions(x, function(e) {
-    .ivx_overlaps_interval(e$start, e$end, q$start, q$end, b, q$endpoint_type) &&
-      .ivx_contains_interval(e$start, e$end, q$start, q$end, q$endpoint_type)
-  })
+  window <- .ivx_query_candidate_window(
+    x,
+    upper = q$start,
+    upper_strict = FALSE
+  )
+  entries <- window$entries
+  n <- length(entries)
+  if(n == 0L) {
+    return(.ivx_pop_positions(x, integer(0), which = pop_which))
+  }
 
-  .ivx_pop_positions(x, pos, which = which)
+  hit <- logical(n)
+  if(.ivx_is_fast_endpoint_type(q$endpoint_type)) {
+    for(i in seq_len(n)) {
+      e <- entries[[i]]
+      contains <- isTRUE(e$start <= q$start) && isTRUE(e$end >= q$end)
+      if(!contains) {
+        hit[[i]] <- FALSE
+      } else {
+        a_before_b <- if(touching_is_overlap) isTRUE(e$end < q$start) else isTRUE(e$end <= q$start)
+        b_before_a <- if(touching_is_overlap) isTRUE(q$end < e$start) else isTRUE(q$end <= e$start)
+        hit[[i]] <- !isTRUE(a_before_b || b_before_a)
+      }
+    }
+  } else {
+    for(i in seq_len(n)) {
+      e <- entries[[i]]
+      hit[[i]] <- .ivx_overlaps_interval(e$start, e$end, q$start, q$end, b, q$endpoint_type) &&
+        .ivx_contains_interval(e$start, e$end, q$start, q$end, q$endpoint_type)
+    }
+  }
+
+  pos_local <- base::which(hit)
+  if(length(pos_local) == 0L) {
+    return(.ivx_pop_positions(x, integer(0), which = pop_which))
+  }
+  pos_abs <- as.integer(window$start + pos_local - 1L)
+
+  if(identical(pop_which, "first")) {
+    return(.ivx_pop_positions(x, pos_abs[[1L]], which = pop_which))
+  }
+  .ivx_pop_positions(x, pos_abs, which = pop_which)
 }
 
-# Runtime: O(n log n) from matching + immutable rebuild.
+# Runtime: O(log n + c) for `which = "first"`; O(n log n) for `which = "all"`.
 #' Pop intervals within a query interval
 #'
 #' @param x An `interval_index`.
@@ -969,15 +1096,56 @@ pop_containing <- function(x, start, end, which = c("first", "all"), bounds = NU
 #' @export
 pop_within <- function(x, start, end, which = c("first", "all"), bounds = NULL) {
   .ivx_assert_index(x)
+  pop_which <- match.arg(which)
   b <- .ivx_resolve_bounds(x, bounds)
   q <- .ivx_normalize_interval(start, end, endpoint_type = .ivx_endpoint_type_state(x))
+  f <- .ivx_bounds_flags(b)
+  touching_is_overlap <- isTRUE(f$include_start) && isTRUE(f$include_end)
 
-  pos <- .ivx_match_positions(x, function(e) {
-    .ivx_overlaps_interval(e$start, e$end, q$start, q$end, b, q$endpoint_type) &&
-      .ivx_contains_interval(q$start, q$end, e$start, e$end, q$endpoint_type)
-  })
+  window <- .ivx_query_candidate_window(
+    x,
+    lower = q$start,
+    lower_strict = FALSE,
+    upper = q$end,
+    upper_strict = !isTRUE(touching_is_overlap)
+  )
+  entries <- window$entries
+  n <- length(entries)
+  if(n == 0L) {
+    return(.ivx_pop_positions(x, integer(0), which = pop_which))
+  }
 
-  .ivx_pop_positions(x, pos, which = which)
+  hit <- logical(n)
+  if(.ivx_is_fast_endpoint_type(q$endpoint_type)) {
+    for(i in seq_len(n)) {
+      e <- entries[[i]]
+      within <- isTRUE(q$start <= e$start) && isTRUE(q$end >= e$end)
+      if(!within) {
+        hit[[i]] <- FALSE
+      } else {
+        a_before_b <- if(touching_is_overlap) isTRUE(e$end < q$start) else isTRUE(e$end <= q$start)
+        b_before_a <- if(touching_is_overlap) isTRUE(q$end < e$start) else isTRUE(q$end <= e$start)
+        hit[[i]] <- !isTRUE(a_before_b || b_before_a)
+      }
+    }
+  } else {
+    for(i in seq_len(n)) {
+      e <- entries[[i]]
+      hit[[i]] <- .ivx_overlaps_interval(e$start, e$end, q$start, q$end, b, q$endpoint_type) &&
+        .ivx_contains_interval(q$start, q$end, e$start, e$end, q$endpoint_type)
+    }
+  }
+
+  pos_local <- base::which(hit)
+  if(length(pos_local) == 0L) {
+    return(.ivx_pop_positions(x, integer(0), which = pop_which))
+  }
+  pos_abs <- as.integer(window$start + pos_local - 1L)
+
+  if(identical(pop_which, "first")) {
+    return(.ivx_pop_positions(x, pos_abs[[1L]], which = pop_which))
+  }
+  .ivx_pop_positions(x, pos_abs, which = pop_which)
 }
 
 #' Plot an Interval Index Tree

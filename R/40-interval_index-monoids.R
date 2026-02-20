@@ -97,13 +97,23 @@
 }
 
 # Runtime: O(m), where m = number of user-supplied monoids.
-.ivx_merge_monoids <- function(monoids = NULL) {
+.ivx_supports_oms_key_type <- function(endpoint_type) {
+  isTRUE(endpoint_type %in% c("numeric", "character", "logical"))
+}
+
+# Runtime: O(m), where m = number of user-supplied monoids.
+.ivx_merge_monoids <- function(monoids = NULL, endpoint_type = NULL) {
   user <- if(is.null(monoids)) list() else monoids
   if(length(user) > 0L) {
-    bad <- intersect(names(user), c(".size", ".named_count", ".ivx_max_start"))
+    bad <- intersect(names(user), c(".size", ".named_count", ".ivx_max_start", ".oms_max_key"))
     if(length(bad) > 0L) {
       stop(paste0("Reserved monoid names cannot be supplied for interval_index: ", paste(bad, collapse = ", ")))
     }
   }
-  ensure_size_monoids(c(user, list(.ivx_max_start = .ivx_max_start_monoid())))
+
+  req <- list(.ivx_max_start = .ivx_max_start_monoid())
+  if(.ivx_supports_oms_key_type(endpoint_type)) {
+    req <- c(req, .oms_required_monoids())
+  }
+  ensure_size_monoids(c(user, req))
 }

@@ -18,6 +18,10 @@ A `flexseq` object.
 For `priority_queue` inputs, this explicitly drops queue behavior and returns
 a plain `flexseq` so full sequence operations are available.
 }
+\details{
+For `ordered_sequence` and `interval_index` inputs, this explicitly drops
+ordered/interval behavior and returns a plain `flexseq` of stored entries.
+}
 \examples{
 x <- as_flexseq(1:5)
 x

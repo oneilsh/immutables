@@ -10,6 +10,7 @@ Scope: user-facing API surface and semantics, based on current source/tests.
   - `fapply.ordered_sequence()` aligned to payload-only return (metadata read-only).
   - `fapply.priority_queue()` aligned to payload-only return (metadata read-only).
   - `fapply.flexseq()` now always preserves/recomputes existing monoids; removed `preserve_monoids` parameter.
+  - Added explicit `as_flexseq.ordered_sequence()` and `as_flexseq.interval_index()` methods; subtype casts no longer fall through to failing default dispatch.
   - Current cross-structure state: all `fapply` methods now use payload-only returns.
 
 ## `fapply` Cross-Structure Snapshot
@@ -40,22 +41,10 @@ Scope: user-facing API surface and semantics, based on current source/tests.
 | `$` return shape | inherits `$.flexseq` -> same as `[[` (entry list) | custom `$.interval_index` -> payload only | Alignment candidate | Same underlying mismatch as `[[`. |
 | `peek_front` / `peek_back` / `peek_at` return shape | payload item | payload item | Aligned | But differs from ordered `[[`/`$` currently. |
 | `fapply` contract | `FUN(item, key, name, ...)` returns new payload item; key/name read-only | `FUN(item, start, end, name, ...)` returns new payload item; metadata read-only | Aligned | Aligned on 2026-02-20. |
-| Cast to `as_flexseq()` | no dedicated method; default dispatch errors in current runtime | no dedicated method; default dispatch errors in current runtime | Likely bug | Repro seen locally: `as_flexseq(ordered_sequence(...))` and `as_flexseq(interval_index(...))` error. |
+| Cast to `as_flexseq()` | dedicated method; drops ordered wrapper and `.oms_max_key` | dedicated method; drops interval wrapper and `.ivx_max_start`/`.oms_max_key` | Aligned | Both casts now return plain `flexseq` over stored entries. |
 | Metadata accessor | no key-only accessor equivalent | `interval_bounds()` returns start/end | Intentional | Interval type has explicit interval metadata accessor. |
 | Duplicate handling/stability | duplicates allowed; stable/FIFO within key runs | duplicate intervals allowed; stable/FIFO within equal-start runs | Aligned | Deterministic traversal order in both. |
 
 ## Immediate Alignment Candidates
 
 1. Decide whether `ordered_sequence` single-element reads should return payloads (`item`) instead of raw entry lists for `[[`/`$`.
-2. Add explicit `as_flexseq.ordered_sequence()` and `as_flexseq.interval_index()` methods (or intentionally document that casts are unsupported).
-
-## Repro Notes (Current Runtime)
-
-```r
-devtools::load_all(quiet = TRUE)
-xs <- ordered_sequence("a", "b", keys = c(2, 1))
-as_flexseq(xs)   # currently errors
-
-ix <- interval_index("x", "y", start = c(1, 2), end = c(3, 4))
-as_flexseq(ix)   # currently errors
-```

@@ -221,3 +221,26 @@ testthat::test_that("interval_index recomputes user monoids across insert, fappl
   testthat::expect_equal(node_measure(popped$element, "width_sum"), 5)
   testthat::expect_equal(node_measure(popped$remaining, "width_sum"), 3)
 })
+
+testthat::test_that("interval_index casts down to flexseq explicitly", {
+  width_sum <- measure_monoid(`+`, 0, function(el) as.numeric(el$end - el$start))
+  ix <- as_interval_index(
+    setNames(list("x", "y"), c("ix", "iy")),
+    start = c(1, 3),
+    end = c(2, 5),
+    monoids = list(width_sum = width_sum)
+  )
+
+  fx <- as_flexseq(ix)
+  testthat::expect_s3_class(fx, "flexseq")
+  testthat::expect_false(inherits(fx, "interval_index"))
+  testthat::expect_equal(fx[["ix"]]$item, "x")
+  testthat::expect_equal(fx[["ix"]]$start, 1)
+  testthat::expect_equal(fx[["ix"]]$end, 2)
+
+  ms <- names(attr(fx, "monoids", exact = TRUE))
+  testthat::expect_true(all(c(".size", ".named_count", "width_sum") %in% ms))
+  testthat::expect_false(".ivx_max_start" %in% ms)
+  testthat::expect_false(".oms_max_key" %in% ms)
+  testthat::expect_identical(node_measure(fx, "width_sum"), 3)
+})

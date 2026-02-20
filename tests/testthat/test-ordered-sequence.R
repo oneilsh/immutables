@@ -204,3 +204,23 @@ testthat::test_that("fapply dispatches for ordered_sequence and no reset_ties ar
   testthat::expect_error(fapply(xs, 1), "`FUN` must be a function")
   testthat::expect_error(fapply(xs, function(item, key, name) item, reset_ties = TRUE), "unused")
 })
+
+testthat::test_that("ordered_sequence casts down to flexseq explicitly", {
+  sum_key <- measure_monoid(`+`, 0, function(el) el$key)
+  xs <- as_ordered_sequence(
+    setNames(list("x", "y"), c("kx", "ky")),
+    keys = c(2, 1),
+    monoids = list(sum_key = sum_key)
+  )
+
+  fx <- as_flexseq(xs)
+  testthat::expect_s3_class(fx, "flexseq")
+  testthat::expect_false(inherits(fx, "ordered_sequence"))
+  testthat::expect_equal(fx[["kx"]]$item, "x")
+  testthat::expect_equal(fx[["kx"]]$key, 2)
+
+  ms <- names(attr(fx, "monoids", exact = TRUE))
+  testthat::expect_true(all(c(".size", ".named_count", "sum_key") %in% ms))
+  testthat::expect_false(".oms_max_key" %in% ms)
+  testthat::expect_identical(node_measure(fx, "sum_key"), 3)
+})

@@ -58,6 +58,9 @@ flexseq <- function(..., monoids = NULL) {
 #' For `priority_queue` inputs, this explicitly drops queue behavior and returns
 #' a plain `flexseq` so full sequence operations are available.
 #'
+#' For `ordered_sequence` and `interval_index` inputs, this explicitly drops
+#' ordered/interval behavior and returns a plain `flexseq` of stored entries.
+#'
 #' @param x Input vector/list-like object.
 #' @param monoids Optional named list of measure monoids.
 #' @return A `flexseq` object.
@@ -93,6 +96,32 @@ as_flexseq.priority_queue <- function(x, monoids = NULL) {
   if(is.null(out_monoids)) {
     ms <- attr(x, "monoids", exact = TRUE)
     out_monoids <- ms[setdiff(names(ms), c(".pq_min", ".pq_max"))]
+  }
+  as_flexseq.default(entries, monoids = out_monoids)
+}
+
+#' @method as_flexseq ordered_sequence
+#' @export
+# Runtime: O(n log n) from list materialization + rebuild.
+as_flexseq.ordered_sequence <- function(x, monoids = NULL) {
+  entries <- as.list.flexseq(x)
+  out_monoids <- monoids
+  if(is.null(out_monoids)) {
+    ms <- attr(x, "monoids", exact = TRUE)
+    out_monoids <- ms[setdiff(names(ms), c(".oms_max_key"))]
+  }
+  as_flexseq.default(entries, monoids = out_monoids)
+}
+
+#' @method as_flexseq interval_index
+#' @export
+# Runtime: O(n log n) from list materialization + rebuild.
+as_flexseq.interval_index <- function(x, monoids = NULL) {
+  entries <- as.list.flexseq(x)
+  out_monoids <- monoids
+  if(is.null(out_monoids)) {
+    ms <- attr(x, "monoids", exact = TRUE)
+    out_monoids <- ms[setdiff(names(ms), c(".ivx_max_start", ".oms_max_key"))]
   }
   as_flexseq.default(entries, monoids = out_monoids)
 }

@@ -162,7 +162,7 @@
   .as_interval_index(x, endpoint_type = endpoint_type, bounds = bounds)
 }
 
-# Runtime: O(1).
+# Runtime: O(n).
 .ivx_entries <- function(x) {
   as.list.flexseq(x)
 }
@@ -174,7 +174,7 @@
   out
 }
 
-# Runtime: O(1).
+# Runtime: O(m), where m = number of attached monoids.
 .ivx_user_monoids <- function(x) {
   ms <- attr(x, "monoids", exact = TRUE)
   out <- ms[setdiff(names(ms), c(".size", ".named_count", ".ivx_max_start"))]
@@ -190,7 +190,7 @@
   .ivx_wrap_like(template, empty_tree(monoids = ms))
 }
 
-# Runtime: O(n) to find insertion point + O(log n) split/concat near that point.
+# Runtime: O(log n) near insertion/split point depth.
 .ivx_insert_entry <- function(x, entry, endpoint_type = NULL) {
   .ivx_assert_index(x)
 
@@ -417,7 +417,7 @@
   .ivx_wrap_like(x, tree)
 }
 
-# Runtime: O(k), k = candidate entry count.
+# Runtime: O(c + k), where c = candidate count and k = matched count.
 .ivx_filter_slice <- function(x, entries, predicate) {
   n <- length(entries)
   if(n == 0L) {
@@ -464,7 +464,7 @@
   out
 }
 
-# Runtime: O(log n) near split points.
+# Runtime: O(log n + c), where c = candidate count after start-range pruning.
 .ivx_query_candidate_entries <- function(x, lower = NULL, lower_strict = FALSE, upper = NULL, upper_strict = FALSE) {
   .ivx_entries(.ivx_slice_start_range(
     x,
@@ -475,7 +475,7 @@
   ))
 }
 
-# Runtime: O(k log k), k = length(positions).
+# Runtime: O(k log n), where k = length(positions).
 .ivx_slice_positions <- function(x, positions) {
   if(length(positions) == 0L) {
     return(.ivx_empty_like(x))
@@ -713,7 +713,7 @@ interval_bounds <- function(x) {
   data.frame(start = I(starts), end = I(ends), row.names = seq_len(n))
 }
 
-# Runtime: O(n log n) from indexed subset build.
+# Runtime: O(log n + c + k), where c = candidate count and k = matched count (worst-case O(n)).
 #' Find intervals containing a point
 #'
 #' @param x An `interval_index`.
@@ -749,7 +749,7 @@ find_point <- function(x, point, bounds = NULL) {
   })
 }
 
-# Runtime: O(n log n) from indexed subset build.
+# Runtime: O(log n + c + k), where c = candidate count and k = matched count (worst-case O(n)).
 #' Find intervals overlapping a query interval
 #'
 #' @param x An `interval_index`.
@@ -785,7 +785,7 @@ find_overlaps <- function(x, start, end, bounds = NULL) {
   })
 }
 
-# Runtime: O(n log n) from indexed subset build.
+# Runtime: O(log n + c + k), where c = candidate count and k = matched count (worst-case O(n)).
 #' Find intervals containing a query interval
 #'
 #' @param x An `interval_index`.
@@ -826,7 +826,7 @@ find_containing <- function(x, start, end, bounds = NULL) {
   })
 }
 
-# Runtime: O(n log n) from indexed subset build.
+# Runtime: O(log n + c + k), where c = candidate count and k = matched count (worst-case O(n)).
 #' Find intervals within a query interval
 #'
 #' @param x An `interval_index`.

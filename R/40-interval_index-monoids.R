@@ -96,7 +96,7 @@
   )
 }
 
-# Runtime: O(1).
+# Runtime: O(m), where m = number of user-supplied monoids.
 .ivx_merge_monoids <- function(monoids = NULL) {
   user <- if(is.null(monoids)) list() else monoids
   if(length(user) > 0L) {

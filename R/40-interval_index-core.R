@@ -37,6 +37,26 @@
 }
 
 # Runtime: O(1).
+.ivx_entry_name_fast <- function(entry) {
+  nm <- attr(entry, "ft_name", exact = TRUE)
+  if(is.null(nm) || length(nm) == 0L) {
+    return(NULL)
+  }
+  if(is.character(nm) && length(nm) == 1L && !is.na(nm) && nzchar(nm)) {
+    return(nm)
+  }
+  .ft_get_name(entry)
+}
+
+# Runtime: O(1).
+.ivx_set_entry_name_fast <- function(entry, name) {
+  if(!is.null(name)) {
+    attr(entry, "ft_name") <- name
+  }
+  entry
+}
+
+# Runtime: O(1).
 .ivx_normalize_endpoint <- function(value, arg_name, endpoint_type = NULL) {
   if(length(value) != 1L) {
     stop(sprintf("`%s` must be a scalar value.", arg_name))
@@ -163,8 +183,60 @@
 }
 
 # Runtime: O(n).
+.ivx_is_structural_fast <- function(node) {
+  cls <- class(node)
+  !is.null(cls) && any(cls %in% c("Empty", "Single", "Deep", "Digit", "Node"))
+}
+
+# Runtime: O(n).
 .ivx_entries <- function(x) {
-  as.list.flexseq(x)
+  ms <- attr(x, "measures", exact = TRUE)
+  n <- if(!is.null(ms) && !is.null(ms[[".size"]])) {
+    as.integer(ms[[".size"]])
+  } else {
+    as.integer(node_measure(x, ".size"))
+  }
+
+  if(is.na(n) || n <= 0L) {
+    return(list())
+  }
+
+  st <- new.env(parent = emptyenv())
+  st$out <- vector("list", n)
+  st$pos <- 1L
+
+  fill <- function(node) {
+    if(!.ivx_is_structural_fast(node)) {
+      st$out[[st$pos]] <- node
+      st$pos <- st$pos + 1L
+      return(invisible(NULL))
+    }
+
+    if(inherits(node, "Empty")) {
+      return(invisible(NULL))
+    }
+    if(inherits(node, "Single")) {
+      fill(.subset2(node, 1L))
+      return(invisible(NULL))
+    }
+    if(inherits(node, "Deep")) {
+      fill(.subset2(node, "prefix"))
+      fill(.subset2(node, "middle"))
+      fill(.subset2(node, "suffix"))
+      return(invisible(NULL))
+    }
+
+    for(el in node) {
+      fill(el)
+    }
+    invisible(NULL)
+  }
+
+  fill(x)
+  if(!identical(st$pos, as.integer(n + 1L))) {
+    return(.ft_to_list(x))
+  }
+  st$out
 }
 
 # Runtime: O(n).
@@ -541,19 +613,15 @@
   }
 
   out_entries <- vector("list", n)
-  out_names <- names(entries)
-  has_names <- !is.null(out_names) && length(out_names) == n
 
   for(i in seq_len(n)) {
     e <- entries[[i]]
-    cur_name <- if(isTRUE(has_names)) out_names[[i]] else ""
+    nm <- .ivx_entry_name_fast(e)
+    cur_name <- if(is.null(nm)) "" else nm
 
     item2 <- f(e$item, e$start, e$end, cur_name, ...)
-    out_entries[[i]] <- .ivx_make_entry(item2, e$start, e$end)
-  }
-
-  if(isTRUE(has_names)) {
-    names(out_entries) <- out_names
+    entry2 <- .ivx_make_entry(item2, e$start, e$end)
+    out_entries[[i]] <- .ivx_set_entry_name_fast(entry2, nm)
   }
 
   ms <- resolve_tree_monoids(x, required = TRUE)

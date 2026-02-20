@@ -177,7 +177,7 @@
 # Runtime: O(1).
 .ivx_user_monoids <- function(x) {
   ms <- attr(x, "monoids", exact = TRUE)
-  out <- ms[setdiff(names(ms), c(".size", ".named_count", ".ivx_present"))]
+  out <- ms[setdiff(names(ms), c(".size", ".named_count"))]
   if(length(out) == 0L) {
     return(NULL)
   }
@@ -327,13 +327,11 @@
     return(integer(0))
   }
 
-  out <- integer(0)
+  out <- logical(n)
   for(i in seq_len(n)) {
-    if(isTRUE(predicate(entries[[i]]))) {
-      out <- c(out, as.integer(i))
-    }
+    out[[i]] <- isTRUE(predicate(entries[[i]]))
   }
-  out
+  which(out)
 }
 
 # Runtime: O(k log n), k = length(positions).

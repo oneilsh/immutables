@@ -47,17 +47,11 @@
 .ivx_merge_monoids <- function(monoids = NULL) {
   user <- if(is.null(monoids)) list() else monoids
   if(length(user) > 0L) {
-    bad <- intersect(names(user), c(".size", ".named_count", ".ivx_present"))
+    bad <- intersect(names(user), c(".size", ".named_count"))
     if(length(bad) > 0L) {
       stop(paste0("Reserved monoid names cannot be supplied for interval_index: ", paste(bad, collapse = ", ")))
     }
   }
-  required <- list(
-    .ivx_present = measure_monoid(
-      function(a, b) a + b,
-      0L,
-      function(el) 0L
-    )
-  )
-  ensure_size_monoids(c(user, required))
+  base <- if(length(user) == 0L) list(.size = size_measure_monoid()) else user
+  ensure_size_monoids(base)
 }

@@ -217,6 +217,20 @@
 <code>eb493fd</code>: benchmark coverage now includes additional non-flexseq structure scenarios (<code>ordered_sequence_bounds</code>, <code>pq_insert_pop</code>) and both are in quick/full profiles with R-safe parameter sizes. Risk: scenario names/default params changed; compare historical runs by scenario+params, not just run label.</li>
 <li>
 <code>eb493fd</code>: added deeper ordered-sequence and priority-queue benchmark scenarios (<code>ordered_sequence_range_queries</code>, <code>ordered_sequence_pop_cycle</code>, <code>pq_peek_min_max</code>, <code>pq_pop_min_drain</code>, <code>pq_mixed_ops</code>) to improve optimization signal across lookup vs mutation-heavy paths. Risk: broader quick/full profiles increase total run time; use <code>run_scenarios()</code> for focused profiling.</li>
+<li>C++ GC safety in <code>src/ft_cpp.cpp</code> — recurring “$ operator is invalid for atomic vectors” root cause and fix patterns:
+<ul><li>
+<strong>Root cause</strong>: bare <code>SEXP</code> variables holding newly-allocated R objects (from R function calls or <code>make_*</code> helpers) are invisible to R’s GC, which does not scan the C++ stack. Any subsequent R allocation (including Rcpp <code>Function::operator()</code> building its call via <code>Rf_lang3</code>) can trigger GC and collect these temporaries.</li>
+<li>
+<strong>Pattern 1 — unprotected R function results used as args to another R function call</strong>: e.g. <code>SEXP m = measure(ch); f(acc.get(), m)</code>. The <code>f()</code> call allocates to build its LANGSXP before executing, collecting <code>m</code>. Fix: <code>Shield&lt;SEXP&gt; m(measure(ch)); f(acc.get(), (SEXP)m)</code>. Affected: <code>measures_from_children</code>, <code>measure_sequence</code>, <code>locate_digit_impl_cpp</code>, <code>split_digit_cpp</code>.</li>
+<li>
+<strong>Pattern 2 — multiple <code>make_*</code> results as direct arguments to <code>make_deep</code></strong>: e.g. <code>make_deep(make_digit(...), make_empty(...), make_digit(...), monoids)</code>. C++ argument eval order is implementation-defined; each <code>make_*</code> allocates heavily. Fix: Shield each result before passing. Affected: <code>tree_from_sorted_list_cpp</code>, <code>digit_to_tree_cpp</code>.</li>
+<li>
+<strong>Pattern 3 — unprotected <code>make_*</code> results in <code>List::push_back</code></strong>: <code>push_back</code> reallocates the list, which can collect the unprotected temporary. Fix: Shield before <code>push_back</code>. Affected: <code>measured_nodes_cpp</code>.</li>
+<li>
+<strong>Safe patterns (no fix needed)</strong>: <code>d["prefix"]</code>, <code>sm["left"]</code>, <code>ms[monoid_name]</code> etc. return pointers into existing protected lists — elements are kept alive by parent objects through the attribute chain back to <code>.Call</code> arguments. <code>Shield&lt;SEXP&gt;</code> and <code>ReprotectSEXP</code> usage in <code>add_right_cpp</code>, <code>add_left_cpp</code>, <code>viewL_cpp</code>, <code>viewR_cpp</code> was already correct.</li>
+<li>
+<strong>Testing</strong>: <code>IMMUTABLES_GC_STRESS=1</code> with <code>gctorture2(1)</code> reliably triggers these bugs. Always run GC torture after any C++ changes touching SEXP temporaries.</li>
+</ul></li>
 </ul></div>
 </div>
 

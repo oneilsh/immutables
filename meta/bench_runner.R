@@ -814,8 +814,6 @@
 }
 
 .bench_run_scenario <- function(name, params) {
-  .bench_require_symbols(name)
-  .bench_sanity_check(name)
   switch(
     name,
     flexseq_tree_from = do.call(.bench_scenario_flexseq_tree_from, params),
@@ -927,6 +925,9 @@
 
   for(name in names(profile)) {
     params <- profile[[name]]
+    # Keep contract checks out of timed section to avoid benchmark skew.
+    .bench_require_symbols(name)
+    .bench_sanity_check(name)
     add_row(name, params, {
       .bench_run_scenario(name, params)
     })

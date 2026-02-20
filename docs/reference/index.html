@@ -351,6 +351,119 @@
         </dt>
         <dd>Plot an Ordered Sequence Tree</dd>
       </dl></div><div class="section level2">
+      <h2 id="interval-index">Interval Index<a class="anchor" aria-label="anchor" href="#interval-index"></a></h2>
+
+      <div class="section-desc"><p>Persistent interval index with O(log n) insertion and immutable interval query/pop helpers over ordered interval endpoints.</p></div>
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="interval_index.html">interval_index()</a></code>
+
+        </dt>
+        <dd>Construct an Interval Index</dd>
+      </dl><dl><dt>
+
+          <code><a href="as_interval_index.html">as_interval_index()</a></code>
+
+        </dt>
+        <dd>Build an Interval Index from elements and interval bounds</dd>
+      </dl><dl><dt>
+
+          <code><a href="insert.interval_index.html">insert(<i>&lt;interval_index&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Insert an element into an interval index</dd>
+      </dl><dl><dt>
+
+          <code><a href="find_point.html">find_point()</a></code>
+
+        </dt>
+        <dd>Find intervals containing a point</dd>
+      </dl><dl><dt>
+
+          <code><a href="find_overlaps.html">find_overlaps()</a></code>
+
+        </dt>
+        <dd>Find intervals overlapping a query interval</dd>
+      </dl><dl><dt>
+
+          <code><a href="find_containing.html">find_containing()</a></code>
+
+        </dt>
+        <dd>Find intervals containing a query interval</dd>
+      </dl><dl><dt>
+
+          <code><a href="find_within.html">find_within()</a></code>
+
+        </dt>
+        <dd>Find intervals within a query interval</dd>
+      </dl><dl><dt>
+
+          <code><a href="pop_overlaps.html">pop_overlaps()</a></code>
+
+        </dt>
+        <dd>Pop overlapping intervals</dd>
+      </dl><dl><dt>
+
+          <code><a href="pop_containing.html">pop_containing()</a></code>
+
+        </dt>
+        <dd>Pop intervals containing a query interval</dd>
+      </dl><dl><dt>
+
+          <code><a href="pop_within.html">pop_within()</a></code>
+
+        </dt>
+        <dd>Pop intervals within a query interval</dd>
+      </dl><dl><dt>
+
+          <code><a href="interval_bounds.html">interval_bounds()</a></code>
+
+        </dt>
+        <dd>Get interval bounds in sequence order</dd>
+      </dl><dl><dt>
+
+          <code><a href="sub-.interval_index.html">`$`(<i>&lt;interval_index&gt;</i>)</a></code> <code><a href="sub-.interval_index.html">`$&lt;-`(<i>&lt;interval_index&gt;</i>)</a></code> <code><a href="sub-.interval_index.html">`[`(<i>&lt;interval_index&gt;</i>)</a></code> <code><a href="sub-.interval_index.html">`[[`(<i>&lt;interval_index&gt;</i>)</a></code> <code><a href="sub-.interval_index.html">`[&lt;-`(<i>&lt;interval_index&gt;</i>)</a></code> <code><a href="sub-.interval_index.html">`[[&lt;-`(<i>&lt;interval_index&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Index an interval index</dd>
+      </dl><dl><dt>
+
+          <code><a href="print.interval_index.html">print(<i>&lt;interval_index&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Print an interval index summary</dd>
+      </dl><dl><dt>
+
+          <code><a href="length.interval_index.html">length(<i>&lt;interval_index&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Interval Index Length</dd>
+      </dl><dl><dt>
+
+          <code><a href="as.list.interval_index.html">as.list(<i>&lt;interval_index&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Coerce Interval Index to List</dd>
+      </dl><dl><dt>
+
+          <code><a href="fapply.interval_index.html">fapply(<i>&lt;interval_index&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Apply a function over interval index entries</dd>
+      </dl><dl><dt>
+
+          <code><a href="plot.interval_index.html">plot(<i>&lt;interval_index&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Plot an Interval Index Tree</dd>
+      </dl></div><div class="section level2">
       <h2 id="developer-tools">Developer Tools<a class="anchor" aria-label="anchor" href="#developer-tools"></a></h2>
 
       <div class="section-desc"><p>Lower-level primitives for custom monoids, predicate queries, and validation.</p></div>

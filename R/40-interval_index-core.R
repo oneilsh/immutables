@@ -431,48 +431,55 @@
   .ivx_slice_entries(x, entries[keep])
 }
 
-# Runtime: O(log n) near split points.
-.ivx_slice_start_range <- function(x, lower = NULL, lower_strict = FALSE, upper = NULL, upper_strict = FALSE) {
-  out <- x
-
-  if(!is.null(lower)) {
-    pred_lo <- if(isTRUE(lower_strict)) {
-      function(v) {
-        isTRUE(v$has) && .ivx_compare_scalar_fast(v$start, lower, v$endpoint_type) > 0L
-      }
-    } else {
-      function(v) {
-        isTRUE(v$has) && .ivx_compare_scalar_fast(v$start, lower, v$endpoint_type) >= 0L
-      }
-    }
-    out <- split_by_predicate(out, pred_lo, ".ivx_max_start")$right
+# Runtime: O(log n) near locate point depth.
+.ivx_bound_index_prepared <- function(x, key, strict = FALSE) {
+  n <- length(x)
+  if(n == 0L) {
+    return(1L)
   }
 
-  if(!is.null(upper)) {
-    pred_hi <- if(isTRUE(upper_strict)) {
-      function(v) {
-        isTRUE(v$has) && .ivx_compare_scalar_fast(v$start, upper, v$endpoint_type) >= 0L
-      }
-    } else {
-      function(v) {
-        isTRUE(v$has) && .ivx_compare_scalar_fast(v$start, upper, v$endpoint_type) > 0L
-      }
+  pred <- if(!isTRUE(strict)) {
+    function(v) {
+      isTRUE(v$has) && .ivx_compare_scalar_fast(v$start, key, v$endpoint_type) >= 0L
     }
-    out <- split_by_predicate(out, pred_hi, ".ivx_max_start")$left
+  } else {
+    function(v) {
+      isTRUE(v$has) && .ivx_compare_scalar_fast(v$start, key, v$endpoint_type) > 0L
+    }
   }
 
-  out
+  loc <- locate_by_predicate(x, pred, ".ivx_max_start", include_metadata = TRUE)
+  if(!isTRUE(loc$found)) {
+    return(as.integer(n + 1L))
+  }
+  as.integer(loc$metadata$index)
 }
 
-# Runtime: O(log n + c), where c = candidate count after start-range pruning.
+# Runtime: O(log n + c log n), where c = candidate count.
 .ivx_query_candidate_entries <- function(x, lower = NULL, lower_strict = FALSE, upper = NULL, upper_strict = FALSE) {
-  .ivx_entries(.ivx_slice_start_range(
-    x,
-    lower = lower,
-    lower_strict = lower_strict,
-    upper = upper,
-    upper_strict = upper_strict
-  ))
+  n <- length(x)
+  if(n == 0L) {
+    return(list())
+  }
+
+  start <- if(is.null(lower)) {
+    1L
+  } else {
+    .ivx_bound_index_prepared(x, lower, strict = isTRUE(lower_strict))
+  }
+
+  end_excl <- if(is.null(upper)) {
+    as.integer(n + 1L)
+  } else {
+    # upper_strict means use first start >= upper as exclusive bound.
+    .ivx_bound_index_prepared(x, upper, strict = !isTRUE(upper_strict))
+  }
+
+  if(start > n || end_excl <= start) {
+    return(list())
+  }
+
+  .ft_get_elems_at(x, seq.int(start, end_excl - 1L))
 }
 
 # Runtime: O(k log n), where k = length(positions).

@@ -400,34 +400,11 @@ length.priority_queue <- function(x) {
     e <- entries[[i]]
     cur_name <- out_names[[i]]
 
-    upd <- f(e$item, e$priority, cur_name, ...)
-    if(!is.list(upd)) {
-      stop("`f` must return a list.")
-    }
-    if(length(upd) > 0L) {
-      nm <- names(upd)
-      if(is.null(nm) || any(is.na(nm)) || any(nm == "")) {
-        stop("`f` must return a named list using only: item, priority, name.")
-      }
-      if(anyDuplicated(nm) > 0L) {
-        stop("`f` return list cannot contain duplicated field names.")
-      }
-      bad <- setdiff(nm, c("item", "priority", "name"))
-      if(length(bad) > 0L) {
-        stop("`f` returned unsupported field(s): ", paste(bad, collapse = ", "))
-      }
-    }
-
-    item2 <- if("item" %in% names(upd)) upd[["item"]] else e$item
-    pr2 <- if("priority" %in% names(upd)) .pq_assert_priority(upd[["priority"]]) else as.numeric(e$priority)
-    if("name" %in% names(upd)) {
-      nm2 <- .ft_normalize_name(upd[["name"]])
-      out_names[[i]] <- if(is.null(nm2)) "" else nm2
-    }
+    item2 <- f(e$item, e$priority, cur_name, ...)
 
     out[[i]] <- list(
       item = item2,
-      priority = as.numeric(pr2)
+      priority = as.numeric(e$priority)
     )
   }
 
@@ -449,8 +426,8 @@ length.priority_queue <- function(x) {
 #'
 #' @method fapply priority_queue
 #' @param X A `priority_queue`.
-#' @param FUN Function of `(item, priority, name, ...)` returning a named
-#'   list with fields from `item`, `priority`, `name`.
+#' @param FUN Function of `(item, priority, name, ...)` returning the new
+#'   payload item. Queue metadata (`priority`, `name`) is read-only.
 #' @param ... Additional arguments passed to `FUN`.
 #' @return A new `priority_queue` with transformed entries.
 #' @export

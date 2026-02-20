@@ -475,7 +475,7 @@ pop_key <- function(x, key, which = c("first", "all")) {
   )
 }
 
-# Runtime: O(n log n) total from traversal + reordering + rebuild.
+# Runtime: O(n) from traversal + ordered bulk rebuild.
 .oms_apply_impl <- function(x, f, ...) {
   .oms_assert_set(x)
   if(!is.function(f)) {
@@ -490,61 +490,30 @@ pop_key <- function(x, key, which = c("first", "all")) {
 
   out <- vector("list", n)
   out_names <- if(is.null(names(entries))) rep("", n) else names(entries)
-  key_type <- .oms_key_type_state(x)
 
   for(i in seq_len(n)) {
     e <- entries[[i]]
     cur_name <- out_names[[i]]
 
-    upd <- f(e$item, e$key, cur_name, ...)
-    if(!is.list(upd)) {
-      stop("`FUN` must return a list.")
-    }
-    if(length(upd) > 0L) {
-      nm <- names(upd)
-      if(is.null(nm) || any(is.na(nm)) || any(nm == "")) {
-        stop("`FUN` must return a named list using only: item, key, name.")
-      }
-      if(anyDuplicated(nm) > 0L) {
-        stop("`FUN` return list cannot contain duplicated field names.")
-      }
-      bad <- setdiff(nm, c("item", "key", "name"))
-      if(length(bad) > 0L) {
-        stop("`FUN` returned unsupported field(s): ", paste(bad, collapse = ", "))
-      }
-    }
-
-    item2 <- if("item" %in% names(upd)) upd[["item"]] else e$item
-    key2 <- e$key
-    if("key" %in% names(upd)) {
-      norm <- .oms_normalize_key(upd[["key"]])
-      key_type <- .oms_validate_key_type(key_type, norm$key_type)
-      key2 <- norm$key
-    }
-    if("name" %in% names(upd)) {
-      nm2 <- .ft_normalize_name(upd[["name"]])
-      out_names[[i]] <- if(is.null(nm2)) "" else nm2
-    }
-
-    out[[i]] <- .oms_make_entry(item = item2, key_value = key2)
+    item2 <- f(e$item, e$key, cur_name, ...)
+    out[[i]] <- .oms_make_entry(item = item2, key_value = e$key)
   }
 
   if(any(out_names != "")) {
     names(out) <- out_names
   }
 
-  out <- .oms_order_entries(out, key_type)
   ms <- attr(x, "monoids", exact = TRUE)
   out_tree <- .oms_tree_from_ordered_entries(out, ms)
-  .ord_wrap_like(x, out_tree, key_type = key_type)
+  .ord_wrap_like(x, out_tree, key_type = .oms_key_type_state(x))
 }
 
 #' Apply a function over ordered sequence entries
 #'
 #' @method fapply ordered_sequence
 #' @param X An `ordered_sequence`.
-#' @param FUN Function of `(item, key, name, ...)` returning a named
-#'   list with fields from `item`, `key`, `name`.
+#' @param FUN Function of `(item, key, name, ...)` returning the new payload
+#'   item. Key metadata (`key`, `name`) is read-only.
 #' @param ... Additional arguments passed to `FUN`.
 #' @return A new `ordered_sequence` with transformed entries.
 #' @export

@@ -9,8 +9,8 @@
 \arguments{
 \item{X}{An `ordered_sequence`.}
 
-\item{FUN}{Function of `(item, key, name, ...)` returning a named
-list with fields from `item`, `key`, `name`.}
+\item{FUN}{Function of `(item, key, name, ...)` returning the new payload
+item. Key metadata (`key`, `name`) is read-only.}
 
 \item{...}{Additional arguments passed to `FUN`.}
 }

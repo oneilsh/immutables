@@ -1,13 +1,10 @@
 # Runtime: O(n log n) total (O(n) traversal + O(n log n) rebuild).
-.seq_apply_impl <- function(x, f, preserve_monoids = FALSE, ...) {
+.seq_apply_impl <- function(x, f, ...) {
   if(!inherits(x, "flexseq")) {
     stop("`x` must be a flexseq.")
   }
   if(!is.function(f)) {
     stop("`f` must be a function.")
-  }
-  if(!is.logical(preserve_monoids) || length(preserve_monoids) != 1L || is.na(preserve_monoids)) {
-    stop("`preserve_monoids` must be TRUE or FALSE.")
   }
 
   els <- .ft_to_list(x)
@@ -32,11 +29,7 @@
     }
   }
 
-  out_monoids <- if(isTRUE(preserve_monoids)) {
-    attr(x, "monoids", exact = TRUE)
-  } else {
-    ensure_size_monoids(list(.size = size_measure_monoid()))
-  }
+  out_monoids <- resolve_tree_monoids(x, required = TRUE)
 
   as_flexseq(out, monoids = out_monoids)
 }
@@ -47,13 +40,11 @@
 #' @param X A `flexseq`.
 #' @param FUN Function to apply to each element.
 #' @param ... Additional arguments passed to `FUN`.
-#' @param preserve_monoids Logical; when `TRUE`, carries all input monoids to
-#'   the output. When `FALSE` (default), output keeps only invariant monoids.
 #' @return A new `flexseq` with transformed elements.
 #' @export
-fapply.flexseq <- function(X, FUN, ..., preserve_monoids = FALSE) {
+fapply.flexseq <- function(X, FUN, ...) {
   if(!is.function(FUN)) {
     stop("`FUN` must be a function.")
   }
-  .seq_apply_impl(X, FUN, preserve_monoids = preserve_monoids, ...)
+  .seq_apply_impl(X, FUN, ...)
 }

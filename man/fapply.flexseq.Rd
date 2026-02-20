@@ -4,7 +4,7 @@
 \alias{fapply.flexseq}
 \title{Apply a function over flexseq elements}
 \usage{
-\method{fapply}{flexseq}(X, FUN, ..., preserve_monoids = FALSE)
+\method{fapply}{flexseq}(X, FUN, ...)
 }
 \arguments{
 \item{X}{A `flexseq`.}
@@ -12,9 +12,6 @@
 \item{FUN}{Function to apply to each element.}
 
 \item{...}{Additional arguments passed to `FUN`.}
-
-\item{preserve_monoids}{Logical; when `TRUE`, carries all input monoids to
-the output. When `FALSE` (default), output keeps only invariant monoids.}
 }
 \value{
 A new `flexseq` with transformed elements.

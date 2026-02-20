@@ -183,19 +183,24 @@ testthat::test_that("pop helpers preserve ordered class", {
 })
 
 testthat::test_that("fapply dispatches for ordered_sequence and no reset_ties arg", {
-  xs <- as_ordered_sequence(list("x1", "x2", "x3"), keys = c(1, 1, 2))
+  xs <- as_ordered_sequence(setNames(list("x1", "x2", "x3"), c("a", "b", "c")), keys = c(1, 1, 2))
 
   xs_item <- fapply(xs, function(item, key, name) {
-    list(item = toupper(item))
+    toupper(item)
   })
   testthat::expect_s3_class(xs_item, "ordered_sequence")
-  testthat::expect_equal(as.list(xs_item), list("X1", "X2", "X3"))
+  testthat::expect_equal(unname(as.list(xs_item)), list("X1", "X2", "X3"))
+  testthat::expect_identical(names(as.list(xs_item)), c("a", "b", "c"))
 
-  xs_rekey <- fapply(xs, function(item, key, name) {
-    list(key = if(key == 1) 3 else 1)
+  xs_tagged <- fapply(xs, function(item, key, name) {
+    paste(item, key, name, sep = "|")
   })
-  testthat::expect_equal(as.list(xs_rekey), list("x3", "x1", "x2"))
-  testthat::expect_equal(peek_key(xs_rekey, 3), "x1")
+  testthat::expect_equal(unname(as.list(xs_tagged)), list("x1|1|a", "x2|1|b", "x3|2|c"))
+  testthat::expect_identical(names(as.list(xs_tagged)), c("a", "b", "c"))
+  testthat::expect_equal(count_key(xs_tagged, 1), 2L)
+  testthat::expect_equal(count_key(xs_tagged, 2), 1L)
+  testthat::expect_equal(peek_key(xs_tagged, 1), "x1|1|a")
+
   testthat::expect_error(fapply(xs, 1), "`FUN` must be a function")
-  testthat::expect_error(fapply(xs, function(item, key, name) list(), reset_ties = TRUE), "unused")
+  testthat::expect_error(fapply(xs, function(item, key, name) item, reset_ties = TRUE), "unused")
 })

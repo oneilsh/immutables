@@ -105,61 +105,54 @@ testthat::test_that("priority_queue casts down to flexseq explicitly", {
   testthat::expect_equal(length(x2), 3L)
 })
 
-testthat::test_that("fapply maps priority queue items and priorities", {
+testthat::test_that("fapply maps priority queue items with read-only metadata", {
   q <- priority_queue("a", "bb", "ccc", priorities = c(1, 3, 2))
   q2 <- fapply(
     q,
     function(item, priority, name) {
-      list(item = toupper(item), priority = priority + 2 * nchar(item))
+      toupper(item)
     }
   )
 
   testthat::expect_equal(peek_min(q2), "A")
-  testthat::expect_equal(peek_max(q2), "CCC")
+  testthat::expect_equal(peek_max(q2), "BB")
   testthat::expect_identical(length(q2), 3L)
+
+  pmin <- pop_min(q2)
+  pmax <- pop_max(q2)
+  testthat::expect_identical(pmin$priority, 1)
+  testthat::expect_identical(pmax$priority, 3)
 })
 
 testthat::test_that("fapply respects sequence order for ties", {
   q <- as_priority_queue(
     c("a", "b", "c"),
-    priorities = c(2, 1, 3)
+    priorities = c(1, 1, 1)
   )
-  q2 <- fapply(
-    q,
-    function(item, priority, name) list(priority = 1)
-  )
+  q2 <- fapply(q, function(item, priority, name) toupper(item))
 
   # All priorities tie; left-most in sequence wins.
-  testthat::expect_equal(peek_min(q2), "a")
+  testthat::expect_equal(peek_min(q2), "A")
+  p1 <- pop_min(q2)
+  p2 <- pop_min(p1$remaining)
+  testthat::expect_equal(p1$element, "A")
+  testthat::expect_equal(p2$element, "B")
 })
 
-testthat::test_that("fapply can update priority queue entry names", {
+testthat::test_that("fapply preserves priority queue entry names", {
   q <- as_priority_queue(setNames(as.list(c("x", "y")), c("kx", "ky")), priorities = c(2, 1))
   q2 <- fapply(q, function(item, priority, name) {
-    list(name = paste0(name, "_new"))
+    paste(name, item, sep = ":")
   })
 
-  testthat::expect_equal(q2[["kx_new"]]$item, "x")
-  testthat::expect_equal(q2[["ky_new"]]$item, "y")
+  testthat::expect_equal(q2[["kx"]]$item, "kx:x")
+  testthat::expect_equal(q2[["ky"]]$item, "ky:y")
 })
 
 testthat::test_that("fapply validates priority queue inputs", {
   q <- priority_queue("a", priorities = 1)
   testthat::expect_error(fapply.priority_queue(as_flexseq(1:3), FUN = identity), "`q` must be a priority_queue")
   testthat::expect_error(fapply(q, 1), "`FUN` must be a function")
-  testthat::expect_error(fapply(q, function(item, priority, name) 1), "`f` must return a list")
-  testthat::expect_error(
-    fapply(q, function(item, priority, name) list(123)),
-    "must return a named list"
-  )
-  testthat::expect_error(
-    fapply(q, function(item, priority, name) list(foo = 1)),
-    "unsupported field"
-  )
-  testthat::expect_error(
-    fapply(q, function(item, priority, name) list(priority = NA_real_)),
-    "`priority` must be a single non-missing numeric value"
-  )
 })
 
 testthat::test_that("priority_queue blocks split/locate helpers", {

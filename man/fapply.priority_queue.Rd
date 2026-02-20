@@ -9,8 +9,8 @@
 \arguments{
 \item{X}{A `priority_queue`.}
 
-\item{FUN}{Function of `(item, priority, name, ...)` returning a named
-list with fields from `item`, `priority`, `name`.}
+\item{FUN}{Function of `(item, priority, name, ...)` returning the new
+payload item. Queue metadata (`priority`, `name`) is read-only.}
 
 \item{...}{Additional arguments passed to `FUN`.}
 }

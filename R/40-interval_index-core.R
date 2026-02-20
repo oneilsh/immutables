@@ -177,7 +177,7 @@
 # Runtime: O(1).
 .ivx_user_monoids <- function(x) {
   ms <- attr(x, "monoids", exact = TRUE)
-  out <- ms[setdiff(names(ms), c(".size", ".named_count"))]
+  out <- ms[setdiff(names(ms), c(".size", ".named_count", ".ivx_max_start"))]
   if(length(out) == 0L) {
     return(NULL)
   }
@@ -195,22 +195,14 @@
   .ivx_assert_index(x)
 
   ep <- if(is.null(endpoint_type)) .ivx_endpoint_type_state(x) else endpoint_type
-  n <- length(x)
-  insert_pos <- as.integer(n + 1L)
-  if(n > 0L) {
-    entries <- .ivx_entries(x)
-    for(i in seq_len(n)) {
-      if(.ivx_compare_scalar(entries[[i]]$start, entry$start, ep) > 0L) {
-        insert_pos <- as.integer(i)
-        break
-      }
-    }
-  }
-
-  out <- if(n == 0L || insert_pos == (n + 1L)) {
+  out <- if(length(x) == 0L) {
     .ft_push_back_impl(x, entry, context = "insert()")
   } else {
-    s <- split_by_predicate(x, function(v) v >= insert_pos, ".size")
+    s <- split_by_predicate(
+      x,
+      function(v) isTRUE(v$has) && .ivx_compare_scalar(v$start, entry$start, v$endpoint_type) > 0L,
+      ".ivx_max_start"
+    )
     left_plus <- .ft_push_back_impl(s$left, entry, context = "insert()")
     concat_trees(left_plus, s$right)
   }
@@ -218,7 +210,95 @@
   .ivx_wrap_like(x, out, endpoint_type = ep)
 }
 
-# Runtime: O(n log n) from repeated inserts.
+# Runtime: O(n) in entry count.
+.ivx_prepare_entry_names <- function(entries) {
+  if(length(entries) == 0L) {
+    return(entries)
+  }
+  nms <- names(entries)
+  if(is.null(nms)) {
+    return(entries)
+  }
+
+  out <- entries
+  for(i in seq_along(out)) {
+    nm <- .ft_normalize_name(nms[[i]])
+    if(!is.null(nm)) {
+      out[[i]] <- .ft_set_name(out[[i]], nm)
+    }
+  }
+  names(out) <- NULL
+  out
+}
+
+# Runtime: O(n) for ordered entries.
+.ivx_tree_from_ordered_entries <- function(entries, monoids) {
+  entries <- .ivx_prepare_entry_names(entries)
+  if(.ft_cpp_can_use(monoids)) {
+    return(.as_flexseq(.ft_cpp_tree_from_sorted(entries, monoids)))
+  }
+  .ft_tree_from_list_linear(entries, monoids)
+}
+
+# Runtime: O(n log n) for stable merge sort by start.
+.ivx_merge_sort_indices <- function(idx, entries, endpoint_type) {
+  n <- length(idx)
+  if(n <= 1L) {
+    return(idx)
+  }
+
+  mid <- as.integer(n %/% 2L)
+  left <- .ivx_merge_sort_indices(idx[seq_len(mid)], entries, endpoint_type)
+  right <- .ivx_merge_sort_indices(idx[(mid + 1L):n], entries, endpoint_type)
+
+  out <- integer(n)
+  i <- 1L
+  j <- 1L
+  k <- 1L
+  while(i <= length(left) && j <= length(right)) {
+    cmp <- .ivx_compare_scalar(entries[[left[[i]]]]$start, entries[[right[[j]]]]$start, endpoint_type)
+    if(cmp <= 0L) {
+      out[[k]] <- left[[i]]
+      i <- i + 1L
+    } else {
+      out[[k]] <- right[[j]]
+      j <- j + 1L
+    }
+    k <- k + 1L
+  }
+
+  while(i <= length(left)) {
+    out[[k]] <- left[[i]]
+    i <- i + 1L
+    k <- k + 1L
+  }
+  while(j <= length(right)) {
+    out[[k]] <- right[[j]]
+    j <- j + 1L
+    k <- k + 1L
+  }
+  out
+}
+
+# Runtime: O(n log n) stable by start and FIFO on ties.
+.ivx_order_entries <- function(entries, endpoint_type) {
+  if(length(entries) <= 1L) {
+    return(entries)
+  }
+
+  idx <- seq_along(entries)
+  starts <- lapply(entries, function(e) e$start)
+  ord <- tryCatch(
+    order(do.call(c, starts), idx),
+    error = function(e) NULL
+  )
+  if(is.null(ord) || length(ord) != length(entries)) {
+    ord <- .ivx_merge_sort_indices(idx, entries, endpoint_type)
+  }
+  entries[ord]
+}
+
+# Runtime: O(n log n) from sort + bulk build.
 .ivx_build_from_items <- function(items, start = NULL, end = NULL, bounds = "[)", monoids = NULL) {
   n <- length(items)
 
@@ -251,12 +331,7 @@
     stop("`end` length must match elements length.")
   }
 
-  out <- .as_interval_index(
-    as_flexseq(list(), monoids = .ivx_merge_monoids(monoids)),
-    endpoint_type = NULL,
-    bounds = bounds
-  )
-
+  entries <- vector("list", n)
   item_names <- names(items)
   endpoint_type <- NULL
 
@@ -264,19 +339,16 @@
     norm <- .ivx_normalize_interval(starts[[i]], ends[[i]], endpoint_type = endpoint_type)
     endpoint_type <- norm$endpoint_type
 
-    entry <- .ivx_make_entry(items[[i]], norm$start, norm$end)
-
-    if(!is.null(item_names) && length(item_names) == n) {
-      nm <- .ft_normalize_name(item_names[[i]])
-      if(!is.null(nm)) {
-        entry <- .ft_set_name(entry, nm)
-      }
-    }
-
-    out <- .ivx_insert_entry(out, entry, endpoint_type = endpoint_type)
+    entries[[i]] <- .ivx_make_entry(items[[i]], norm$start, norm$end)
+  }
+  if(!is.null(item_names) && length(item_names) == n) {
+    names(entries) <- item_names
   }
 
-  out
+  entries <- .ivx_order_entries(entries, endpoint_type)
+  merged_monoids <- .ivx_merge_monoids(monoids)
+  base <- .ivx_tree_from_ordered_entries(entries, merged_monoids)
+  .as_interval_index(base, endpoint_type = endpoint_type, bounds = bounds)
 }
 
 # Runtime: O(1).
@@ -334,7 +406,76 @@
   which(out)
 }
 
-# Runtime: O(k log n), k = length(positions).
+# Runtime: O(k) in matched entry count.
+.ivx_slice_entries <- function(x, entries) {
+  if(length(entries) == 0L) {
+    return(.ivx_empty_like(x))
+  }
+
+  ms <- resolve_tree_monoids(x, required = TRUE)
+  tree <- .ivx_tree_from_ordered_entries(entries, monoids = ms)
+  .ivx_wrap_like(x, tree)
+}
+
+# Runtime: O(k), k = candidate entry count.
+.ivx_filter_slice <- function(x, entries, predicate) {
+  n <- length(entries)
+  if(n == 0L) {
+    return(.ivx_empty_like(x))
+  }
+
+  keep <- logical(n)
+  for(i in seq_len(n)) {
+    keep[[i]] <- isTRUE(predicate(entries[[i]]))
+  }
+  .ivx_slice_entries(x, entries[keep])
+}
+
+# Runtime: O(log n) near split points.
+.ivx_slice_start_range <- function(x, lower = NULL, lower_strict = FALSE, upper = NULL, upper_strict = FALSE) {
+  out <- x
+
+  if(!is.null(lower)) {
+    pred_lo <- if(isTRUE(lower_strict)) {
+      function(v) {
+        isTRUE(v$has) && .ivx_compare_scalar_fast(v$start, lower, v$endpoint_type) > 0L
+      }
+    } else {
+      function(v) {
+        isTRUE(v$has) && .ivx_compare_scalar_fast(v$start, lower, v$endpoint_type) >= 0L
+      }
+    }
+    out <- split_by_predicate(out, pred_lo, ".ivx_max_start")$right
+  }
+
+  if(!is.null(upper)) {
+    pred_hi <- if(isTRUE(upper_strict)) {
+      function(v) {
+        isTRUE(v$has) && .ivx_compare_scalar_fast(v$start, upper, v$endpoint_type) >= 0L
+      }
+    } else {
+      function(v) {
+        isTRUE(v$has) && .ivx_compare_scalar_fast(v$start, upper, v$endpoint_type) > 0L
+      }
+    }
+    out <- split_by_predicate(out, pred_hi, ".ivx_max_start")$left
+  }
+
+  out
+}
+
+# Runtime: O(log n) near split points.
+.ivx_query_candidate_entries <- function(x, lower = NULL, lower_strict = FALSE, upper = NULL, upper_strict = FALSE) {
+  .ivx_entries(.ivx_slice_start_range(
+    x,
+    lower = lower,
+    lower_strict = lower_strict,
+    upper = upper,
+    upper_strict = upper_strict
+  ))
+}
+
+# Runtime: O(k log k), k = length(positions).
 .ivx_slice_positions <- function(x, positions) {
   if(length(positions) == 0L) {
     return(.ivx_empty_like(x))
@@ -451,7 +592,7 @@
   )
 }
 
-# Runtime: O(n log n) from repeated inserts.
+# Runtime: O(n log n) from sort + bulk build.
 #' Build an Interval Index from elements and interval bounds
 #'
 #' @param x Elements to add.
@@ -469,7 +610,7 @@ as_interval_index <- function(x, start, end, bounds = "[)", monoids = NULL) {
   .ivx_build_from_items(as.list(x), start = start, end = end, bounds = bounds, monoids = monoids)
 }
 
-# Runtime: O(n log n) from repeated inserts.
+# Runtime: O(n log n) from sort + bulk build.
 #' Construct an Interval Index
 #'
 #' @param ... Elements to add.
@@ -583,15 +724,29 @@ interval_bounds <- function(x) {
 find_point <- function(x, point, bounds = NULL) {
   .ivx_assert_index(x)
   b <- .ivx_resolve_bounds(x, bounds)
-  endpoint_type <- .ivx_endpoint_type_state(x)
+  qp <- .ivx_normalize_endpoint(point, "point", endpoint_type = .ivx_endpoint_type_state(x))
+  f <- .ivx_bounds_flags(b)
 
-  qp <- .ivx_normalize_endpoint(point, "point", endpoint_type = endpoint_type)
+  # start > point can never contain point.
+  entries <- .ivx_query_candidate_entries(
+    x,
+    upper = qp$value,
+    upper_strict = FALSE
+  )
 
-  pos <- .ivx_match_positions(x, function(e) {
+  if(.ivx_is_fast_endpoint_type(qp$endpoint_type)) {
+    include_start <- isTRUE(f$include_start)
+    include_end <- isTRUE(f$include_end)
+    return(.ivx_filter_slice(x, entries, function(e) {
+      left_ok <- if(include_start) isTRUE(qp$value >= e$start) else isTRUE(qp$value > e$start)
+      right_ok <- if(include_end) isTRUE(qp$value <= e$end) else isTRUE(qp$value < e$end)
+      isTRUE(left_ok && right_ok)
+    }))
+  }
+
+  .ivx_filter_slice(x, entries, function(e) {
     .ivx_contains_point(e$start, e$end, qp$value, b, qp$endpoint_type)
   })
-
-  .ivx_slice_positions(x, pos)
 }
 
 # Runtime: O(n log n) from indexed subset build.
@@ -606,14 +761,28 @@ find_point <- function(x, point, bounds = NULL) {
 find_overlaps <- function(x, start, end, bounds = NULL) {
   .ivx_assert_index(x)
   b <- .ivx_resolve_bounds(x, bounds)
-
   q <- .ivx_normalize_interval(start, end, endpoint_type = .ivx_endpoint_type_state(x))
+  f <- .ivx_bounds_flags(b)
+  touching_is_overlap <- isTRUE(f$include_start) && isTRUE(f$include_end)
 
-  pos <- .ivx_match_positions(x, function(e) {
+  # For non-touching bounds, start == query_end cannot overlap.
+  entries <- .ivx_query_candidate_entries(
+    x,
+    upper = q$end,
+    upper_strict = !isTRUE(touching_is_overlap)
+  )
+
+  if(.ivx_is_fast_endpoint_type(q$endpoint_type)) {
+    return(.ivx_filter_slice(x, entries, function(e) {
+      a_before_b <- if(touching_is_overlap) isTRUE(e$end < q$start) else isTRUE(e$end <= q$start)
+      b_before_a <- if(touching_is_overlap) isTRUE(q$end < e$start) else isTRUE(q$end <= e$start)
+      !isTRUE(a_before_b || b_before_a)
+    }))
+  }
+
+  .ivx_filter_slice(x, entries, function(e) {
     .ivx_overlaps_interval(e$start, e$end, q$start, q$end, b, q$endpoint_type)
   })
-
-  .ivx_slice_positions(x, pos)
 }
 
 # Runtime: O(n log n) from indexed subset build.
@@ -629,13 +798,32 @@ find_containing <- function(x, start, end, bounds = NULL) {
   .ivx_assert_index(x)
   b <- .ivx_resolve_bounds(x, bounds)
   q <- .ivx_normalize_interval(start, end, endpoint_type = .ivx_endpoint_type_state(x))
+  f <- .ivx_bounds_flags(b)
+  touching_is_overlap <- isTRUE(f$include_start) && isTRUE(f$include_end)
 
-  pos <- .ivx_match_positions(x, function(e) {
+  # Containing intervals must start at or before query start.
+  entries <- .ivx_query_candidate_entries(
+    x,
+    upper = q$start,
+    upper_strict = FALSE
+  )
+
+  if(.ivx_is_fast_endpoint_type(q$endpoint_type)) {
+    return(.ivx_filter_slice(x, entries, function(e) {
+      contains <- isTRUE(e$start <= q$start) && isTRUE(e$end >= q$end)
+      if(!contains) {
+        return(FALSE)
+      }
+      a_before_b <- if(touching_is_overlap) isTRUE(e$end < q$start) else isTRUE(e$end <= q$start)
+      b_before_a <- if(touching_is_overlap) isTRUE(q$end < e$start) else isTRUE(q$end <= e$start)
+      !isTRUE(a_before_b || b_before_a)
+    }))
+  }
+
+  .ivx_filter_slice(x, entries, function(e) {
     .ivx_overlaps_interval(e$start, e$end, q$start, q$end, b, q$endpoint_type) &&
       .ivx_contains_interval(e$start, e$end, q$start, q$end, q$endpoint_type)
   })
-
-  .ivx_slice_positions(x, pos)
 }
 
 # Runtime: O(n log n) from indexed subset build.
@@ -651,13 +839,34 @@ find_within <- function(x, start, end, bounds = NULL) {
   .ivx_assert_index(x)
   b <- .ivx_resolve_bounds(x, bounds)
   q <- .ivx_normalize_interval(start, end, endpoint_type = .ivx_endpoint_type_state(x))
+  f <- .ivx_bounds_flags(b)
+  touching_is_overlap <- isTRUE(f$include_start) && isTRUE(f$include_end)
 
-  pos <- .ivx_match_positions(x, function(e) {
+  # Within intervals must start inside query start-range.
+  entries <- .ivx_query_candidate_entries(
+    x,
+    lower = q$start,
+    lower_strict = FALSE,
+    upper = q$end,
+    upper_strict = !isTRUE(touching_is_overlap)
+  )
+
+  if(.ivx_is_fast_endpoint_type(q$endpoint_type)) {
+    return(.ivx_filter_slice(x, entries, function(e) {
+      within <- isTRUE(q$start <= e$start) && isTRUE(q$end >= e$end)
+      if(!within) {
+        return(FALSE)
+      }
+      a_before_b <- if(touching_is_overlap) isTRUE(e$end < q$start) else isTRUE(e$end <= q$start)
+      b_before_a <- if(touching_is_overlap) isTRUE(q$end < e$start) else isTRUE(q$end <= e$start)
+      !isTRUE(a_before_b || b_before_a)
+    }))
+  }
+
+  .ivx_filter_slice(x, entries, function(e) {
     .ivx_overlaps_interval(e$start, e$end, q$start, q$end, b, q$endpoint_type) &&
       .ivx_contains_interval(q$start, q$end, e$start, e$end, q$endpoint_type)
   })
-
-  .ivx_slice_positions(x, pos)
 }
 
 # Runtime: O(n log n) from matching + immutable rebuild.

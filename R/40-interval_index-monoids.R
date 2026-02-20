@@ -44,14 +44,66 @@
 }
 
 # Runtime: O(1).
+.ivx_is_fast_endpoint_type <- function(endpoint_type) {
+  isTRUE(endpoint_type %in% c("numeric", "character", "logical", "Date", "POSIXct"))
+}
+
+# Runtime: O(1).
+.ivx_compare_scalar_fast <- function(a, b, endpoint_type = NULL) {
+  if(.ivx_is_fast_endpoint_type(endpoint_type)) {
+    lt <- a < b
+    gt <- a > b
+    if(length(lt) == 1L && length(gt) == 1L && !is.na(lt) && !is.na(gt)) {
+      if(isTRUE(lt)) {
+        return(-1L)
+      }
+      if(isTRUE(gt)) {
+        return(1L)
+      }
+      return(0L)
+    }
+  }
+  .ivx_compare_scalar(a, b, endpoint_type = endpoint_type)
+}
+
+# Runtime: O(1).
+.ivx_choose_max_start <- function(a, b) {
+  if(!isTRUE(a$has)) {
+    return(b)
+  }
+  if(!isTRUE(b$has)) {
+    return(a)
+  }
+  if(!identical(a$endpoint_type, b$endpoint_type)) {
+    stop("Incompatible endpoint types encountered in interval_index measures.")
+  }
+  cmp <- .ivx_compare_scalar(a$start, b$start, a$endpoint_type)
+  if(cmp >= 0L) a else b
+}
+
+# Runtime: O(1).
+.ivx_max_start_monoid <- function() {
+  measure_monoid(
+    .ivx_choose_max_start,
+    list(has = FALSE, start = NULL, endpoint_type = NULL),
+    function(el) {
+      list(
+        has = TRUE,
+        start = el$start,
+        endpoint_type = .ivx_endpoint_type(el$start)
+      )
+    }
+  )
+}
+
+# Runtime: O(1).
 .ivx_merge_monoids <- function(monoids = NULL) {
   user <- if(is.null(monoids)) list() else monoids
   if(length(user) > 0L) {
-    bad <- intersect(names(user), c(".size", ".named_count"))
+    bad <- intersect(names(user), c(".size", ".named_count", ".ivx_max_start"))
     if(length(bad) > 0L) {
       stop(paste0("Reserved monoid names cannot be supplied for interval_index: ", paste(bad, collapse = ", ")))
     }
   }
-  base <- if(length(user) == 0L) list(.size = size_measure_monoid()) else user
-  ensure_size_monoids(base)
+  ensure_size_monoids(c(user, list(.ivx_max_start = .ivx_max_start_monoid())))
 }

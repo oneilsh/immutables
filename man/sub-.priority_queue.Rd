@@ -27,7 +27,7 @@
 \value{
 For `[`, a `priority_queue` containing matched named entries.
 
-For `[[`, one element matched by a single character name.
+For `[[`, one payload element matched by a single character name.
 
 No return value; always errors because replacement indexing is unsupported.
 

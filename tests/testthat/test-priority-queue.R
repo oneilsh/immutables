@@ -36,7 +36,8 @@ testthat::test_that("insert is persistent and supports names", {
 
   testthat::expect_equal(peek_min(q), "y")
   testthat::expect_equal(peek_min(q2), "y")
-  testthat::expect_equal(q2[["kz"]]$item, "z")
+  testthat::expect_equal(q2[["kz"]], "z")
+  testthat::expect_equal(q2$kz, "z")
   testthat::expect_equal(length(q2), 3L)
 })
 
@@ -145,8 +146,9 @@ testthat::test_that("fapply preserves priority queue entry names", {
     paste(name, item, sep = ":")
   })
 
-  testthat::expect_equal(q2[["kx"]]$item, "kx:x")
-  testthat::expect_equal(q2[["ky"]]$item, "ky:y")
+  testthat::expect_equal(q2[["kx"]], "kx:x")
+  testthat::expect_equal(q2[["ky"]], "ky:y")
+  testthat::expect_equal(q2$kx, "kx:x")
 })
 
 testthat::test_that("fapply validates priority queue inputs", {

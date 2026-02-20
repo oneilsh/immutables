@@ -496,8 +496,8 @@
 #' - duplicates and reordering are rejected.
 #'
 #' For `[[`:
-#' - ordered sequences use the inherited `[[.flexseq` behavior (scalar integer
-#'   index or scalar character name).
+#' - accepts scalar integer position or scalar character name and returns the
+#'   payload element.
 #'
 #' Replacement indexing (`[<-`, `[[<-`) is intentionally unsupported.
 #'
@@ -684,13 +684,30 @@
 
 #' @rdname sub-.priority_queue
 #' @method [[ priority_queue
-#' @return For `[[`, one element matched by a single character name.
+#' @return For `[[`, one payload element matched by a single character name.
 #' @export
 `[[.priority_queue` <- function(x, i, ...) {
   if(!(is.character(i) && length(i) == 1L && !is.na(i))) {
     stop("`[[.priority_queue` supports scalar character names only. Cast first with `as_flexseq()`.")
   }
-  `[[.flexseq`(x, i, ...)
+  entry <- `[[.flexseq`(x, i, ...)
+  if(!is.list(entry) || !("item" %in% names(entry))) {
+    stop("Malformed priority_queue entry.")
+  }
+  entry$item
+}
+
+#' @rdname sub-.ordered_sequence
+#' @method [[ ordered_sequence
+#' @return For `[[`, one payload element by scalar integer position or scalar
+#'   character name.
+#' @export
+`[[.ordered_sequence` <- function(x, i, ...) {
+  entry <- `[[.flexseq`(x, i, ...)
+  if(!is.list(entry) || !("item" %in% names(entry))) {
+    stop("Malformed ordered_sequence entry.")
+  }
+  entry$item
 }
 
 #' @rdname sub-.interval_index

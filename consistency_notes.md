@@ -11,6 +11,7 @@ Scope: user-facing API surface and semantics, based on current source/tests.
   - `fapply.priority_queue()` aligned to payload-only return (metadata read-only).
   - `fapply.flexseq()` now always preserves/recomputes existing monoids; removed `preserve_monoids` parameter.
   - Added explicit `as_flexseq.ordered_sequence()` and `as_flexseq.interval_index()` methods; subtype casts no longer fall through to failing default dispatch.
+  - `ordered_sequence` and `priority_queue` `[[`/`$` reads now return payloads (not entry wrappers).
   - Current cross-structure state: all `fapply` methods now use payload-only returns.
 
 ## `fapply` Cross-Structure Snapshot
@@ -37,8 +38,8 @@ Scope: user-facing API surface and semantics, based on current source/tests.
 | Replacement indexing (`[<-`, `[[<-`, `$<-`) | blocked | blocked | Aligned | Order-breaking writes blocked for both. |
 | `c()` | blocked | blocked (via ordered inheritance) | Aligned | Error text currently mentions `ordered_sequence`. |
 | `push_front`/`push_back`/`insert_at` | blocked | blocked (via ordered inheritance) | Aligned | Same guardrail; interval message text may mention ordered type. |
-| `[[` return shape | returns stored entry (`list(item, key)`) via inherited `[[.flexseq` | returns payload `item` only | Alignment candidate | Observable UX mismatch for single-element reads. |
-| `$` return shape | inherits `$.flexseq` -> same as `[[` (entry list) | custom `$.interval_index` -> payload only | Alignment candidate | Same underlying mismatch as `[[`. |
+| `[[` return shape | returns payload `item` | returns payload `item` | Aligned | `ordered_sequence` now has explicit payload-returning `[[` method. |
+| `$` return shape | returns payload `item` by name | returns payload `item` by name | Aligned | `ordered_sequence` now has explicit payload-returning `$` method. |
 | `peek_front` / `peek_back` / `peek_at` return shape | payload item | payload item | Aligned | But differs from ordered `[[`/`$` currently. |
 | `fapply` contract | `FUN(item, key, name, ...)` returns new payload item; key/name read-only | `FUN(item, start, end, name, ...)` returns new payload item; metadata read-only | Aligned | Aligned on 2026-02-20. |
 | Cast to `as_flexseq()` | dedicated method; drops ordered wrapper and `.oms_max_key` | dedicated method; drops interval wrapper and `.ivx_max_start`/`.oms_max_key` | Aligned | Both casts now return plain `flexseq` over stored entries. |
@@ -47,4 +48,4 @@ Scope: user-facing API surface and semantics, based on current source/tests.
 
 ## Immediate Alignment Candidates
 
-1. Decide whether `ordered_sequence` single-element reads should return payloads (`item`) instead of raw entry lists for `[[`/`$`.
+1. Decide whether `priority_queue` should permit positional `[[` reads like other sequence-like types, or remain strict name-only.

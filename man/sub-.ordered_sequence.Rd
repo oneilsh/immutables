@@ -2,11 +2,14 @@
 % Please edit documentation in R/30-api-flexseq-indexing.R
 \name{[.ordered_sequence}
 \alias{[.ordered_sequence}
+\alias{[[.ordered_sequence}
 \alias{[<-.ordered_sequence}
 \alias{[[<-.ordered_sequence}
 \title{Index an ordered sequence}
 \usage{
 \method{[}{ordered_sequence}(x, i, ...)
+
+\method{[[}{ordered_sequence}(x, i, ...)
 
 \method{[}{ordered_sequence}(x, i) <- value
 
@@ -24,6 +27,9 @@
 \value{
 For `[`, an `ordered_sequence` subset that preserves key order.
 
+For `[[`, one payload element by scalar integer position or scalar
+  character name.
+
 No return value; always errors because replacement indexing is unsupported.
 
 No return value; always errors because replacement indexing is unsupported.
@@ -39,8 +45,8 @@ For `[`:
 - duplicates and reordering are rejected.
 
 For `[[`:
-- ordered sequences use the inherited `[[.flexseq` behavior (scalar integer
-  index or scalar character name).
+- accepts scalar integer position or scalar character name and returns the
+  payload element.
 
 Replacement indexing (`[<-`, `[[<-`) is intentionally unsupported.
 }

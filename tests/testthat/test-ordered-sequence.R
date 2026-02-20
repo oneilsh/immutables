@@ -153,6 +153,10 @@ testthat::test_that("ordered subsetting requires strictly increasing mapped posi
   by_name <- xs[c("a", "c")]
   testthat::expect_equal(as.list(by_name), list("xa", "xc"))
 
+  testthat::expect_equal(xs[[2]], "xb")
+  testthat::expect_equal(xs[["c"]], "xc")
+  testthat::expect_equal(xs$c, "xc")
+
   lgl <- xs[c(TRUE, FALSE)]
   testthat::expect_equal(as.list(lgl), list("xa", "xc"))
 

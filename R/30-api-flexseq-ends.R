@@ -174,7 +174,10 @@ push_front <- function(x, value) {
     return(el)
   }
   if(inherits(x, "ordered_sequence")) {
-    return(el$item)
+    if(is.list(el) && ("item" %in% names(el))) {
+      return(el$item)
+    }
+    return(el)
   }
   el
 }

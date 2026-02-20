@@ -37,6 +37,13 @@
 
 #' @export
 #' @noRd
+`$.ordered_sequence` <- function(x, name) {
+  nm <- .ft_dollar_name(substitute(name))
+  `[[.ordered_sequence`(x, nm)
+}
+
+#' @export
+#' @noRd
 `$.priority_queue` <- function(x, name) {
   nm <- .ft_dollar_name(substitute(name))
   `[[.priority_queue`(x, nm)

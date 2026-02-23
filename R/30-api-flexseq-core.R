@@ -23,6 +23,26 @@
   .as_flexseq(out)
 }
 
+# identify the concrete ordered-like class for user-facing error messages.
+# Runtime: O(1).
+.ft_ordered_owner_class <- function(x) {
+  cls <- class(x)
+  if(length(cls) == 0L) {
+    return("ordered_sequence")
+  }
+  keep <- setdiff(cls, c("ordered_sequence", "flexseq", "list"))
+  if(length(keep) > 0L) {
+    return(keep[[1L]])
+  }
+  "ordered_sequence"
+}
+
+# Runtime: O(1).
+.ft_stop_ordered_like <- function(x, fn_name, advice = "Use `insert()`.") {
+  target <- .ft_ordered_owner_class(x)
+  stop(sprintf("`%s()` is not supported for %s. %s", fn_name, target, advice))
+}
+
 # normalize constructor input to list without dropping names.
 # Runtime: O(n), where n is number of constructor inputs.
 .flexseq_input_list <- function(x) {
@@ -162,7 +182,9 @@ c.flexseq <- function(..., recursive = FALSE) {
 #' @noRd
 # Runtime: O(1).
 c.ordered_sequence <- function(..., recursive = FALSE) {
-  stop("`c()` is not supported for ordered_sequence.")
+  xs <- list(...)
+  target <- if(length(xs) == 0L) "ordered_sequence" else .ft_ordered_owner_class(xs[[1L]])
+  stop(sprintf("`c()` is not supported for %s. Cast first with `as_flexseq()`.", target))
 }
 
 #' @export

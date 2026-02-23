@@ -18,6 +18,7 @@ Scope: user-facing API surface and semantics, based on current source/tests.
   - `interval_index` point APIs now use `peek_point` / `pop_point`; removed `find_point`.
   - `interval_index` query API hard-replaced from `find_*` to `peek_*` (no compatibility aliases).
   - `interval_index` now blocks `peek_front` / `peek_back` / `peek_at` and `pop_front` / `pop_back` / `pop_at`.
+  - Ordered-subclass blocker errors are now class-generic for inherited APIs (`c`, `push_front`, `push_back`, `insert_at`, replacement indexing), so subclasses report their concrete class name in errors.
 
 ## `fapply` Cross-Structure Snapshot
 
@@ -41,8 +42,8 @@ Scope: user-facing API surface and semantics, based on current source/tests.
 | No-match read behavior | `peek_key()` errors | `peek_*(which='first')` returns `NULL`; `peek_*(which='all')` returns empty `interval_index` | Intentional | Interval peeks mirror ordered first/all shape with immutable slice returns for `all`. |
 | `[` subsetting | strict increasing indices only; no reorder/dupes | same | Aligned | Same invariant enforcement. |
 | Replacement indexing (`[<-`, `[[<-`, `$<-`) | blocked | blocked | Aligned | Order-breaking writes blocked for both. |
-| `c()` | blocked | blocked (via ordered inheritance) | Aligned | Error text currently mentions `ordered_sequence`. |
-| `push_front`/`push_back`/`insert_at` | blocked | blocked (via ordered inheritance) | Aligned | Same guardrail; interval message text may mention ordered type. |
+| `c()` | blocked | blocked (via ordered inheritance) | Aligned | Error text now reports the concrete ordered-subclass class name. |
+| `push_front`/`push_back`/`insert_at` | blocked | blocked (via ordered inheritance) | Aligned | Same guardrail; inherited blocker text now reports concrete subclass names. |
 | `[[` return shape | returns payload `item` | returns payload `item` | Aligned | `ordered_sequence` now has explicit payload-returning `[[` method. |
 | `$` return shape | returns payload `item` by name | returns payload `item` by name | Aligned | `ordered_sequence` now has explicit payload-returning `$` method. |
 | `peek_front` / `peek_back` / `peek_at` availability | supported | blocked | Intentional | Interval index is interval-query-first; use `peek_*`/`pop_*` helpers. |

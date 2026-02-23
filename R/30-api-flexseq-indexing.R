@@ -957,7 +957,7 @@
 #' @return No return value; always errors because replacement indexing is unsupported.
 #' @export
 `[<-.ordered_sequence` <- function(x, i, value) {
-  stop("`[<-` is not supported for ordered_sequence.")
+  .ft_stop_ordered_like(x, "[<-", "Replacement indexing is not supported.")
 }
 
 #' @rdname sub-.ordered_sequence
@@ -966,7 +966,7 @@
 #' @return No return value; always errors because replacement indexing is unsupported.
 #' @export
 `[[<-.ordered_sequence` <- function(x, i, value) {
-  stop("`[[<-` is not supported for ordered_sequence.")
+  .ft_stop_ordered_like(x, "[[<-", "Replacement indexing is not supported.")
 }
 
 #' @rdname sub-.priority_queue

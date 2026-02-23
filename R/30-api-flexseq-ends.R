@@ -69,7 +69,7 @@
 # Runtime: O(log n) tree update, with O(1) local name-state checks.
 push_back <- function(x, value) {
   if(inherits(x, "ordered_sequence")) {
-    stop("`push_back()` is not supported for ordered_sequence. Use `insert()`.")
+    .ft_stop_ordered_like(x, "push_back", "Use `insert()`.")
   }
   if(inherits(x, "priority_queue")) {
     stop("`push_back()` is not supported for priority_queue. Cast first with `as_flexseq()`.")
@@ -96,7 +96,7 @@ push_back <- function(x, value) {
 # Runtime: O(log n) tree update, with O(1) local name-state checks.
 push_front <- function(x, value) {
   if(inherits(x, "ordered_sequence")) {
-    stop("`push_front()` is not supported for ordered_sequence. Use `insert()`.")
+    .ft_stop_ordered_like(x, "push_front", "Use `insert()`.")
   }
   if(inherits(x, "priority_queue")) {
     stop("`push_front()` is not supported for priority_queue. Cast first with `as_flexseq()`.")
@@ -209,7 +209,10 @@ push_front <- function(x, value) {
     stop("`values` cannot be a priority_queue. Cast first with `as_flexseq()`.")
   }
   if(inherits(values, "ordered_sequence")) {
-    stop("`values` cannot be an ordered_sequence. Cast first with `as_flexseq()`.")
+    stop(sprintf(
+      "`values` cannot be an ordered sequence subclass (%s). Cast first with `as_flexseq()`.",
+      .ft_ordered_owner_class(values)
+    ))
   }
   if(inherits(values, "flexseq")) {
     return(as.list(values))
@@ -441,7 +444,7 @@ pop_at <- function(x, index) {
 # Runtime: O(k log k) to build inserted payload + O(log n) split + concat work.
 insert_at <- function(x, index, values) {
   if(inherits(x, "ordered_sequence")) {
-    stop("`insert_at()` is not supported for ordered_sequence. Use `insert()`.")
+    .ft_stop_ordered_like(x, "insert_at", "Use `insert()`.")
   }
   if(inherits(x, "priority_queue")) {
     stop("`insert_at()` is not supported for priority_queue. Cast first with `as_flexseq()`.")

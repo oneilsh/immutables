@@ -78,7 +78,7 @@
 #' @export
 #' @noRd
 `$<-.ordered_sequence` <- function(x, name, value) {
-  stop("`$<-` is not supported for ordered_sequence.")
+  .ft_stop_ordered_like(x, "$<-", "Replacement indexing is not supported.")
 }
 
 #' @export

@@ -1,6 +1,7 @@
 # Coerce to a Persistent Flexible Sequence
 
-Coerce to a Persistent Flexible Sequence
+For \`priority_queue\` inputs, this explicitly drops queue behavior and
+returns a plain \`flexseq\` so full sequence operations are available.
 
 ## Usage
 
@@ -21,6 +22,12 @@ as_flexseq(x, monoids = NULL)
 ## Value
 
 A \`flexseq\` object.
+
+## Details
+
+For \`ordered_sequence\` and \`interval_index\` inputs, this explicitly
+drops ordered/interval behavior and returns a plain \`flexseq\` of
+stored entries.
 
 ## Examples
 
@@ -59,5 +66,27 @@ x2
 #> 
 #> $three
 #> [1] 3
+#> 
+
+q <- priority_queue("a", "b", priorities = c(2, 1))
+as_flexseq(q)
+#> FingerTree <size=2, named=no>
+#>   monoids: none
+#> 
+#> [[1]]
+#> [[1]]$item
+#> [1] "a"
+#> 
+#> [[1]]$priority
+#> [1] 2
+#> 
+#> 
+#> [[2]]
+#> [[2]]$item
+#> [1] "b"
+#> 
+#> [[2]]$priority
+#> [1] 1
+#> 
 #> 
 ```

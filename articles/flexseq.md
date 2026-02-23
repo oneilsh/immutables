@@ -62,10 +62,10 @@ x3
 #> [1] "e"
 ```
 
-## Appending and prepending
+## Pushing at either end
 
 ``` r
-x4 <- append(x2, "f")
+x4 <- push_back(x2, "f")
 x4
 #> FingerTree <size=6, named=no>
 #>   monoids: none
@@ -88,7 +88,7 @@ x4
 #> [[6]]
 #> [1] "f"
 
-x5 <- prepend(x4, "start")
+x5 <- push_front(x4, "start")
 x5
 #> FingerTree <size=7, named=no>
 #>   monoids: none
@@ -112,6 +112,40 @@ x5
 #> [1] "e"
 #> 
 #> ... and 1 more element not shown
+```
+
+## Peeking and popping
+
+``` r
+peek_front(x5)
+#> [1] "start"
+peek_back(x5)
+#> [1] "f"
+
+pf <- pop_front(x5)
+pf$element
+#> [1] "start"
+pf$remaining
+#> FingerTree <size=6, named=no>
+#>   monoids: none
+#> 
+#> [[1]]
+#> [1] "a"
+#> 
+#> [[2]]
+#> [1] "b"
+#> 
+#> [[3]]
+#> [1] "c"
+#> 
+#> [[4]]
+#> [1] "d"
+#> 
+#> [[5]]
+#> [1] "e"
+#> 
+#> [[6]]
+#> [1] "f"
 ```
 
 ## Named sequences
@@ -165,12 +199,26 @@ x7
 #> [1] 6
 ```
 
-## Folding
+## Applying a transform
 
 ``` r
-sum_m <- measure_monoid(`+`, 0, as.numeric)
-
-x8 <- as_flexseq(1:10)
-fold_left(x8, sum_m)
-#> [1] 55
+x8 <- as_flexseq(1:5)
+fapply(x8, function(el) el * 10)
+#> FingerTree <size=5, named=no>
+#>   monoids: none
+#> 
+#> [[1]]
+#> [1] 10
+#> 
+#> [[2]]
+#> [1] 20
+#> 
+#> [[3]]
+#> [1] 30
+#> 
+#> [[4]]
+#> [1] 40
+#> 
+#> [[5]]
+#> [1] 50
 ```

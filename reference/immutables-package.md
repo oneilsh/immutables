@@ -6,8 +6,8 @@ from either end, item removal, and more.
 
 ## Details
 
-Also implemented are priority queues (\`priority_queue()\`) supporting
-all of the above in addition to min and max peeking and popping by
+Also implemented are priority queues (\`priority_queue()\`) focused on
+queue-oriented operations, including min and max peeking and popping by
 priority value.
 
 Backed by monoid-annotated 2-3 fingertrees, all structures are

@@ -71,7 +71,8 @@
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">sum_m</span> <span class="op">&lt;-</span> <span class="fu">measure_monoid</span><span class="op">(</span><span class="va">`+`</span>, <span class="fl">0</span>, <span class="va">as.numeric</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="as_flexseq.html">as_flexseq</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="fold_left.html">fold_left</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">sum_m</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">x2</span> <span class="op">&lt;-</span> <span class="fu"><a href="add_monoids.html">add_monoids</a></span><span class="op">(</span><span class="va">x</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sum <span class="op">=</span> <span class="va">sum_m</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">x2</span>, <span class="st">"measures"</span><span class="op">)</span><span class="op">$</span><span class="va">sum</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 15</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># create a second monoid and add it to a sequence</span></span></span>

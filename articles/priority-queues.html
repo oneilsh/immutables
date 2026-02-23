@@ -71,7 +71,7 @@
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/priority_queue.html">priority_queue</a></span><span class="op">(</span><span class="st">"task_a"</span>, <span class="st">"task_b"</span>, <span class="st">"task_c"</span>, priorities <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">x</span></span>
-<span><span class="co">#&gt; &lt;priority_queue&gt; size=3 next_seq=4</span></span>
+<span><span class="co">#&gt; &lt;priority_queue&gt; size=3</span></span>
 <span><span class="co">#&gt; min_priority=1 max_priority=3</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -84,18 +84,18 @@
 <span><span class="co">#&gt; [1] "task_a"</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="extracting-elements">Extracting elements<a class="anchor" aria-label="anchor" href="#extracting-elements"></a>
+<h2 id="popping-elements">Popping elements<a class="anchor" aria-label="anchor" href="#popping-elements"></a>
 </h2>
-<p><code><a href="../reference/extract_min.html">extract_min()</a></code> and <code><a href="../reference/extract_max.html">extract_max()</a></code> return both
-the element and the updated queue.</p>
+<p><code><a href="../reference/pop_min.html">pop_min()</a></code> and <code><a href="../reference/pop_max.html">pop_max()</a></code> return both the
+element and the updated queue.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">x2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/extract_min.html">extract_min</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">x2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pop_min.html">pop_min</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
 <span><span class="va">x2</span><span class="op">$</span><span class="va">element</span></span>
 <span><span class="co">#&gt; [1] "task_b"</span></span>
 <span><span class="va">x2</span><span class="op">$</span><span class="va">priority</span></span>
 <span><span class="co">#&gt; [1] 1</span></span>
-<span><span class="va">x2</span><span class="op">$</span><span class="va">queue</span></span>
-<span><span class="co">#&gt; &lt;priority_queue&gt; size=2 next_seq=4</span></span>
+<span><span class="va">x2</span><span class="op">$</span><span class="va">remaining</span></span>
+<span><span class="co">#&gt; &lt;priority_queue&gt; size=2</span></span>
 <span><span class="co">#&gt; min_priority=2 max_priority=3</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -104,7 +104,7 @@ the element and the updated queue.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">x3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/insert.html">insert</a></span><span class="op">(</span><span class="va">x</span>, <span class="st">"task_d"</span>, priority <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
 <span><span class="va">x3</span></span>
-<span><span class="co">#&gt; &lt;priority_queue&gt; size=4 next_seq=5</span></span>
+<span><span class="co">#&gt; &lt;priority_queue&gt; size=4</span></span>
 <span><span class="co">#&gt; min_priority=0 max_priority=3</span></span>
 <span><span class="fu"><a href="../reference/peek_min.html">peek_min</a></span><span class="op">(</span><span class="va">x3</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "task_d"</span></span></code></pre></div>
@@ -116,8 +116,8 @@ the element and the updated queue.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/peek_min.html">peek_min</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "task_b"</span></span>
-<span><span class="fu"><a href="../reference/is_empty.html">is_empty</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] FALSE</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 3</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

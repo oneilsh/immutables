@@ -1,12 +1,28 @@
-# Subset a flexseq by position or element name
+# Flexseq Indexing
 
-Subset a flexseq by position or element name
+Index, replace, and extract elements of a \`flexseq\` by position or
+name.
 
 ## Usage
 
 ``` r
 # S3 method for class 'flexseq'
+x$name
+
+# S3 method for class 'flexseq'
+x$name <- value
+
+# S3 method for class 'flexseq'
 x[i, ...]
+
+# S3 method for class 'flexseq'
+x[[i, ...]]
+
+# S3 method for class 'flexseq'
+x[i] <- value
+
+# S3 method for class 'flexseq'
+x[[i]] <- value
 ```
 
 ## Arguments
@@ -15,9 +31,18 @@ x[i, ...]
 
   A \`flexseq\`.
 
+- name:
+
+  Element name (for \`\$\` and \`\$\<-\`).
+
+- value:
+
+  Replacement values; recycled to selected index length.
+
 - i:
 
   Positive integer indices, character element names, or logical mask.
+  For \`\[\[\`, a single integer or character name.
 
 - ...:
 
@@ -25,12 +50,33 @@ x[i, ...]
 
 ## Value
 
-A new \`flexseq\` containing selected elements in query order. For
-character indexing, missing names are represented as \`NULL\` elements.
+For \`\$\`: the matched element.
+
+For \`\$\<-\`: updated tree with one named element replaced.
+
+For \`\[\`: a new \`flexseq\` containing selected elements in query
+order. For character indexing, missing names are represented as \`NULL\`
+elements.
+
+For \`\[\[\`: the extracted element (internal name metadata is removed).
+
+For \`\[\<-\`: a new \`flexseq\` with selected elements replaced.
+
+For \`\[\[\<-\`: a new \`flexseq\` with one element replaced.
 
 ## Examples
 
 ``` r
+# $ extracts by name
+x <- as_flexseq(setNames(as.list(1:3), c("a", "b", "c")))
+x$b
+#> [1] 2
+
+# $<- replaces by name
+x <- as_flexseq(setNames(as.list(1:3), c("a", "b", "c")))
+x$b <- 20
+x$b
+#> [1] 20
 x <- as_flexseq(letters[1:6])
 x
 #> FingerTree <size=6, named=no>
@@ -100,5 +146,164 @@ x[c(TRUE, FALSE)]
 #> 
 #> [[3]]
 #> [1] "e"
+#> 
+
+# [[ extracts one element
+x <- as_flexseq(letters[1:5])
+x[[3]]
+#> [1] "c"
+
+x2 <- as_flexseq(setNames(as.list(letters[1:3]), c("a1", "a2", "a3")))
+x2[["a2"]]
+#> [1] "b"
+
+# [<- replaces selected elements
+x <- as_flexseq(1:6)
+x
+#> FingerTree <size=6, named=no>
+#>   monoids: none
+#> 
+#> [[1]]
+#> [1] 1
+#> 
+#> [[2]]
+#> [1] 2
+#> 
+#> [[3]]
+#> [1] 3
+#> 
+#> [[4]]
+#> [1] 4
+#> 
+#> [[5]]
+#> [1] 5
+#> 
+#> [[6]]
+#> [1] 6
+#> 
+
+x2 <- x
+x2[c(2, 5)] <- list(20, 50)
+x2
+#> FingerTree <size=6, named=no>
+#>   monoids: none
+#> 
+#> [[1]]
+#> [1] 1
+#> 
+#> [[2]]
+#> [1] 20
+#> 
+#> [[3]]
+#> [1] 3
+#> 
+#> [[4]]
+#> [1] 4
+#> 
+#> [[5]]
+#> [1] 50
+#> 
+#> [[6]]
+#> [1] 6
+#> 
+
+# character replacement uses element names
+x3 <- as_flexseq(setNames(as.list(1:4), c("a", "b", "c", "d")))
+x3[c("d", "a")] <- list(40, 10)
+x3
+#> FingerTree <size=4, named=yes>
+#>   monoids: none
+#> 
+#> $a
+#> [1] 10
+#> 
+#> $b
+#> [1] 2
+#> 
+#> $c
+#> [1] 3
+#> 
+#> $d
+#> [1] 40
+#> 
+
+# logical replacement supports recycling
+x4 <- x
+x4[c(TRUE, FALSE, TRUE, FALSE, TRUE, FALSE)] <- list(1)
+x4
+#> FingerTree <size=6, named=no>
+#>   monoids: none
+#> 
+#> [[1]]
+#> [1] 1
+#> 
+#> [[2]]
+#> [1] 2
+#> 
+#> [[3]]
+#> [1] 1
+#> 
+#> [[4]]
+#> [1] 4
+#> 
+#> [[5]]
+#> [1] 1
+#> 
+#> [[6]]
+#> [1] 6
+#> 
+
+# [[<- replaces one element
+x <- as_flexseq(letters[1:4])
+x2 <- x
+x2[[2]] <- "ZZ"
+x2
+#> FingerTree <size=4, named=no>
+#>   monoids: none
+#> 
+#> [[1]]
+#> [1] "a"
+#> 
+#> [[2]]
+#> [1] "ZZ"
+#> 
+#> [[3]]
+#> [1] "c"
+#> 
+#> [[4]]
+#> [1] "d"
+#> 
+
+x3 <- as_flexseq(setNames(as.list(1:3), c("x", "y", "z")))
+x3[["y"]] <- 99
+x3
+#> FingerTree <size=3, named=yes>
+#>   monoids: none
+#> 
+#> $x
+#> [1] 1
+#> 
+#> $y
+#> [1] 99
+#> 
+#> $z
+#> [1] 3
+#> 
+
+# assigning NULL removes one element
+x4 <- as_flexseq(letters[1:4])
+x4[[2]] <- NULL
+x4
+#> FingerTree <size=3, named=no>
+#>   monoids: none
+#> 
+#> [[1]]
+#> [1] "a"
+#> 
+#> [[2]]
+#> [1] "c"
+#> 
+#> [[3]]
+#> [1] "d"
 #> 
 ```

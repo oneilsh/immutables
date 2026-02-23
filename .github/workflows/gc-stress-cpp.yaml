@@ -1,0 +1,39 @@
+name: gc-stress-cpp
+
+on:
+  pull_request:
+    branches: [main, master]
+    paths:
+      - "src/**"
+  push:
+    branches: [main, master]
+    paths:
+      - "src/**"
+  workflow_dispatch:
+
+concurrency:
+  group: gc-stress-cpp-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gc-stress-cpp:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    container: rocker/r2u:latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends pandoc
+
+      - name: Install R dependencies
+        run: |
+          Rscript -e 'install.packages(c("Rcpp","lambda.r","knitr","rmarkdown","testthat","devtools"), repos = "https://cloud.r-project.org")'
+
+      - name: Run GC stress tests
+        env:
+          IMMUTABLES_GC_STRESS: "1"
+        run: |
+          Rscript -e 'devtools::test(test_file = "test-cpp-gc-safety.R")'

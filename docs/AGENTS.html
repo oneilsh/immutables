@@ -59,7 +59,7 @@
 <li>
 <code>priority_queue</code> intentionally blocks most sequence-style mutation/traversal; cast with <code><a href="reference/as_flexseq.html">as_flexseq()</a></code> for those.</li>
 <li>Ordered types block order-breaking writes and block <code><a href="https://rdrr.io/r/base/c.html" class="external-link">c()</a></code>.</li>
-<li>Ordered merge was removed (for now); do not assume <code>merge.ordered_sequence</code>.</li>
+<li>Ordered merge is removed end-to-end for now (public API and internal merge primitive); do not assume <code>merge.ordered_sequence</code>.</li>
 <li>
 <code>fapply</code> is the package’s S3 generic for applying functions over immutable structures (not <code>lapply</code>, to avoid masking base).</li>
 </ul></li>
@@ -217,6 +217,14 @@
 <code>eb493fd</code>: benchmark coverage now includes additional non-flexseq structure scenarios (<code>ordered_sequence_bounds</code>, <code>pq_insert_pop</code>) and both are in quick/full profiles with R-safe parameter sizes. Risk: scenario names/default params changed; compare historical runs by scenario+params, not just run label.</li>
 <li>
 <code>eb493fd</code>: added deeper ordered-sequence and priority-queue benchmark scenarios (<code>ordered_sequence_range_queries</code>, <code>ordered_sequence_pop_cycle</code>, <code>pq_peek_min_max</code>, <code>pq_pop_min_drain</code>, <code>pq_mixed_ops</code>) to improve optimization signal across lookup vs mutation-heavy paths. Risk: broader quick/full profiles increase total run time; use <code>run_scenarios()</code> for focused profiling.</li>
+<li>
+<code>f300088</code>: interval_index query surface now uses <code>peek_point</code>/<code>peek_overlaps</code>/<code>peek_containing</code>/<code>peek_within</code> plus <code>pop_point</code>/relation <code>pop_*</code>; removed <code>find_*</code> interval query helpers from exports/docs/tests. Risk: callers using removed <code>find_*</code> APIs must migrate to <code>peek_*</code>/<code>pop_*</code>.</li>
+<li>
+<code>f300088</code>: ordered-subclass blocker errors now report concrete subclass names for inherited mutation endpoints (<code>c</code>, <code>push_front</code>, <code>push_back</code>, <code>insert_at</code>, <code>[&lt;-</code>, <code>[[&lt;-</code>, <code>$&lt;-</code>) rather than hardcoded <code>ordered_sequence</code>. Risk: callers/tests matching exact prior error strings may need updates.</li>
+<li>
+<code>53437c6+local</code>: removed legacy internal ordered merge path (<code>.ft_cpp_oms_set_merge</code>) from R wrapper, C registration, C++ implementation, and parity/GC test references so “no ordered merge” remains true across all layers. Risk: any developer-only code invoking the removed internal symbol now errors and must wait for the planned clean reimplementation.</li>
+<li>
+<code>53437c6+local</code>: tightened test signal quality (<code>validate_*</code> now asserts invisible <code>TRUE</code>, redundant <code>test-seq-apply</code> monoid case folded into one stronger persistence assertion, and element tests now assert value-level identity for list/data.frame payloads). Risk: stricter tests may fail immediately when semantics intentionally change and require explicit test updates.</li>
 <li>C++ GC safety in <code>src/ft_cpp.cpp</code> — recurring “$ operator is invalid for atomic vectors” root cause and fix patterns:
 <ul><li>
 <strong>Root cause</strong>: bare <code>SEXP</code> variables holding newly-allocated R objects (from R function calls or <code>make_*</code> helpers) are invisible to R’s GC, which does not scan the C++ stack. Any subsequent R allocation (including Rcpp <code>Function::operator()</code> building its call via <code>Rf_lang3</code>) can trigger GC and collect these temporaries.</li>

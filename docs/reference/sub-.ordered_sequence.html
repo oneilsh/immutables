@@ -47,6 +47,9 @@
 <span><span class="va">x</span><span class="op">[</span><span class="va">i</span>, <span class="va">...</span><span class="op">]</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'ordered_sequence'</span></span>
+<span><span class="va">x</span><span class="op">[[</span><span class="va">i</span>, <span class="va">...</span><span class="op">]</span><span class="op">]</span></span>
+<span></span>
+<span><span class="co"># S3 method for class 'ordered_sequence'</span></span>
 <span><span class="va">x</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">value</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'ordered_sequence'</span></span>
@@ -76,6 +79,8 @@
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>For `[`, an `ordered_sequence` subset that preserves key order.</p>
+<p>For `[[`, one payload element by scalar integer position or scalar
+  character name.</p>
 <p>No return value; always errors because replacement indexing is unsupported.</p>
 <p>No return value; always errors because replacement indexing is unsupported.</p>
     </div>
@@ -87,8 +92,8 @@
   increasing;
 - duplicates and reordering are rejected.</p>
 <p>For `[[`:
-- ordered sequences use the inherited `[[.flexseq` behavior (scalar integer
-  index or scalar character name).</p>
+- accepts scalar integer position or scalar character name and returns the
+  payload element.</p>
 <p>Replacement indexing (`[&lt;-`, `[[&lt;-`) is intentionally unsupported.</p>
     </div>
     <div class="section level2">

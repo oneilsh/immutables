@@ -1,7 +1,12 @@
 testthat::test_that("validate utilities pass on valid trees", {
   t <- as_flexseq(letters[1:12])
-  testthat::expect_invisible(validate_tree(t))
-  testthat::expect_invisible(validate_name_state(t))
+  tree_check <- withVisible(validate_tree(t))
+  name_check <- withVisible(validate_name_state(t))
+
+  testthat::expect_false(tree_check$visible)
+  testthat::expect_false(name_check$visible)
+  testthat::expect_true(isTRUE(tree_check$value))
+  testthat::expect_true(isTRUE(name_check$value))
 })
 
 testthat::test_that("validate_name_state catches mixed named/unnamed trees", {

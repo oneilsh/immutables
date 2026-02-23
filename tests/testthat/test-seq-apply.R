@@ -30,16 +30,8 @@ testthat::test_that("fapply preserves user monoids for flexseq", {
   testthat::expect_true(!is.null(ms[["sum"]]))
   testthat::expect_identical(node_measure(y, "sum"), 20)
   testthat::expect_identical(as.integer(node_measure(y, ".size")), 4L)
-})
-
-testthat::test_that("fapply recomputes preserved user monoids for flexseq", {
-  sum_m <- measure_monoid(`+`, 0, as.numeric)
-  x <- as_flexseq(1:4, monoids = list(sum = sum_m))
-  y <- fapply(x, function(v) v * 2)
-
-  testthat::expect_true(!is.null(attr(y, "monoids", exact = TRUE)[["sum"]]))
-  testthat::expect_identical(node_measure(y, "sum"), 20)
-  testthat::expect_identical(as.integer(node_measure(y, ".size")), 4L)
+  testthat::expect_false(identical(node_measure(x, "sum"), node_measure(y, "sum")))
+  testthat::expect_identical(node_measure(x, "sum"), 10)
 })
 
 testthat::test_that("fapply validates flexseq inputs", {

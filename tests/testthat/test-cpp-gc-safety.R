@@ -33,7 +33,6 @@
     base_names <- paste0("k", seq_len(8))
 
     x_oms <- as_ordered_sequence(list("aa", "bb", "c", "ddd"), keys = c(2, 2, 1, 3))
-    y_oms <- as_ordered_sequence(list("xx", "z", "qq", "rrrr"), keys = c(2, 1, 2, 4))
     ms_oms <- attr(x_oms, "monoids", exact = TRUE)
     key_type_oms <- attr(x_oms, "oms_key_type", exact = TRUE)
     x_ivx <- as_interval_index(list("a", "b", "c"), start = c(1, 2, 2), end = c(3, 2, 4), bounds = "[]")
@@ -72,7 +71,6 @@
     step("ft_cpp_split_tree", .ft_cpp_split_tree(base_plain, function(v) v >= 4, ms, ".size", 0))
 
     step("ft_cpp_oms_insert", .ft_cpp_oms_insert(x_oms, list(item = "new", key = 2), ms_oms, key_type_oms))
-    step("ft_cpp_oms_set_merge", .ft_cpp_oms_set_merge(x_oms, y_oms, "union", ms_oms, key_type_oms))
 
     step("insert", insert(x_oms, "newer", key = 2))
     step("insert_interval_index", insert(x_ivx, "newer", start = 2, end = 5))
@@ -121,7 +119,6 @@ testthat::test_that("C++ core tree ops survive GC torture", {
 
 testthat::test_that("C++ OMS primitives survive GC torture", {
   .expect_step_ok("ft_cpp_oms_insert")
-  .expect_step_ok("ft_cpp_oms_set_merge")
 })
 
 testthat::test_that("OMS public APIs survive GC torture", {

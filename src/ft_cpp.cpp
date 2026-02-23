@@ -342,34 +342,6 @@ int oms_compare_keys(SEXP a, SEXP b, const std::string& key_type) {
   stop("Unsupported ordered_multiset key type.");
 }
 
-int oms_compare_entry_keys(SEXP ea, SEXP eb, const std::string& key_type) {
-  return oms_compare_keys(oms_entry_key(ea), oms_entry_key(eb), key_type);
-}
-
-int oms_group_end(const std::vector<SEXP>& entries, int start_idx, const std::string& key_type) {
-  const int n = static_cast<int>(entries.size());
-  SEXP key0 = oms_entry_key(entries[start_idx]);
-  int j = start_idx;
-  while(j < n && oms_compare_keys(oms_entry_key(entries[j]), key0, key_type) == 0) {
-    ++j;
-  }
-  return j - 1;
-}
-
-void oms_append_range(
-  const std::vector<SEXP>& src,
-  int start_idx,
-  int end_idx_incl,
-  std::vector<SEXP>& out
-) {
-  if(start_idx > end_idx_incl) {
-    return;
-  }
-  for(int i = start_idx; i <= end_idx_incl; ++i) {
-    out.push_back(src[i]);
-  }
-}
-
 List measures_from_children(const List& children, const List& monoids) {
   CharacterVector nms = monoids.names();
   List out(nms.size());
@@ -721,101 +693,6 @@ SEXP tree_from_sorted_list_cpp(const List& xs, const List& monoids) {
   List middle_nodes = measured_nodes_cpp(middle_elems, monoids);
   Shield<SEXP> middle(tree_from_sorted_list_cpp(middle_nodes, monoids));
   return make_deep(prefix, middle, suffix, monoids);
-}
-
-SEXP oms_set_merge_cpp_impl(
-  SEXP x,
-  SEXP y,
-  const std::string& mode,
-  const List& monoids,
-  const std::string& key_type
-) {
-  std::vector<SEXP> ex;
-  std::vector<SEXP> ey;
-  collect_leaves_impl(x, ex);
-  collect_leaves_impl(y, ey);
-
-  const int nx = static_cast<int>(ex.size());
-  const int ny = static_cast<int>(ey.size());
-  std::vector<SEXP> out;
-  out.reserve(static_cast<size_t>(nx + ny));
-
-  int i = 0;
-  int j = 0;
-
-  while(i < nx || j < ny) {
-    if(i >= nx) {
-      if(mode == "union") {
-        oms_append_range(ey, j, ny - 1, out);
-      }
-      break;
-    }
-
-    if(j >= ny) {
-      if(mode == "union" || mode == "difference") {
-        oms_append_range(ex, i, nx - 1, out);
-      }
-      break;
-    }
-
-    const int cmp = oms_compare_entry_keys(ex[i], ey[j], key_type);
-    if(cmp < 0) {
-      if(mode == "union" || mode == "difference") {
-        const int ie = oms_group_end(ex, i, key_type);
-        oms_append_range(ex, i, ie, out);
-        i = ie + 1;
-      } else {
-        i = oms_group_end(ex, i, key_type) + 1;
-      }
-      continue;
-    }
-
-    if(cmp > 0) {
-      if(mode == "union") {
-        const int je = oms_group_end(ey, j, key_type);
-        oms_append_range(ey, j, je, out);
-        j = je + 1;
-      } else {
-        j = oms_group_end(ey, j, key_type) + 1;
-      }
-      continue;
-    }
-
-    const int ie = oms_group_end(ex, i, key_type);
-    const int je = oms_group_end(ey, j, key_type);
-    const int cx = ie - i + 1;
-    const int cy = je - j + 1;
-
-    if(mode == "intersection") {
-      const int k = std::min(cx, cy);
-      if(k > 0) {
-        oms_append_range(ex, i, i + k - 1, out);
-      }
-    } else if(mode == "difference") {
-      const int k = std::min(cx, cy);
-      if(cx > k) {
-        oms_append_range(ex, i + k, ie, out);
-      }
-    } else {
-      oms_append_range(ex, i, ie, out);
-      if(cy > cx) {
-        oms_append_range(ey, j, j + (cy - cx) - 1, out);
-      }
-    }
-
-    i = ie + 1;
-    j = je + 1;
-  }
-
-  if(out.empty()) {
-    return make_empty(monoids);
-  }
-
-  List out_list(static_cast<R_xlen_t>(out.size()));
-  for(R_xlen_t k = 0; k < static_cast<R_xlen_t>(out.size()); ++k) {
-    out_list[k] = out[static_cast<size_t>(k)];
-  }
-  return tree_from_sorted_list_cpp(out_list, monoids);
 }
 
 SEXP app3_cpp(SEXP xs, const List& ts, SEXP ys, const List& monoids) {
@@ -1485,21 +1362,6 @@ extern "C" SEXP ft_cpp_concat(SEXP x, SEXP y, SEXP monoids_) {
   List monoids(monoids_);
   List ts(0);
   return app3_cpp(x, ts, y, monoids);
-  END_RCPP
-}
-
-extern "C" SEXP ft_cpp_oms_set_merge(SEXP x, SEXP y, SEXP mode_, SEXP monoids_, SEXP key_type_) {
-  BEGIN_RCPP
-  std::string mode = as<std::string>(mode_);
-  if(mode != "union" && mode != "intersection" && mode != "difference") {
-    stop("Unknown ordered_multiset merge mode.");
-  }
-  std::string key_type = as<std::string>(key_type_);
-  if(key_type != "numeric" && key_type != "character" && key_type != "logical") {
-    stop("Unsupported ordered_multiset key type.");
-  }
-  List monoids(monoids_);
-  return oms_set_merge_cpp_impl(x, y, mode, monoids, key_type);
   END_RCPP
 }
 

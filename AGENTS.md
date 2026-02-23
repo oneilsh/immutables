@@ -14,7 +14,7 @@ Treat tests and current source as the source of truth when docs conflict.
   - `push_front/push_back/pop_front/pop_back/peek_front/peek_back` are the preferred flexseq end-ops.
   - `priority_queue` intentionally blocks most sequence-style mutation/traversal; cast with `as_flexseq()` for those.
   - Ordered types block order-breaking writes and block `c()`.
-  - Ordered merge was removed (for now); do not assume `merge.ordered_sequence`.
+  - Ordered merge is removed end-to-end for now (public API and internal merge primitive); do not assume `merge.ordered_sequence`.
   - `fapply` is the package's S3 generic for applying functions over immutable structures (not `lapply`, to avoid masking base).
 
 ## Recent Branch Trajectory (api-align)
@@ -142,6 +142,8 @@ API or underlying implementations change.
 - `eb493fd`: added deeper ordered-sequence and priority-queue benchmark scenarios (`ordered_sequence_range_queries`, `ordered_sequence_pop_cycle`, `pq_peek_min_max`, `pq_pop_min_drain`, `pq_mixed_ops`) to improve optimization signal across lookup vs mutation-heavy paths. Risk: broader quick/full profiles increase total run time; use `run_scenarios()` for focused profiling.
 - `f300088`: interval_index query surface now uses `peek_point`/`peek_overlaps`/`peek_containing`/`peek_within` plus `pop_point`/relation `pop_*`; removed `find_*` interval query helpers from exports/docs/tests. Risk: callers using removed `find_*` APIs must migrate to `peek_*`/`pop_*`.
 - `f300088`: ordered-subclass blocker errors now report concrete subclass names for inherited mutation endpoints (`c`, `push_front`, `push_back`, `insert_at`, `[<-`, `[[<-`, `$<-`) rather than hardcoded `ordered_sequence`. Risk: callers/tests matching exact prior error strings may need updates.
+- `53437c6+local`: removed legacy internal ordered merge path (`.ft_cpp_oms_set_merge`) from R wrapper, C registration, C++ implementation, and parity/GC test references so "no ordered merge" remains true across all layers. Risk: any developer-only code invoking the removed internal symbol now errors and must wait for the planned clean reimplementation.
+- `53437c6+local`: tightened test signal quality (`validate_*` now asserts invisible `TRUE`, redundant `test-seq-apply` monoid case folded into one stronger persistence assertion, and element tests now assert value-level identity for list/data.frame payloads). Risk: stricter tests may fail immediately when semantics intentionally change and require explicit test updates.
 - C++ GC safety in `src/ft_cpp.cpp` — recurring "$ operator is invalid for atomic vectors" root cause and fix patterns:
   - **Root cause**: bare `SEXP` variables holding newly-allocated R objects (from R function calls or `make_*` helpers) are invisible to R's GC, which does not scan the C++ stack. Any subsequent R allocation (including Rcpp `Function::operator()` building its call via `Rf_lang3`) can trigger GC and collect these temporaries.
   - **Pattern 1 — unprotected R function results used as args to another R function call**: e.g. `SEXP m = measure(ch); f(acc.get(), m)`. The `f()` call allocates to build its LANGSXP before executing, collecting `m`. Fix: `Shield<SEXP> m(measure(ch)); f(acc.get(), (SEXP)m)`. Affected: `measures_from_children`, `measure_sequence`, `locate_digit_impl_cpp`, `split_digit_cpp`.

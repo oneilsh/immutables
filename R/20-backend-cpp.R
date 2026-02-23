@@ -56,11 +56,6 @@
   .Call("ft_cpp_concat", x, y, monoids, PACKAGE = "immutables")
 }
 
-# Runtime: O(n + m) key merge + O(n + m) bulk build.
-.ft_cpp_oms_set_merge <- function(x, y, mode, monoids, key_type) {
-  .Call("ft_cpp_oms_set_merge", x, y, mode, monoids, key_type, PACKAGE = "immutables")
-}
-
 # Runtime: O(log n) near insertion point depth.
 .ft_cpp_oms_insert <- function(x, entry, monoids, key_type) {
   .Call("ft_cpp_oms_insert", x, entry, monoids, key_type, PACKAGE = "immutables")

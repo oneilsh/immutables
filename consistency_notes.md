@@ -19,6 +19,8 @@ Scope: user-facing API surface and semantics, based on current source/tests.
   - `interval_index` query API hard-replaced from `find_*` to `peek_*` (no compatibility aliases).
   - `interval_index` now blocks `peek_front` / `peek_back` / `peek_at` and `pop_front` / `pop_back` / `pop_at`.
   - Ordered-subclass blocker errors are now class-generic for inherited APIs (`c`, `push_front`, `push_back`, `insert_at`, replacement indexing), so subclasses report their concrete class name in errors.
+  - Removed legacy internal ordered merge primitive (`.ft_cpp_oms_set_merge`) from backend R/C++ bindings and from parity/GC test coverage; ordered merge remains intentionally unavailable until redesign.
+  - Test consistency tightened: `validate_*` assertions now require invisible `TRUE`, redundant `fapply.flexseq` monoid-recompute case was collapsed, and mixed payload tests now assert value-level identity (not just types).
 
 ## `fapply` Cross-Structure Snapshot
 
@@ -62,3 +64,4 @@ Scope: user-facing API surface and semantics, based on current source/tests.
 1. `priority_queue` remains strict name-only for `[[` reads (no positional `[[`).
 2. `interval_index` uses interval-first query/pop APIs; sequence front/back/at endpoints remain blocked.
 3. `interval_index` point queries use `peek_point`/`pop_point` with `which = "first"|"all"` semantics.
+4. Ordered merge remains unavailable and there is currently no retained internal merge primitive.

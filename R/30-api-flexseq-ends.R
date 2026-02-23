@@ -254,6 +254,9 @@ push_front <- function(x, value) {
 #' @export
 # Runtime: O(log n) lookup by scalar index.
 peek_front <- function(x) {
+  if(inherits(x, "interval_index")) {
+    stop("`peek_front()` is not supported for interval_index. Use interval query helpers (`peek_*`, `pop_*`, and `peek_point()` for point lookup).")
+  }
   if(inherits(x, "priority_queue")) {
     stop("`peek_front()` is not supported for priority_queue. Use `peek_min()`/`peek_max()`, or cast with `as_flexseq()`.")
   }
@@ -273,6 +276,9 @@ peek_front <- function(x) {
 #' @export
 # Runtime: O(log n) lookup by scalar index.
 peek_back <- function(x) {
+  if(inherits(x, "interval_index")) {
+    stop("`peek_back()` is not supported for interval_index. Use interval query helpers (`peek_*`, `pop_*`, and `peek_point()` for point lookup).")
+  }
   if(inherits(x, "priority_queue")) {
     stop("`peek_back()` is not supported for priority_queue. Use `peek_min()`/`peek_max()`, or cast with `as_flexseq()`.")
   }
@@ -294,6 +300,9 @@ peek_back <- function(x) {
 #' @export
 # Runtime: O(log n) lookup by scalar index.
 peek_at <- function(x, index) {
+  if(inherits(x, "interval_index")) {
+    stop("`peek_at()` is not supported for interval_index. Use interval query helpers (`peek_*`, `pop_*`, and `peek_point()` for point lookup).")
+  }
   if(inherits(x, "priority_queue")) {
     stop("`peek_at()` is not supported for priority_queue. Use `peek_min()`/`peek_max()`, or cast with `as_flexseq()`.")
   }
@@ -323,6 +332,9 @@ peek_at <- function(x, index) {
 #' @export
 # Runtime: O(log n) for one read plus one subset.
 pop_front <- function(x) {
+  if(inherits(x, "interval_index")) {
+    stop("`pop_front()` is not supported for interval_index. Use interval query helpers (`peek_*`, `pop_*`, and `peek_point()` for point lookup).")
+  }
   if(inherits(x, "priority_queue")) {
     stop("`pop_front()` is not supported for priority_queue. Use `pop_min()`/`pop_max()`, or cast with `as_flexseq()`.")
   }
@@ -352,6 +364,9 @@ pop_front <- function(x) {
 #' @export
 # Runtime: O(log n) for one read plus one subset.
 pop_back <- function(x) {
+  if(inherits(x, "interval_index")) {
+    stop("`pop_back()` is not supported for interval_index. Use interval query helpers (`peek_*`, `pop_*`, and `peek_point()` for point lookup).")
+  }
   if(inherits(x, "priority_queue")) {
     stop("`pop_back()` is not supported for priority_queue. Use `pop_min()`/`pop_max()`, or cast with `as_flexseq()`.")
   }
@@ -382,6 +397,9 @@ pop_back <- function(x) {
 #' @export
 # Runtime: O(log n) for one read plus O(k log n) index subset to rebuild.
 pop_at <- function(x, index) {
+  if(inherits(x, "interval_index")) {
+    stop("`pop_at()` is not supported for interval_index. Use interval query helpers (`peek_*`, `pop_*`, and `peek_point()` for point lookup).")
+  }
   if(inherits(x, "priority_queue")) {
     stop("`pop_at()` is not supported for priority_queue. Use `pop_min()`/`pop_max()`, or cast with `as_flexseq()`.")
   }

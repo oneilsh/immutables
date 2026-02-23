@@ -92,10 +92,10 @@
     ordered_sequence_range_queries = list(required = c("as_ordered_sequence", "count_between", "elements_between")),
     ordered_sequence_pop_cycle = list(required = c("as_ordered_sequence", "pop_key", "insert")),
     interval_index_insert = list(required = c("as_interval_index", "insert")),
-    interval_index_queries = list(required = c("as_interval_index", "find_point", "find_overlaps", "find_containing", "find_within")),
+    interval_index_queries = list(required = c("as_interval_index", "peek_point", "peek_overlaps", "peek_containing", "peek_within")),
     interval_index_pop_cycle = list(required = c("as_interval_index", "pop_overlaps", "insert")),
     interval_index_fapply = list(required = c("as_interval_index", "fapply")),
-    interval_index_bounds_override = list(required = c("as_interval_index", "find_point", "find_overlaps", "pop_overlaps")),
+    interval_index_bounds_override = list(required = c("as_interval_index", "peek_point", "peek_overlaps", "pop_overlaps")),
     pq_peek_min_max = list(required = c("priority_queue", "insert", "peek_min", "peek_max")),
     pq_pop_min_drain = list(required = c("priority_queue", "insert", "pop_min")),
     pq_mixed_ops = list(required = c("priority_queue", "insert", "pop_min", "peek_min")),
@@ -244,10 +244,10 @@
   }
   if(identical(scenario, "interval_index_queries")) {
     x <- as_interval_index(list("a", "b", "c"), start = c(1, 2, 3), end = c(2, 4, 5))
-    p <- find_point(x, 2)
-    o <- find_overlaps(x, 2, 3)
-    c <- find_containing(x, 2, 3)
-    w <- find_within(x, 2, 3)
+    p <- peek_point(x, 2, which = "all")
+    o <- peek_overlaps(x, 2, 3, which = "all")
+    c <- peek_containing(x, 2, 3, which = "all")
+    w <- peek_within(x, 2, 3, which = "all")
     if(!inherits(p, "interval_index") || !inherits(o, "interval_index") || !inherits(c, "interval_index") || !inherits(w, "interval_index")) {
       stop("Scenario contract failed: interval query helper output shape changed.")
     }
@@ -279,8 +279,8 @@
   }
   if(identical(scenario, "interval_index_bounds_override")) {
     x <- as_interval_index(list("a", "b", "c"), start = c(1, 2, 3), end = c(2, 4, 5), bounds = "[)")
-    p <- find_point(x, 2, bounds = "[]")
-    o <- find_overlaps(x, 2, 3, bounds = "()")
+    p <- peek_point(x, 2, which = "all", bounds = "[]")
+    o <- peek_overlaps(x, 2, 3, which = "all", bounds = "()")
     r <- pop_overlaps(x, 2, 3, which = "first", bounds = "(]")
     if(!inherits(p, "interval_index") || !inherits(o, "interval_index") || !is.list(r) || !inherits(r$remaining, "interval_index")) {
       stop("Scenario contract failed: interval bounds override paths changed.")
@@ -637,10 +637,10 @@
     a <- q_start[[i]]
     b <- q_end[[i]]
     p <- points[[i]]
-    invisible(find_point(ix, p))
-    invisible(find_overlaps(ix, a, b))
-    invisible(find_containing(ix, a, b))
-    invisible(find_within(ix, a, b))
+    invisible(peek_point(ix, p, which = "all"))
+    invisible(peek_overlaps(ix, a, b, which = "all"))
+    invisible(peek_containing(ix, a, b, which = "all"))
+    invisible(peek_within(ix, a, b, which = "all"))
   }
   invisible(NULL)
 }
@@ -701,8 +701,8 @@
     a <- q_start[[i]]
     z <- q_end[[i]]
     p <- points[[i]]
-    invisible(find_point(ix, p, bounds = b))
-    invisible(find_overlaps(ix, a, z, bounds = b))
+    invisible(peek_point(ix, p, which = "all", bounds = b))
+    invisible(peek_overlaps(ix, a, z, which = "all", bounds = b))
     out <- pop_overlaps(ix, a, z, which = "first", bounds = b)
     if(!is.null(out$element)) {
       ix <- insert(out$remaining, out$element, start = out$start, end = out$end)

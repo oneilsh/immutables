@@ -1,6 +1,6 @@
 # Consistency Notes: `ordered_sequence` vs `interval_index`
 
-Last reviewed: 2026-02-20
+Last reviewed: 2026-02-23
 
 Scope: user-facing API surface and semantics, based on current source/tests.
 
@@ -13,6 +13,11 @@ Scope: user-facing API surface and semantics, based on current source/tests.
   - Added explicit `as_flexseq.ordered_sequence()` and `as_flexseq.interval_index()` methods; subtype casts no longer fall through to failing default dispatch.
   - `ordered_sequence` and `priority_queue` `[[`/`$` reads now return payloads (not entry wrappers).
   - Current cross-structure state: all `fapply` methods now use payload-only returns.
+- 2026-02-23:
+  - `interval_index` relation reads now use `peek_overlaps` / `peek_containing` / `peek_within`; removed relation `find_*` APIs for these operations.
+  - `interval_index` point APIs now use `peek_point` / `pop_point`; removed `find_point`.
+  - `interval_index` query API hard-replaced from `find_*` to `peek_*` (no compatibility aliases).
+  - `interval_index` now blocks `peek_front` / `peek_back` / `peek_at` and `pop_front` / `pop_back` / `pop_at`.
 
 ## `fapply` Cross-Structure Snapshot
 
@@ -31,16 +36,17 @@ Scope: user-facing API surface and semantics, based on current source/tests.
 | Construction keys/endpoints | `keys` (scalar, non-missing) | `start/end` (scalar, non-missing, `start <= end`) | Intentional | Different data model. |
 | Allowed key/endpoint types | numeric/character/logical only | any scalar type with valid `<`/`>` (including `Date`/`POSIXct`) | Intentional (v1) | Interval index has broader endpoint domain. |
 | Per-object boundary model | none (uses include flags per call in range APIs) | object default `bounds` (`[)`, `[]`, `()`, `(]`) + per-call override | Intentional | Interval semantics need explicit boundary token model. |
-| Core read APIs | `lower_bound`, `upper_bound`, `peek_key`, `elements_between`, `count_*` | `find_point`, `find_overlaps`, `find_containing`, `find_within` | Intentional | Interval type blocks ordered-key APIs. |
-| Core pop APIs | `pop_key(which='first'|'all')` | `pop_overlaps` / `pop_containing` / `pop_within` (`which='first'|'all'`) | Intentional | Same immutable pop pattern, relation-specific API. |
-| No-match read behavior | `peek_key()` errors | `find_*()` returns empty `interval_index` | Intentional | Different query families; both deterministic. |
+| Core read APIs | `lower_bound`, `upper_bound`, `peek_key`, `elements_between`, `count_*` | `peek_point`, `peek_overlaps`, `peek_containing`, `peek_within` | Intentional | Interval type blocks ordered-key APIs. |
+| Core pop APIs | `pop_key(which='first'|'all')` | `pop_point` / `pop_overlaps` / `pop_containing` / `pop_within` (`which='first'|'all'`) | Intentional | Same immutable pop pattern, relation-specific API. |
+| No-match read behavior | `peek_key()` errors | `peek_*(which='first')` returns `NULL`; `peek_*(which='all')` returns empty `interval_index` | Intentional | Interval peeks mirror ordered first/all shape with immutable slice returns for `all`. |
 | `[` subsetting | strict increasing indices only; no reorder/dupes | same | Aligned | Same invariant enforcement. |
 | Replacement indexing (`[<-`, `[[<-`, `$<-`) | blocked | blocked | Aligned | Order-breaking writes blocked for both. |
 | `c()` | blocked | blocked (via ordered inheritance) | Aligned | Error text currently mentions `ordered_sequence`. |
 | `push_front`/`push_back`/`insert_at` | blocked | blocked (via ordered inheritance) | Aligned | Same guardrail; interval message text may mention ordered type. |
 | `[[` return shape | returns payload `item` | returns payload `item` | Aligned | `ordered_sequence` now has explicit payload-returning `[[` method. |
 | `$` return shape | returns payload `item` by name | returns payload `item` by name | Aligned | `ordered_sequence` now has explicit payload-returning `$` method. |
-| `peek_front` / `peek_back` / `peek_at` return shape | payload item | payload item | Aligned | But differs from ordered `[[`/`$` currently. |
+| `peek_front` / `peek_back` / `peek_at` availability | supported | blocked | Intentional | Interval index is interval-query-first; use `peek_*`/`pop_*` helpers. |
+| `pop_front` / `pop_back` / `pop_at` availability | supported | blocked | Intentional | Interval index uses relation-based immutable pops (`pop_point`, `pop_overlaps`, `pop_containing`, `pop_within`). |
 | `fapply` contract | `FUN(item, key, name, ...)` returns new payload item; key/name read-only | `FUN(item, start, end, name, ...)` returns new payload item; metadata read-only | Aligned | Aligned on 2026-02-20. |
 | Cast to `as_flexseq()` | dedicated method; drops ordered wrapper and `.oms_max_key` | dedicated method; drops interval wrapper and `.ivx_max_start`/`.oms_max_key` | Aligned | Both casts now return plain `flexseq` over stored entries. |
 | Metadata accessor | no key-only accessor equivalent | `interval_bounds()` returns start/end | Intentional | Interval type has explicit interval metadata accessor. |
@@ -48,4 +54,10 @@ Scope: user-facing API surface and semantics, based on current source/tests.
 
 ## Immediate Alignment Candidates
 
-1. Decide whether `priority_queue` should permit positional `[[` reads like other sequence-like types, or remain strict name-only.
+1. None currently tracked for this pair (`ordered_sequence` vs `interval_index`).
+
+## Decisions Locked
+
+1. `priority_queue` remains strict name-only for `[[` reads (no positional `[[`).
+2. `interval_index` uses interval-first query/pop APIs; sequence front/back/at endpoints remain blocked.
+3. `interval_index` point queries use `peek_point`/`pop_point` with `which = "first"|"all"` semantics.

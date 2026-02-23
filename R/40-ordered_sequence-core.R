@@ -9,7 +9,7 @@
 # Runtime: O(1).
 .oms_stop_interval_index <- function(x, fn_name) {
   if(inherits(x, "interval_index")) {
-    stop(sprintf("`%s()` is not supported for interval_index. Use interval query helpers (`find_*`, `pop_*`).", fn_name))
+    stop(sprintf("`%s()` is not supported for interval_index. Use interval query helpers (`peek_*`, `pop_*`, and `peek_point()`).", fn_name))
   }
   invisible(TRUE)
 }

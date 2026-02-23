@@ -26,5 +26,5 @@ Build an Interval Index from elements and interval bounds
 \examples{
 ix <- as_interval_index(c("a", "b", "c"), start = c(1, 2, 2), end = c(3, 2, 4))
 ix
-as.list(find_point(ix, 2))
+as.list(peek_point(ix, 2, which = "all"))
 }

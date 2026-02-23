@@ -348,16 +348,27 @@ testthat::test_that("backend parity: interval_index insert and queries", {
     )
     y <- insert(x, "d", start = 2, end = 5)
 
+    p0 <- pop_point(y, 2, which = "first")
     p1 <- pop_overlaps(y, 2, 3, which = "first")
     p2 <- pop_within(y, 2, 5, which = "all")
 
     list(
       values = as.list(y),
       bounds = interval_bounds(y),
-      point = as.list(find_point(y, 2)),
-      overlaps = as.list(find_overlaps(y, 2, 3)),
-      containing = as.list(find_containing(y, 2, 3)),
-      within = as.list(find_within(y, 2, 5)),
+      point_first = peek_point(y, 2, which = "first"),
+      point = as.list(peek_point(y, 2, which = "all")),
+      overlaps_first = peek_overlaps(y, 2, 3, which = "first"),
+      overlaps = as.list(peek_overlaps(y, 2, 3, which = "all")),
+      containing_first = peek_containing(y, 2, 3, which = "first"),
+      containing = as.list(peek_containing(y, 2, 3, which = "all")),
+      within_first = peek_within(y, 2, 5, which = "first"),
+      within = as.list(peek_within(y, 2, 5, which = "all")),
+      pop_point_first = list(
+        element = p0$element,
+        start = p0$start,
+        end = p0$end,
+        remaining = as.list(p0$remaining)
+      ),
       pop_first = list(
         element = p1$element,
         start = p1$start,
@@ -385,7 +396,7 @@ testthat::test_that("backend parity: interval_index user monoid recomputation", 
     )
     y <- insert(x, 40, start = 3, end = 4)
     z <- fapply(y, function(item, start, end, name) item + 1)
-    s <- find_overlaps(z, 2, 3, bounds = "[)")
+    s <- peek_overlaps(z, 2, 3, which = "all", bounds = "[)")
     p <- pop_overlaps(z, 2, 3, which = "all", bounds = "[)")
 
     list(

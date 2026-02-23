@@ -76,6 +76,11 @@
 
     step("insert", insert(x_oms, "newer", key = 2))
     step("insert_interval_index", insert(x_ivx, "newer", start = 2, end = 5))
+    step("peek_point_interval_index", peek_point(x_ivx, 2, which = "all"))
+    step("pop_point_interval_index", pop_point(x_ivx, 2, which = "all"))
+    step("peek_overlaps_interval_index", peek_overlaps(x_ivx, 2, 3, which = "all"))
+    step("peek_containing_interval_index", peek_containing(x_ivx, 2, 3, which = "all"))
+    step("peek_within_interval_index", peek_within(x_ivx, 2, 3, which = "all"))
   }, error = function(e) {
     setup_error <<- conditionMessage(e)
   })
@@ -125,4 +130,9 @@ testthat::test_that("OMS public APIs survive GC torture", {
 
 testthat::test_that("interval_index public APIs survive GC torture", {
   .expect_step_ok("insert_interval_index")
+  .expect_step_ok("peek_point_interval_index")
+  .expect_step_ok("pop_point_interval_index")
+  .expect_step_ok("peek_overlaps_interval_index")
+  .expect_step_ok("peek_containing_interval_index")
+  .expect_step_ok("peek_within_interval_index")
 })

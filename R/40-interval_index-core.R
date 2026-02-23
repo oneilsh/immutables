@@ -630,6 +630,26 @@
   x[as.integer(keep)]
 }
 
+# Runtime: O(log n) for `which = "first"`; O(k log n) for `which = "all"`.
+.ivx_peek_positions <- function(x, positions, which = c("first", "all")) {
+  which <- match.arg(which)
+
+  if(length(positions) == 0L) {
+    if(identical(which, "all")) {
+      return(.ivx_empty_like(x))
+    }
+    return(NULL)
+  }
+
+  if(identical(which, "first")) {
+    idx <- as.integer(positions[[1L]])
+    entry <- .ft_get_elem_at(x, idx)
+    return(entry$item)
+  }
+
+  .ivx_slice_positions(x, positions)
+}
+
 # Runtime: O(log n + c) for `which = "first"`; O(n log n) for `which = "all"`.
 .ivx_pop_positions <- function(x, positions, which = c("first", "all")) {
   which <- match.arg(which)
@@ -695,7 +715,7 @@
 #' @examples
 #' ix <- as_interval_index(c("a", "b", "c"), start = c(1, 2, 2), end = c(3, 2, 4))
 #' ix
-#' as.list(find_point(ix, 2))
+#' as.list(peek_point(ix, 2, which = "all"))
 #' @export
 as_interval_index <- function(x, start, end, bounds = "[)", monoids = NULL) {
   .ivx_build_from_items(as.list(x), start = start, end = end, bounds = bounds, monoids = monoids)
@@ -805,159 +825,297 @@ interval_bounds <- function(x) {
 }
 
 # Runtime: O(log n + c + k), where c = candidate count and k = matched count (worst-case O(n)).
-#' Find intervals containing a point
+#' Peek intervals containing a point
 #'
 #' @param x An `interval_index`.
 #' @param point Query point.
+#' @param which One of `"first"` or `"all"`.
 #' @param bounds Optional boundary override. One of `"[)"`, `"[]"`, `"()"`, `"(]"`.
-#' @return An `interval_index` slice of matches.
+#' @return For `which = "first"`, the payload item from the first match (or
+#'   `NULL` on no match). For `which = "all"`, an `interval_index` slice
+#'   of matches.
 #' @export
-find_point <- function(x, point, bounds = NULL) {
+peek_point <- function(x, point, which = c("first", "all"), bounds = NULL) {
   .ivx_assert_index(x)
+  peek_which <- match.arg(which)
   b <- .ivx_resolve_bounds(x, bounds)
   qp <- .ivx_normalize_endpoint(point, "point", endpoint_type = .ivx_endpoint_type_state(x))
   f <- .ivx_bounds_flags(b)
 
   # start > point can never contain point.
-  entries <- .ivx_query_candidate_entries(
+  window <- .ivx_query_candidate_window(
     x,
     upper = qp$value,
     upper_strict = FALSE
   )
+  entries <- window$entries
+  n <- length(entries)
+  if(n == 0L) {
+    return(.ivx_peek_positions(x, integer(0), which = peek_which))
+  }
 
+  if(.ivx_is_fast_endpoint_type(qp$endpoint_type)) {
+    hit <- logical(n)
+    include_start <- isTRUE(f$include_start)
+    include_end <- isTRUE(f$include_end)
+    for(i in seq_len(n)) {
+      e <- entries[[i]]
+      left_ok <- if(include_start) isTRUE(qp$value >= e$start) else isTRUE(qp$value > e$start)
+      right_ok <- if(include_end) isTRUE(qp$value <= e$end) else isTRUE(qp$value < e$end)
+      hit[[i]] <- isTRUE(left_ok && right_ok)
+    }
+  } else {
+    hit <- logical(n)
+    for(i in seq_len(n)) {
+      e <- entries[[i]]
+      hit[[i]] <- .ivx_contains_point(e$start, e$end, qp$value, b, qp$endpoint_type)
+    }
+  }
+
+  pos_local <- base::which(hit)
+  if(length(pos_local) == 0L) {
+    return(.ivx_peek_positions(x, integer(0), which = peek_which))
+  }
+  pos_abs <- as.integer(window$start + pos_local - 1L)
+
+  .ivx_peek_positions(x, pos_abs, which = peek_which)
+}
+
+# Runtime: O(log n + c) for `which = "first"`; O(n log n) for `which = "all"`.
+#' Pop intervals containing a point
+#'
+#' @param x An `interval_index`.
+#' @param point Query point.
+#' @param which One of `"first"` or `"all"`.
+#' @param bounds Optional boundary override. One of `"[)"`, `"[]"`, `"()"`, `"(]"`.
+#' @return For `which = "first"`, a list with `element`, `start`, `end`, `remaining`.
+#'   For `which = "all"`, `element` is an `interval_index` slice and
+#'   `start`/`end` are `NULL`.
+#' @export
+pop_point <- function(x, point, which = c("first", "all"), bounds = NULL) {
+  .ivx_assert_index(x)
+  pop_which <- match.arg(which)
+  b <- .ivx_resolve_bounds(x, bounds)
+  qp <- .ivx_normalize_endpoint(point, "point", endpoint_type = .ivx_endpoint_type_state(x))
+  f <- .ivx_bounds_flags(b)
+
+  window <- .ivx_query_candidate_window(
+    x,
+    upper = qp$value,
+    upper_strict = FALSE
+  )
+  entries <- window$entries
+  n <- length(entries)
+  if(n == 0L) {
+    return(.ivx_pop_positions(x, integer(0), which = pop_which))
+  }
+
+  hit <- logical(n)
   if(.ivx_is_fast_endpoint_type(qp$endpoint_type)) {
     include_start <- isTRUE(f$include_start)
     include_end <- isTRUE(f$include_end)
-    return(.ivx_filter_slice(x, entries, function(e) {
+    for(i in seq_len(n)) {
+      e <- entries[[i]]
       left_ok <- if(include_start) isTRUE(qp$value >= e$start) else isTRUE(qp$value > e$start)
       right_ok <- if(include_end) isTRUE(qp$value <= e$end) else isTRUE(qp$value < e$end)
-      isTRUE(left_ok && right_ok)
-    }))
+      hit[[i]] <- isTRUE(left_ok && right_ok)
+    }
+  } else {
+    for(i in seq_len(n)) {
+      e <- entries[[i]]
+      hit[[i]] <- .ivx_contains_point(e$start, e$end, qp$value, b, qp$endpoint_type)
+    }
   }
 
-  .ivx_filter_slice(x, entries, function(e) {
-    .ivx_contains_point(e$start, e$end, qp$value, b, qp$endpoint_type)
-  })
+  pos_local <- base::which(hit)
+  if(length(pos_local) == 0L) {
+    return(.ivx_pop_positions(x, integer(0), which = pop_which))
+  }
+  pos_abs <- as.integer(window$start + pos_local - 1L)
+
+  .ivx_pop_positions(x, pos_abs, which = pop_which)
 }
 
 # Runtime: O(log n + c + k), where c = candidate count and k = matched count (worst-case O(n)).
-#' Find intervals overlapping a query interval
+#' Peek intervals overlapping a query interval
 #'
 #' @param x An `interval_index`.
 #' @param start Query interval start.
 #' @param end Query interval end.
+#' @param which One of `"first"` or `"all"`.
 #' @param bounds Optional boundary override. One of `"[)"`, `"[]"`, `"()"`, `"(]"`.
-#' @return An `interval_index` slice of matches.
+#' @return For `which = "first"`, the payload item from the first match (or
+#'   `NULL` on no match). For `which = "all"`, an `interval_index` slice
+#'   of matches.
 #' @export
-find_overlaps <- function(x, start, end, bounds = NULL) {
+peek_overlaps <- function(x, start, end, which = c("first", "all"), bounds = NULL) {
   .ivx_assert_index(x)
+  peek_which <- match.arg(which)
   b <- .ivx_resolve_bounds(x, bounds)
   q <- .ivx_normalize_interval(start, end, endpoint_type = .ivx_endpoint_type_state(x))
   f <- .ivx_bounds_flags(b)
   touching_is_overlap <- isTRUE(f$include_start) && isTRUE(f$include_end)
 
-  # For non-touching bounds, start == query_end cannot overlap.
-  entries <- .ivx_query_candidate_entries(
+  window <- .ivx_query_candidate_window(
     x,
     upper = q$end,
     upper_strict = !isTRUE(touching_is_overlap)
   )
-
-  if(.ivx_is_fast_endpoint_type(q$endpoint_type)) {
-    return(.ivx_filter_slice(x, entries, function(e) {
-      a_before_b <- if(touching_is_overlap) isTRUE(e$end < q$start) else isTRUE(e$end <= q$start)
-      b_before_a <- if(touching_is_overlap) isTRUE(q$end < e$start) else isTRUE(q$end <= e$start)
-      !isTRUE(a_before_b || b_before_a)
-    }))
+  entries <- window$entries
+  n <- length(entries)
+  if(n == 0L) {
+    return(.ivx_peek_positions(x, integer(0), which = peek_which))
   }
 
-  .ivx_filter_slice(x, entries, function(e) {
-    .ivx_overlaps_interval(e$start, e$end, q$start, q$end, b, q$endpoint_type)
-  })
+  if(.ivx_is_fast_endpoint_type(q$endpoint_type)) {
+    hit <- logical(n)
+    for(i in seq_len(n)) {
+      e <- entries[[i]]
+      a_before_b <- if(touching_is_overlap) isTRUE(e$end < q$start) else isTRUE(e$end <= q$start)
+      b_before_a <- if(touching_is_overlap) isTRUE(q$end < e$start) else isTRUE(q$end <= e$start)
+      hit[[i]] <- !isTRUE(a_before_b || b_before_a)
+    }
+  } else {
+    hit <- logical(n)
+    for(i in seq_len(n)) {
+      e <- entries[[i]]
+      hit[[i]] <- .ivx_overlaps_interval(e$start, e$end, q$start, q$end, b, q$endpoint_type)
+    }
+  }
+
+  pos_local <- base::which(hit)
+  if(length(pos_local) == 0L) {
+    return(.ivx_peek_positions(x, integer(0), which = peek_which))
+  }
+  pos_abs <- as.integer(window$start + pos_local - 1L)
+
+  .ivx_peek_positions(x, pos_abs, which = peek_which)
 }
 
 # Runtime: O(log n + c + k), where c = candidate count and k = matched count (worst-case O(n)).
-#' Find intervals containing a query interval
+#' Peek intervals containing a query interval
 #'
 #' @param x An `interval_index`.
 #' @param start Query interval start.
 #' @param end Query interval end.
+#' @param which One of `"first"` or `"all"`.
 #' @param bounds Optional boundary override. One of `"[)"`, `"[]"`, `"()"`, `"(]"`.
-#' @return An `interval_index` slice of matches.
+#' @return For `which = "first"`, the payload item from the first match (or
+#'   `NULL` on no match). For `which = "all"`, an `interval_index` slice
+#'   of matches.
 #' @export
-find_containing <- function(x, start, end, bounds = NULL) {
+peek_containing <- function(x, start, end, which = c("first", "all"), bounds = NULL) {
   .ivx_assert_index(x)
+  peek_which <- match.arg(which)
   b <- .ivx_resolve_bounds(x, bounds)
   q <- .ivx_normalize_interval(start, end, endpoint_type = .ivx_endpoint_type_state(x))
   f <- .ivx_bounds_flags(b)
   touching_is_overlap <- isTRUE(f$include_start) && isTRUE(f$include_end)
 
-  # Containing intervals must start at or before query start.
-  entries <- .ivx_query_candidate_entries(
+  window <- .ivx_query_candidate_window(
     x,
     upper = q$start,
     upper_strict = FALSE
   )
-
-  if(.ivx_is_fast_endpoint_type(q$endpoint_type)) {
-    return(.ivx_filter_slice(x, entries, function(e) {
-      contains <- isTRUE(e$start <= q$start) && isTRUE(e$end >= q$end)
-      if(!contains) {
-        return(FALSE)
-      }
-      a_before_b <- if(touching_is_overlap) isTRUE(e$end < q$start) else isTRUE(e$end <= q$start)
-      b_before_a <- if(touching_is_overlap) isTRUE(q$end < e$start) else isTRUE(q$end <= e$start)
-      !isTRUE(a_before_b || b_before_a)
-    }))
+  entries <- window$entries
+  n <- length(entries)
+  if(n == 0L) {
+    return(.ivx_peek_positions(x, integer(0), which = peek_which))
   }
 
-  .ivx_filter_slice(x, entries, function(e) {
-    .ivx_overlaps_interval(e$start, e$end, q$start, q$end, b, q$endpoint_type) &&
-      .ivx_contains_interval(e$start, e$end, q$start, q$end, q$endpoint_type)
-  })
+  if(.ivx_is_fast_endpoint_type(q$endpoint_type)) {
+    hit <- logical(n)
+    for(i in seq_len(n)) {
+      e <- entries[[i]]
+      contains <- isTRUE(e$start <= q$start) && isTRUE(e$end >= q$end)
+      if(!contains) {
+        hit[[i]] <- FALSE
+      } else {
+        a_before_b <- if(touching_is_overlap) isTRUE(e$end < q$start) else isTRUE(e$end <= q$start)
+        b_before_a <- if(touching_is_overlap) isTRUE(q$end < e$start) else isTRUE(q$end <= e$start)
+        hit[[i]] <- !isTRUE(a_before_b || b_before_a)
+      }
+    }
+  } else {
+    hit <- logical(n)
+    for(i in seq_len(n)) {
+      e <- entries[[i]]
+      hit[[i]] <- .ivx_overlaps_interval(e$start, e$end, q$start, q$end, b, q$endpoint_type) &&
+        .ivx_contains_interval(e$start, e$end, q$start, q$end, q$endpoint_type)
+    }
+  }
+
+  pos_local <- base::which(hit)
+  if(length(pos_local) == 0L) {
+    return(.ivx_peek_positions(x, integer(0), which = peek_which))
+  }
+  pos_abs <- as.integer(window$start + pos_local - 1L)
+
+  .ivx_peek_positions(x, pos_abs, which = peek_which)
 }
 
 # Runtime: O(log n + c + k), where c = candidate count and k = matched count (worst-case O(n)).
-#' Find intervals within a query interval
+#' Peek intervals within a query interval
 #'
 #' @param x An `interval_index`.
 #' @param start Query interval start.
 #' @param end Query interval end.
+#' @param which One of `"first"` or `"all"`.
 #' @param bounds Optional boundary override. One of `"[)"`, `"[]"`, `"()"`, `"(]"`.
-#' @return An `interval_index` slice of matches.
+#' @return For `which = "first"`, the payload item from the first match (or
+#'   `NULL` on no match). For `which = "all"`, an `interval_index` slice
+#'   of matches.
 #' @export
-find_within <- function(x, start, end, bounds = NULL) {
+peek_within <- function(x, start, end, which = c("first", "all"), bounds = NULL) {
   .ivx_assert_index(x)
+  peek_which <- match.arg(which)
   b <- .ivx_resolve_bounds(x, bounds)
   q <- .ivx_normalize_interval(start, end, endpoint_type = .ivx_endpoint_type_state(x))
   f <- .ivx_bounds_flags(b)
   touching_is_overlap <- isTRUE(f$include_start) && isTRUE(f$include_end)
 
-  # Within intervals must start inside query start-range.
-  entries <- .ivx_query_candidate_entries(
+  window <- .ivx_query_candidate_window(
     x,
     lower = q$start,
     lower_strict = FALSE,
     upper = q$end,
     upper_strict = !isTRUE(touching_is_overlap)
   )
-
-  if(.ivx_is_fast_endpoint_type(q$endpoint_type)) {
-    return(.ivx_filter_slice(x, entries, function(e) {
-      within <- isTRUE(q$start <= e$start) && isTRUE(q$end >= e$end)
-      if(!within) {
-        return(FALSE)
-      }
-      a_before_b <- if(touching_is_overlap) isTRUE(e$end < q$start) else isTRUE(e$end <= q$start)
-      b_before_a <- if(touching_is_overlap) isTRUE(q$end < e$start) else isTRUE(q$end <= e$start)
-      !isTRUE(a_before_b || b_before_a)
-    }))
+  entries <- window$entries
+  n <- length(entries)
+  if(n == 0L) {
+    return(.ivx_peek_positions(x, integer(0), which = peek_which))
   }
 
-  .ivx_filter_slice(x, entries, function(e) {
-    .ivx_overlaps_interval(e$start, e$end, q$start, q$end, b, q$endpoint_type) &&
-      .ivx_contains_interval(q$start, q$end, e$start, e$end, q$endpoint_type)
-  })
+  if(.ivx_is_fast_endpoint_type(q$endpoint_type)) {
+    hit <- logical(n)
+    for(i in seq_len(n)) {
+      e <- entries[[i]]
+      within <- isTRUE(q$start <= e$start) && isTRUE(q$end >= e$end)
+      if(!within) {
+        hit[[i]] <- FALSE
+      } else {
+        a_before_b <- if(touching_is_overlap) isTRUE(e$end < q$start) else isTRUE(e$end <= q$start)
+        b_before_a <- if(touching_is_overlap) isTRUE(q$end < e$start) else isTRUE(q$end <= e$start)
+        hit[[i]] <- !isTRUE(a_before_b || b_before_a)
+      }
+    }
+  } else {
+    hit <- logical(n)
+    for(i in seq_len(n)) {
+      e <- entries[[i]]
+      hit[[i]] <- .ivx_overlaps_interval(e$start, e$end, q$start, q$end, b, q$endpoint_type) &&
+        .ivx_contains_interval(q$start, q$end, e$start, e$end, q$endpoint_type)
+    }
+  }
+
+  pos_local <- base::which(hit)
+  if(length(pos_local) == 0L) {
+    return(.ivx_peek_positions(x, integer(0), which = peek_which))
+  }
+  pos_abs <- as.integer(window$start + pos_local - 1L)
+
+  .ivx_peek_positions(x, pos_abs, which = peek_which)
 }
 
 # Runtime: O(log n + c) for `which = "first"`; O(n log n) for `which = "all"`.

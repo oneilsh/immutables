@@ -21,7 +21,7 @@ testthat::test_that("fapply preserves element names for named flexseq", {
 
 testthat::test_that("fapply preserves user monoids for flexseq", {
   sum_m <- measure_monoid(`+`, 0, as.numeric)
-  x <- as_flexseq(1:4, monoids = list(sum = sum_m))
+  x <- add_monoids(as_flexseq(1:4), list(sum = sum_m))
   y <- fapply(x, function(v) v * 2)
 
   ms <- attr(y, "monoids", exact = TRUE)

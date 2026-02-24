@@ -1,6 +1,6 @@
 # Consistency Notes: `ordered_sequence` vs `interval_index`
 
-Last reviewed: 2026-02-23
+Last reviewed: 2026-02-24
 
 Scope: user-facing API surface and semantics, based on current source/tests.
 
@@ -18,7 +18,7 @@ Scope: user-facing API surface and semantics, based on current source/tests.
   - `interval_index` point APIs now use `peek_point` / `pop_point`; removed `find_point`.
   - `interval_index` query API hard-replaced from `find_*` to `peek_*` (no compatibility aliases).
   - `interval_index` now blocks `peek_front` / `peek_back` / `peek_at` and `pop_front` / `pop_back` / `pop_at`.
-  - Ordered-subclass blocker errors are now class-generic for inherited APIs (`c`, `push_front`, `push_back`, `insert_at`, replacement indexing), so subclasses report their concrete class name in errors.
+  - Ordered-subclass blocker errors were made class-generic for inherited APIs (`c`, `push_front`, `push_back`, `insert_at`) so subclasses report their concrete class name in errors.
   - Removed legacy internal ordered merge primitive (`.ft_cpp_oms_set_merge`) from backend R/C++ bindings and from parity/GC test coverage; ordered merge remains intentionally unavailable until redesign.
   - Test consistency tightened: `validate_*` assertions now require invisible `TRUE`, redundant `fapply.flexseq` monoid-recompute case was collapsed, and mixed payload tests now assert value-level identity (not just types).
 
@@ -66,75 +66,13 @@ Scope: user-facing API surface and semantics, based on current source/tests.
 3. `interval_index` point queries use `peek_point`/`pop_point` with `which = "first"|"all"` semantics.
 4. Ordered merge remains unavailable and there is currently no retained internal merge primitive.
 
-## Monoid API Exposure Notes (2026-02-23)
+## Related Roadmap Notes
 
-Context: we discussed whether to remove user-facing `monoids =` constructor parameters and push advanced monoid attachment to `add_monoids()`.
+Broader cross-structure roadmap/performance notes were moved to:
 
-### Current Behavior
+- `consistency_roadmap_notes.md`
 
-- Constructors support `monoids =` and can build with monoids in one pass, including C++ fast paths.
-- `add_monoids()` is available, but currently acts as a full rebind/recompute pass over the built tree.
-- `measure_monoid()` is a developer API; element shape differs by structure:
-  - `flexseq`: raw payload element.
-  - `priority_queue`: entry wrapper (`item`, `priority`).
-  - `ordered_sequence`: entry wrapper (`item`, `key`).
-  - `interval_index`: entry wrapper (`item`, `start`, `end`).
-
-### Performance Finding (directional)
-
-Routing construction through `as_*()` then `add_monoids()` instead of constructor-time `monoids =` has significant cost:
-
-- R backend: roughly `~3.1x` to `~3.3x` slower in local checks.
-- C++ backend batch builds: dramatically slower in local checks (orders of magnitude in small calibrated runs), because the one-pass C++ build advantage is lost and monoid recomputation is forced through the rebind pass.
-
-Interpretation: replacing internal constructor-time monoid wiring with `add_monoids()` broadly would be a material regression, especially for C++ batch paths.
-
-### Preferred Direction
-
-1. Keep internal monoid-aware builders (fast path) for implementation and batch operations.
-2. Simplify public constructors over time (hide/remove `monoids =` from user-facing entry points).
-3. Keep `add_monoids()` as the advanced user/developer API, with clearer documentation of per-structure `measure(el)` contracts.
-4. If constructor `monoids =` is removed publicly, do it as a surface/API change only; do not replace internal fast-path plumbing with two-step `add_monoids()` calls.
-
-## Scalar Comparable Keys/Priorities (2026-02-23)
-
-Context: we discussed expanding `ordered_sequence` keys and `priority_queue` priorities beyond current primitive constraints, to allow any scalar type with valid ordering.
-
-### Current Constraints
-
-- `ordered_sequence` keys currently accept only scalar `numeric` / `character` / `logical`.
-- `priority_queue` priorities currently accept only scalar non-missing `numeric`.
-- `interval_index` already supports broader scalar endpoint types so long as `<` and `>` are valid (for example `Date`/`POSIXct`), with mixed-type objects rejected.
-
-### Feasibility Assessment
-
-- Expanding support is feasible.
-- The practical model is:
-  - keep C++ fast paths for primitive key/priority types;
-  - use R comparator fallback for other scalar orderable types.
-- This matches existing interval-index behavior and preserves performance where the backend can optimize.
-
-### Suggested Contract (if implemented)
-
-1. Values must be scalar and non-missing.
-2. Values must support deterministic scalar `<` and `>` comparisons.
-3. Types must be homogeneous within an object (no mixed key/priority domains).
-4. Equality semantics should be derived from comparator outcomes (`a < b`, `a > b`, otherwise equal), not from class-specific ad hoc checks.
-
-### Implementation Notes
-
-- `ordered_sequence`:
-  - Generalize key normalization/type tagging to permit non-primitive scalar orderable types.
-  - Keep existing C++ OMS insert path only for primitive key types; fallback to R split/compare path otherwise.
-- `priority_queue`:
-  - Replace numeric-only priority validator with scalar orderability validator.
-  - Generalize `.pq_min` / `.pq_max` monoid compare logic away from numeric-only assumptions.
-  - Maintain tie stability (FIFO within equal-priority runs).
-
-### Risk Notes
-
-- Comparator edge cases (`NA`, class-specific Ops behavior, mixed classes) need explicit validation and tests.
-- Performance for non-primitive types will be R-fallback and should be documented as such.
+This file now stays focused on current `ordered_sequence` vs `interval_index` API consistency.
 
 ## Ordered/Interval Error UX: Replacement Indexing (2026-02-23)
 
@@ -157,6 +95,6 @@ Likely root cause:
 Follow-up:
 
 1. Tighten ordered-like owner-class resolution so blocker messages are stable and public-API oriented.
-   - Status: implemented locally (post-2026-02-23 review).
+   - Status: implemented on 2026-02-24.
    - Resolver now filters internal finger-tree classes (`Deep`, `Single`, `Empty`, `FingerTree`, `Digit`, `Node`) before selecting a displayed owner class.
    - Replacement-indexing blocker tests now assert public class names (`ordered_sequence`, `interval_index`) and assert that structural names are not leaked.

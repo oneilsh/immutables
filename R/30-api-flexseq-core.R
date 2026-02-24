@@ -17,6 +17,10 @@
   if(inherits(source, "interval_index")) {
     return(.ivx_restore_tree(out, template = source, context = context))
   }
+  if(inherits(source, "ordered_sequence")) {
+    key_type <- attr(source, "oms_key_type", exact = TRUE)
+    return(.as_ordered_sequence(out, key_type = key_type))
+  }
   if(inherits(source, "priority_queue")) {
     return(.pq_restore_tree(out, context = context))
   }
@@ -61,13 +65,18 @@
   as.list(x)
 }
 
+# Runtime: O(n log n) over element count.
+.flexseq_build <- function(..., monoids = NULL) {
+  args <- list(...)
+  .as_flexseq_build(args, monoids = monoids)
+}
+
 #' Construct a Persistent Flexible Sequence
 #'
 #' Works like `list(...)`, but returns an immutable sequence backed by
 #' measured finger-tree internals.
 #'
 #' @param ... Sequence elements.
-#' @param monoids Optional named list of measure monoids.
 #' @return A `flexseq` object.
 #' @examples
 #' x <- flexseq(1, 2, 3)
@@ -76,10 +85,8 @@
 #' x2 <- flexseq("a", "b", "c")
 #' x2
 #' @export
-# Runtime: O(n log n) over element count.
-flexseq <- function(..., monoids = NULL) {
-  args <- list(...)
-  as_flexseq(args, monoids = monoids)
+flexseq <- function(...) {
+  .flexseq_build(..., monoids = NULL)
 }
 
 #' Coerce to a Persistent Flexible Sequence
@@ -91,7 +98,6 @@ flexseq <- function(..., monoids = NULL) {
 #' ordered/interval behavior and returns a plain `flexseq` of stored entries.
 #'
 #' @param x Input vector/list-like object.
-#' @param monoids Optional named list of measure monoids.
 #' @return A `flexseq` object.
 #' @examples
 #' x <- as_flexseq(1:5)
@@ -104,55 +110,81 @@ flexseq <- function(..., monoids = NULL) {
 #' as_flexseq(q)
 #' @export
 # Runtime: O(1) generic dispatch.
-as_flexseq <- function(x, monoids = NULL) {
+as_flexseq <- function(x) {
   UseMethod("as_flexseq")
+}
+
+# Runtime: O(1) generic dispatch.
+#' @noRd
+.as_flexseq_build <- function(x, monoids = NULL) {
+  UseMethod(".as_flexseq_build")
+}
+
+# Runtime: O(n log n) over element count.
+.as_flexseq_build.default <- function(x, monoids = NULL) {
+  t <- tree_from(x, monoids = monoids)
+  .as_flexseq(t)
 }
 
 #' @method as_flexseq default
 #' @export
 # Runtime: O(n log n) over element count.
-as_flexseq.default <- function(x, monoids = NULL) {
-  t <- tree_from(x, monoids = monoids)
-  .as_flexseq(t)
+as_flexseq.default <- function(x) {
+  .as_flexseq_build.default(x, monoids = NULL)
 }
 
-#' @method as_flexseq priority_queue
-#' @export
 # Runtime: O(n log n) from list materialization + rebuild.
-as_flexseq.priority_queue <- function(x, monoids = NULL) {
+.as_flexseq_build.priority_queue <- function(x, monoids = NULL) {
   entries <- as.list(x)
   out_monoids <- monoids
   if(is.null(out_monoids)) {
     ms <- attr(x, "monoids", exact = TRUE)
     out_monoids <- ms[setdiff(names(ms), c(".pq_min", ".pq_max"))]
   }
-  as_flexseq.default(entries, monoids = out_monoids)
+  .as_flexseq_build.default(entries, monoids = out_monoids)
 }
 
-#' @method as_flexseq ordered_sequence
+#' @method as_flexseq priority_queue
 #' @export
 # Runtime: O(n log n) from list materialization + rebuild.
-as_flexseq.ordered_sequence <- function(x, monoids = NULL) {
+as_flexseq.priority_queue <- function(x) {
+  .as_flexseq_build.priority_queue(x, monoids = NULL)
+}
+
+# Runtime: O(n log n) from list materialization + rebuild.
+.as_flexseq_build.ordered_sequence <- function(x, monoids = NULL) {
   entries <- as.list.flexseq(x)
   out_monoids <- monoids
   if(is.null(out_monoids)) {
     ms <- attr(x, "monoids", exact = TRUE)
     out_monoids <- ms[setdiff(names(ms), c(".oms_max_key"))]
   }
-  as_flexseq.default(entries, monoids = out_monoids)
+  .as_flexseq_build.default(entries, monoids = out_monoids)
 }
 
-#' @method as_flexseq interval_index
+#' @method as_flexseq ordered_sequence
 #' @export
 # Runtime: O(n log n) from list materialization + rebuild.
-as_flexseq.interval_index <- function(x, monoids = NULL) {
+as_flexseq.ordered_sequence <- function(x) {
+  .as_flexseq_build.ordered_sequence(x, monoids = NULL)
+}
+
+# Runtime: O(n log n) from list materialization + rebuild.
+.as_flexseq_build.interval_index <- function(x, monoids = NULL) {
   entries <- as.list.flexseq(x)
   out_monoids <- monoids
   if(is.null(out_monoids)) {
     ms <- attr(x, "monoids", exact = TRUE)
     out_monoids <- ms[setdiff(names(ms), c(".ivx_max_start", ".oms_max_key"))]
   }
-  as_flexseq.default(entries, monoids = out_monoids)
+  .as_flexseq_build.default(entries, monoids = out_monoids)
+}
+
+#' @method as_flexseq interval_index
+#' @export
+# Runtime: O(n log n) from list materialization + rebuild.
+as_flexseq.interval_index <- function(x) {
+  .as_flexseq_build.interval_index(x, monoids = NULL)
 }
 
 #' Concatenate Sequences

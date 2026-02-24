@@ -4,7 +4,7 @@
 \alias{priority_queue}
 \title{Construct a Priority Queue}
 \usage{
-priority_queue(..., priorities = NULL, names = NULL, monoids = NULL)
+priority_queue(..., priorities, names = NULL)
 }
 \arguments{
 \item{...}{Elements to enqueue.}
@@ -12,8 +12,6 @@ priority_queue(..., priorities = NULL, names = NULL, monoids = NULL)
 \item{priorities}{Numeric priorities matching `...`.}
 
 \item{names}{Optional element names.}
-
-\item{monoids}{Optional additional named list of `measure_monoid` objects.}
 }
 \value{
 A `priority_queue`.

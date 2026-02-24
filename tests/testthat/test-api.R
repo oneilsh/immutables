@@ -42,7 +42,7 @@ testthat::test_that("monoid specs are normalized to canonical named layout", {
   )
   class(raw) <- c("measure_monoid", "MeasureMonoid", "list")
 
-  x <- as_flexseq(1:5, monoids = list(sum = raw))
+  x <- add_monoids(as_flexseq(1:5), list(sum = raw))
   ms <- attr(x, "monoids", exact = TRUE)
   sum_m <- ms$sum
 
@@ -56,14 +56,14 @@ testthat::test_that("concat_trees unions monoids on shared names", {
   a <- measure_monoid(function(x, y) x + y, 0, function(el) el)
   b <- measure_monoid(function(x, y) x + y, 0, function(el) 1)
 
-  t1 <- as_flexseq(1:2, monoids = list(sum = a))
-  t2 <- as_flexseq(3:4, monoids = list(cnt = b))
+  t1 <- add_monoids(as_flexseq(1:2), list(sum = a))
+  t2 <- add_monoids(as_flexseq(3:4), list(cnt = b))
   t <- c(t1, t2)
   testthat::expect_true(all(c(".size", "sum", "cnt") %in% names(attr(t, "monoids"))))
 
   # shared name path: left definition is assumed authoritative
-  t3 <- as_flexseq(1:2, monoids = list(sum = a))
-  t4 <- as_flexseq(3:4, monoids = list(sum = measure_monoid(function(x, y) x + y, 0, function(el) 1)))
+  t3 <- add_monoids(as_flexseq(1:2), list(sum = a))
+  t4 <- add_monoids(as_flexseq(3:4), list(sum = measure_monoid(function(x, y) x + y, 0, function(el) 1)))
   t_merged <- c(t3, t4)
   testthat::expect_true("sum" %in% names(attr(t_merged, "monoids")))
 })

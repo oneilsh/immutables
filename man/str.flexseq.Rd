@@ -17,3 +17,4 @@
 \description{
 Display Internal Structure of a flexseq
 }
+\keyword{internal}

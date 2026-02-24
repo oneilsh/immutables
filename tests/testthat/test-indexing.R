@@ -17,7 +17,7 @@ testthat::test_that("read indexing supports duplicates and arbitrary order", {
 
 testthat::test_that("indexing enforces bounds and integer-only indices", {
   r <- measure_monoid(function(a, b) a + b, 0, function(el) el)
-  t <- as_flexseq(1:4, monoids = list(sum = r))
+  t <- add_monoids(as_flexseq(1:4), list(sum = r))
 
   testthat::expect_error(t[[0]], "positive integer")
   testthat::expect_error(t[[5]], "out of bounds")
@@ -49,7 +49,7 @@ testthat::test_that("replacement indexing supports [[<- and [<- with recycling s
 
 testthat::test_that("[[<- keeps monoid attrs and updates one element via split path", {
   sum_m <- measure_monoid(`+`, 0, as.numeric)
-  t <- as_flexseq(1:6, monoids = list(sum = sum_m))
+  t <- add_monoids(as_flexseq(1:6), list(sum = sum_m))
   t2 <- t
   t2[[4]] <- 99
 
@@ -60,7 +60,7 @@ testthat::test_that("[[<- keeps monoid attrs and updates one element via split p
 
 testthat::test_that("[[<- with NULL removes one element by index or name", {
   sum_m <- measure_monoid(`+`, 0, as.numeric)
-  t <- as_flexseq(1:5, monoids = list(sum = sum_m))
+  t <- add_monoids(as_flexseq(1:5), list(sum = sum_m))
   t[[3]] <- NULL
   testthat::expect_identical(attr(t, "measures")$.size, 4)
   testthat::expect_identical(attr(t, "measures")$sum, 12)
@@ -90,7 +90,7 @@ testthat::test_that("[<- supports arbitrary replacement order", {
 
 testthat::test_that("[<- keeps structural attrs and custom monoid measures coherent", {
   sum_m <- measure_monoid(`+`, 0, as.numeric)
-  t <- as_flexseq(1:5, monoids = list(sum = sum_m))
+  t <- add_monoids(as_flexseq(1:5), list(sum = sum_m))
   t[c(2, 4)] <- list(20, 40)
 
   testthat::expect_identical(attr(t, "measures")$.size, 5)
@@ -110,7 +110,7 @@ testthat::test_that("[<- zero-length index is a no-op when replacement is empty"
 
 testthat::test_that("size measure is available by default for indexing even if not provided", {
   sum_only <- measure_monoid(function(a, b) a + b, 0, function(el) el)
-  t <- as_flexseq(1:3, monoids = list(sum = sum_only))
+  t <- add_monoids(as_flexseq(1:3), list(sum = sum_only))
   ms <- attr(t, "measures")
   testthat::expect_identical(ms$.size, 3)
   testthat::expect_equal(t[[2]], 2)

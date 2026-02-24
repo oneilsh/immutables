@@ -110,7 +110,7 @@
     if(!is.null(keys) && length(as.list(keys)) > 0L) {
       stop("`keys` must be empty when no elements are supplied.")
     }
-    base <- as_flexseq(list(), monoids = .oms_merge_monoids(monoids))
+    base <- .as_flexseq_build(list(), monoids = .oms_merge_monoids(monoids))
     return(.as_ordered_sequence(base, key_type = NULL))
   }
 
@@ -233,7 +233,6 @@
 #'
 #' @param x Elements to add.
 #' @param keys Scalar key values matching `x` length.
-#' @param monoids Optional additional named list of `measure_monoid` objects.
 #'
 #' Ordered sequences are always key-sorted. Subsetting with `[` is intentionally
 #' constrained to strictly increasing mapped positions (no duplicates or
@@ -244,7 +243,12 @@
 #' xs
 #' length(elements_between(xs, 1, 1))
 #' @export
-as_ordered_sequence <- function(x, keys = NULL, monoids = NULL) {
+as_ordered_sequence <- function(x, keys) {
+  .as_ordered_sequence_build(x, keys = keys, monoids = NULL)
+}
+
+# Runtime: O(n log n) from build and ordering.
+.as_ordered_sequence_build <- function(x, keys = NULL, monoids = NULL) {
   .oms_build_from_items(as.list(x), keys = keys, monoids = monoids)
 }
 
@@ -253,15 +257,22 @@ as_ordered_sequence <- function(x, keys = NULL, monoids = NULL) {
 #'
 #' @param ... Elements to add.
 #' @param keys Scalar key values matching `...` length.
-#' @param monoids Optional additional named list of `measure_monoid` objects.
 #' @return An `ordered_sequence`.
 #' @examples
 #' xs <- ordered_sequence("bb", "a", "ccc", keys = c(2, 1, 3))
 #' xs
 #' lower_bound(xs, 2)
 #' @export
-ordered_sequence <- function(..., keys = NULL, monoids = NULL) {
-  as_ordered_sequence(list(...), keys = keys, monoids = monoids)
+ordered_sequence <- function(..., keys) {
+  if(missing(keys)) {
+    keys <- NULL
+  }
+  .ordered_sequence_build(..., keys = keys, monoids = NULL)
+}
+
+# Runtime: O(n log n) from build and ordering.
+.ordered_sequence_build <- function(..., keys = NULL, monoids = NULL) {
+  .as_ordered_sequence_build(list(...), keys = keys, monoids = monoids)
 }
 
 # Runtime: O(log n) near insertion/split point depth.

@@ -4,12 +4,10 @@
 \alias{as_flexseq}
 \title{Coerce to a Persistent Flexible Sequence}
 \usage{
-as_flexseq(x, monoids = NULL)
+as_flexseq(x)
 }
 \arguments{
 \item{x}{Input vector/list-like object.}
-
-\item{monoids}{Optional named list of measure monoids.}
 }
 \value{
 A `flexseq` object.

@@ -36,5 +36,6 @@ add_monoids <- function(t, monoids, overwrite = FALSE) {
     return(t)
   }
 
-  rebind_tree_monoids(t, merged, recompute_names)
+  out <- rebind_tree_monoids(t, merged, recompute_names)
+  .ft_restore_subclass(out, t, context = "add_monoids()")
 }

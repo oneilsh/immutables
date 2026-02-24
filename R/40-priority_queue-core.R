@@ -136,7 +136,6 @@
 #' @param x Elements to enqueue.
 #' @param priorities Numeric priorities (same length as `x`).
 #' @param names Optional element names for name-based indexing.
-#' @param monoids Optional additional named list of `measure_monoid` objects.
 #' @return A `priority_queue`.
 #' @examples
 #' x <- as_priority_queue(letters[1:4], priorities = c(3, 1, 2, 1))
@@ -144,7 +143,12 @@
 #' peek_min(x)
 #' peek_max(x)
 #' @export
-as_priority_queue <- function(x, priorities, names = NULL, monoids = NULL) {
+as_priority_queue <- function(x, priorities, names = NULL) {
+  .as_priority_queue_build(x, priorities = priorities, names = names, monoids = NULL)
+}
+
+# Runtime: O(n log n) from underlying sequence construction.
+.as_priority_queue_build <- function(x, priorities, names = NULL, monoids = NULL) {
   x_list <- as.list(x)
   n <- length(x_list)
 
@@ -169,7 +173,7 @@ as_priority_queue <- function(x, priorities, names = NULL, monoids = NULL) {
     names(entries) <- nm
   }
 
-  q <- as_flexseq(entries, monoids = .pq_merge_monoids(monoids))
+  q <- .as_flexseq_build(entries, monoids = .pq_merge_monoids(monoids))
   .as_priority_queue(q)
 }
 
@@ -183,14 +187,21 @@ as_priority_queue <- function(x, priorities, names = NULL, monoids = NULL) {
 #' @param ... Elements to enqueue.
 #' @param priorities Numeric priorities matching `...`.
 #' @param names Optional element names.
-#' @param monoids Optional additional named list of `measure_monoid` objects.
 #' @return A `priority_queue`.
 #' @examples
 #' x <- priority_queue("a", "b", "c", priorities = c(2, 1, 2))
 #' x
 #' peek_min(x)
 #' @export
-priority_queue <- function(..., priorities = NULL, names = NULL, monoids = NULL) {
+priority_queue <- function(..., priorities, names = NULL) {
+  if(missing(priorities)) {
+    priorities <- NULL
+  }
+  .priority_queue_build(..., priorities = priorities, names = names, monoids = NULL)
+}
+
+# Runtime: O(n log n) from underlying sequence construction.
+.priority_queue_build <- function(..., priorities = NULL, names = NULL, monoids = NULL) {
   xs <- list(...)
   n <- length(xs)
 
@@ -198,7 +209,7 @@ priority_queue <- function(..., priorities = NULL, names = NULL, monoids = NULL)
     if(!is.null(priorities) && length(priorities) > 0L) {
       stop("`priorities` must be empty when no elements are supplied.")
     }
-    return(.as_priority_queue(as_flexseq(list(), monoids = .pq_merge_monoids(monoids))))
+    return(.as_priority_queue(.as_flexseq_build(list(), monoids = .pq_merge_monoids(monoids))))
   }
 
   if(is.null(priorities)) {
@@ -212,7 +223,7 @@ priority_queue <- function(..., priorities = NULL, names = NULL, monoids = NULL)
     names(xs) <- names
   }
 
-  as_priority_queue(xs, priorities = priorities, monoids = monoids)
+  .as_priority_queue_build(xs, priorities = priorities, monoids = monoids)
 }
 
 # Runtime: O(1).
@@ -418,7 +429,7 @@ length.priority_queue <- function(x) {
     user_monoids <- NULL
   }
 
-  q2 <- as_flexseq(out, monoids = .pq_merge_monoids(user_monoids))
+  q2 <- .as_flexseq_build(out, monoids = .pq_merge_monoids(user_monoids))
   .as_priority_queue(q2)
 }
 

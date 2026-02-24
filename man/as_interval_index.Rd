@@ -4,7 +4,7 @@
 \alias{as_interval_index}
 \title{Build an Interval Index from elements and interval bounds}
 \usage{
-as_interval_index(x, start, end, bounds = "[)", monoids = NULL)
+as_interval_index(x, start, end, bounds = "[)")
 }
 \arguments{
 \item{x}{Elements to add.}
@@ -14,8 +14,6 @@ as_interval_index(x, start, end, bounds = "[)", monoids = NULL)
 \item{end}{Scalar end endpoints (same length as `x`).}
 
 \item{bounds}{One of `"[)"`, `"[]"`, `"()"`, `"(]"`.}
-
-\item{monoids}{Optional additional named list of `measure_monoid` objects.}
 }
 \value{
 An `interval_index`.

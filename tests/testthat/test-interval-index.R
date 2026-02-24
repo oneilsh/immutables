@@ -237,12 +237,11 @@ testthat::test_that("interval_index recomputes user monoids across insert, fappl
   sum_item <- measure_monoid(function(a, b) a + b, 0, function(el) as.numeric(el$item))
   width_sum <- measure_monoid(function(a, b) a + b, 0, function(el) as.numeric(el$end - el$start))
 
-  ix <- as_interval_index(
+  ix <- add_monoids(as_interval_index(
     as.list(c(10, 20, 30)),
     start = c(1, 2, 4),
-    end = c(3, 5, 6),
-    monoids = list(sum_item = sum_item, width_sum = width_sum)
-  )
+    end = c(3, 5, 6)
+  ), list(sum_item = sum_item, width_sum = width_sum))
   testthat::expect_equal(node_measure(ix, "sum_item"), 60)
   testthat::expect_equal(node_measure(ix, "width_sum"), 7)
 
@@ -271,12 +270,11 @@ testthat::test_that("interval_index recomputes user monoids across insert, fappl
 
 testthat::test_that("interval_index casts down to flexseq explicitly", {
   width_sum <- measure_monoid(`+`, 0, function(el) as.numeric(el$end - el$start))
-  ix <- as_interval_index(
+  ix <- add_monoids(as_interval_index(
     setNames(list("x", "y"), c("ix", "iy")),
     start = c(1, 3),
-    end = c(2, 5),
-    monoids = list(width_sum = width_sum)
-  )
+    end = c(2, 5)
+  ), list(width_sum = width_sum))
 
   fx <- as_flexseq(ix)
   testthat::expect_s3_class(fx, "flexseq")

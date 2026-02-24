@@ -226,11 +226,10 @@ testthat::test_that("fapply dispatches for ordered_sequence and no reset_ties ar
 
 testthat::test_that("ordered_sequence casts down to flexseq explicitly", {
   sum_key <- measure_monoid(`+`, 0, function(el) el$key)
-  xs <- as_ordered_sequence(
+  xs <- add_monoids(as_ordered_sequence(
     setNames(list("x", "y"), c("kx", "ky")),
-    keys = c(2, 1),
-    monoids = list(sum_key = sum_key)
-  )
+    keys = c(2, 1)
+  ), list(sum_key = sum_key))
 
   fx <- as_flexseq(xs)
   testthat::expect_s3_class(fx, "flexseq")

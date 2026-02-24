@@ -4,12 +4,10 @@
 \alias{flexseq}
 \title{Construct a Persistent Flexible Sequence}
 \usage{
-flexseq(..., monoids = NULL)
+flexseq(...)
 }
 \arguments{
 \item{...}{Sequence elements.}
-
-\item{monoids}{Optional named list of measure monoids.}
 }
 \value{
 A `flexseq` object.

@@ -31,7 +31,7 @@
 
   out_monoids <- resolve_tree_monoids(x, required = TRUE)
 
-  as_flexseq(out, monoids = out_monoids)
+  .as_flexseq_build(out, monoids = out_monoids)
 }
 
 #' Apply a function over flexseq elements

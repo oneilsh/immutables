@@ -18,10 +18,10 @@
 #'
 #' loc <- locate_by_predicate(x, function(v) v >= 4, ".size")
 #' loc
-#'
+#' 
 #' # include metadata with a custom monoid
 #' sum_m <- measure_monoid(`+`, 0, as.numeric)
-#' x2 <- as_flexseq(1:6, monoids = list(sum = sum_m))
+#' x2 <- add_monoids(as_flexseq(1:6), list(sum = sum_m))
 #' loc2 <- locate_by_predicate(x2, function(v) v >= 10, "sum", include_metadata = TRUE)
 #' loc2
 #' @export

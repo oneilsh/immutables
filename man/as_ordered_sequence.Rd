@@ -4,14 +4,12 @@
 \alias{as_ordered_sequence}
 \title{Build an Ordered Sequence from elements}
 \usage{
-as_ordered_sequence(x, keys = NULL, monoids = NULL)
+as_ordered_sequence(x, keys)
 }
 \arguments{
 \item{x}{Elements to add.}
 
-\item{keys}{Scalar key values matching `x` length.}
-
-\item{monoids}{Optional additional named list of `measure_monoid` objects.
+\item{keys}{Scalar key values matching `x` length.
 
 Ordered sequences are always key-sorted. Subsetting with `[` is intentionally
 constrained to strictly increasing mapped positions (no duplicates or

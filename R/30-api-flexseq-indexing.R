@@ -336,7 +336,16 @@
   if(.ft_cpp_enabled()) {
     return(.ft_cpp_get_by_index(x, idx))
   }
-  hit <- locate_by_predicate(x, function(v) v >= idx, ".size")
+  ctx <- resolve_named_monoid(x, ".size")
+  hit <- locate_tree_impl_fast(
+    function(v) v >= idx,
+    ctx$monoid$i,
+    x,
+    ctx$monoids,
+    ctx$monoid,
+    ".size",
+    0L
+  )
   if(!isTRUE(hit$found)) {
     stop("Index out of bounds.")
   }

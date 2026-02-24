@@ -15,11 +15,11 @@ Node(...) %as% {
 # Node2 and Node3 node types
 # represent internal nodes with 2 or 3 children
 # Runtime: O(1).
-Node2(x, y) %::% a : a : list
+Node2(x, y) %::% . : . : list
 Node2(x, y) %as% Node(x, y)
 
 # Runtime: O(1).
-Node3(x, y, z) %::% a : a : a : list
+Node3(x, y, z) %::% . : . : . : list
 Node3(x, y, z) %as% Node(x, y, z)
 
 

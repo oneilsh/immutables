@@ -18,7 +18,7 @@ build_digit(xs, monoids) %as% {
   if(length(xs) == 0) {
     return(list())
   }
-  do.call(measured_digit, c(xs, list(monoids = monoids)))
+  do.call(measured_digit, c(unname(xs), list(monoids = monoids)))
 }
 
 # build a Deep node from prefix digit, middle tree, and suffix digit.

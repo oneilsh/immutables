@@ -7,3 +7,4 @@ src/*.so
 .DS_Store
 meta/bench-results/
 .vscode/
+docs/

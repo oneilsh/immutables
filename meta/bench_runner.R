@@ -1176,21 +1176,53 @@ compare_last <- function(n = 2L, results_dir = "meta/bench-results") {
     stop("`n` must be an integer >= 2.")
   }
   files <- sort(list.files(results_dir, pattern = "\\.csv$", full.names = TRUE))
-  if(length(files) < n) {
-    stop("Need at least ", n, " benchmark CSV files in ", results_dir, ".")
+  read_comparable <- function(path) {
+    dat <- tryCatch(
+      utils::read.csv(path, stringsAsFactors = FALSE),
+      error = function(e) NULL
+    )
+    if(is.null(dat)) {
+      return(list(ok = FALSE, reason = "could not read CSV", data = NULL))
+    }
+    keep <- c("scenario", "elapsed")
+    if(!all(keep %in% names(dat))) {
+      return(list(ok = FALSE, reason = "missing required columns scenario/elapsed", data = NULL))
+    }
+    out <- dat[, keep, drop = FALSE]
+    out$scenario <- as.character(out$scenario)
+    out$elapsed <- as.numeric(out$elapsed)
+    list(ok = TRUE, reason = "", data = out)
   }
 
-  picked <- tail(files, n)
+  loaded <- lapply(files, read_comparable)
+  ok <- vapply(loaded, function(x) isTRUE(x$ok), logical(1))
+  valid_files <- files[ok]
+
+  if(length(valid_files) < n) {
+    stop(
+      "Need at least ", n, " comparable benchmark CSV files (with scenario/elapsed) in ",
+      results_dir, ". Found ", length(valid_files), "."
+    )
+  }
+
+  skipped <- files[!ok]
+  if(length(skipped) > 0L) {
+    message(
+      "Skipping non-comparable CSV files: ",
+      paste(basename(tail(skipped, min(length(skipped), 5L))), collapse = ", ")
+    )
+  }
+
+  picked <- tail(valid_files, n)
   old_file <- picked[[1L]]
   new_file <- picked[[length(picked)]]
 
-  old <- utils::read.csv(old_file, stringsAsFactors = FALSE)
-  new <- utils::read.csv(new_file, stringsAsFactors = FALSE)
-  keep <- c("scenario", "elapsed")
+  old <- loaded[[match(old_file, files)]]$data
+  new <- loaded[[match(new_file, files)]]$data
 
   cmp <- merge(
-    old[, keep, drop = FALSE],
-    new[, keep, drop = FALSE],
+    old,
+    new,
     by = "scenario",
     all = TRUE,
     suffixes = c("_old", "_new")

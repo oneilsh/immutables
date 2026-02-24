@@ -164,3 +164,71 @@ testthat::test_that("priority_queue blocks split/locate helpers", {
   testthat::expect_error(split_at(q, 1), "Cast first")
   testthat::expect_error(locate_by_predicate(q, function(v) v >= 1, ".size"), "Cast first")
 })
+
+testthat::test_that("priority_queue supports Date priorities with FIFO ties", {
+  p <- as.Date(c("2024-01-03", "2024-01-01", "2024-01-01"))
+  q <- priority_queue("late", "early1", "early2", priorities = p)
+
+  testthat::expect_equal(peek_min(q), "early1")
+  testthat::expect_equal(peek_max(q), "late")
+
+  out1 <- pop_min(q)
+  out2 <- pop_min(out1$remaining)
+  testthat::expect_equal(out1$element, "early1")
+  testthat::expect_equal(out2$element, "early2")
+  testthat::expect_s3_class(out1$priority, "Date")
+  testthat::expect_true(inherits(out2$priority, "Date"))
+
+  q2 <- insert(q, "early3", priority = as.Date("2024-01-01"))
+  testthat::expect_equal(pop_min(pop_min(q2)$remaining)$element, "early2")
+})
+
+testthat::test_that("priority_queue supports POSIXct priorities with type-preserving pops", {
+  p <- as.POSIXct(
+    c("2024-01-01 12:00:00", "2024-01-01 10:00:00", "2024-01-01 10:00:00"),
+    tz = "UTC"
+  )
+  q <- priority_queue("late", "early1", "early2", priorities = p)
+
+  testthat::expect_equal(peek_min(q), "early1")
+  out <- pop_min(q)
+  testthat::expect_equal(out$element, "early1")
+  testthat::expect_s3_class(out$priority, "POSIXct")
+  testthat::expect_s3_class(out$priority, "POSIXt")
+})
+
+testthat::test_that("priority_queue rejects mixed priority domains and missing priorities", {
+  testthat::expect_error(
+    as_priority_queue(list("a", "b"), priorities = list(1, "1")),
+    "Incompatible priority type"
+  )
+  testthat::expect_error(
+    as_priority_queue(list("a", "b"), priorities = list(1, as.Date("2024-01-01"))),
+    "Incompatible priority type"
+  )
+  testthat::expect_error(
+    as_priority_queue(
+      list("a", "b"),
+      priorities = list(as.Date("2024-01-01"), as.POSIXct("2024-01-01 00:00:00", tz = "UTC"))
+    ),
+    "Incompatible priority type"
+  )
+
+  q_num <- priority_queue("a", priorities = 1)
+  q_date <- priority_queue("a", priorities = as.Date("2024-01-01"))
+  testthat::expect_error(insert(q_num, "b", priority = "1"), "Incompatible priority type")
+  testthat::expect_error(insert(q_num, "b", priority = as.Date("2024-01-01")), "Incompatible priority type")
+  testthat::expect_error(
+    insert(q_date, "b", priority = as.POSIXct("2024-01-01 00:00:00", tz = "UTC")),
+    "Incompatible priority type"
+  )
+
+  testthat::expect_error(
+    priority_queue("a", priorities = as.Date(NA)),
+    "`priority` must be non-missing"
+  )
+  testthat::expect_error(
+    insert(q_date, "b", priority = as.Date(NA)),
+    "`priority` must be non-missing"
+  )
+})

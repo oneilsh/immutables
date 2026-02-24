@@ -1,6 +1,6 @@
 testthat::test_that("viewL and viewR return boundary element and remainder", {
   m_count <- measure_monoid(function(a, b) a + b, 0, function(el) 1)
-  t <- as_flexseq(letters[1:5], monoids = list(count = m_count))
+  t <- add_monoids(as_flexseq(letters[1:5]), list(count = m_count))
   ms <- attr(t, "monoids")
 
   vl <- immutables:::viewL(t, ms)

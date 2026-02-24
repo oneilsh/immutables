@@ -1,9 +1,23 @@
 # Runtime: O(1).
-.pq_assert_priority <- function(priority) {
-  if(!is.numeric(priority) || length(priority) != 1L || is.na(priority)) {
-    stop("`priority` must be a single non-missing numeric value.")
+.pq_priority_type_state <- function(x) {
+  attr(x, "pq_priority_type", exact = TRUE)
+}
+
+# Runtime: O(1).
+.pq_validate_priority_type <- function(pq_priority_type, new_priority_type) {
+  if(is.null(pq_priority_type)) {
+    return(new_priority_type)
   }
-  as.numeric(priority)
+  if(!identical(pq_priority_type, new_priority_type)) {
+    stop("Incompatible priority type for this priority_queue.")
+  }
+  pq_priority_type
+}
+
+# Runtime: O(1).
+.pq_normalize_priority <- function(priority) {
+  norm <- .ft_normalize_scalar_orderable(priority, arg_name = "priority")
+  list(priority = norm$value, priority_type = norm$value_type)
 }
 
 # Runtime: O(1).
@@ -15,7 +29,7 @@
 }
 
 # Runtime: O(1).
-.pq_parse_entry <- function(entry, context = "priority_queue") {
+.pq_parse_entry <- function(entry, context = "priority_queue", priority_type = NULL) {
   if(!is.list(entry)) {
     stop(context, " entries must be named lists with fields: item, priority (optional: name).")
   }
@@ -34,39 +48,45 @@
     stop(context, " entries must include both `item` and `priority`.")
   }
 
-  out <- list(
-    item = entry[["item"]],
-    priority = .pq_assert_priority(entry[["priority"]])
-  )
+  norm <- .pq_normalize_priority(entry[["priority"]])
+  resolved_type <- .pq_validate_priority_type(priority_type, norm$priority_type)
+  out <- list(item = entry[["item"]], priority = norm$priority)
 
   nm_hint <- if("name" %in% nm) .ft_normalize_name(entry[["name"]]) else NULL
   if(is.null(nm_hint)) {
     nm_hint <- .ft_get_name(entry)
   }
-  .ft_set_name(out, nm_hint)
+  list(entry = .ft_set_name(out, nm_hint), priority_type = resolved_type)
 }
 
 # Runtime: O(n) to validate all entries.
-.pq_validate_tree_entries <- function(x, context = "priority_queue") {
+.pq_validate_tree_entries <- function(x, context = "priority_queue", priority_type = NULL) {
   els <- .ft_to_list(x)
   if(length(els) == 0L) {
-    return(invisible(TRUE))
+    return(priority_type)
   }
+  out_type <- priority_type
   for(el in els) {
-    .pq_parse_entry(el, context = context)
+    parsed <- .pq_parse_entry(el, context = context, priority_type = out_type)
+    out_type <- parsed$priority_type
   }
-  invisible(TRUE)
+  out_type
 }
 
 # Runtime: O(n) to validate then O(1) to reclass.
-.pq_restore_tree <- function(x, context = "priority_queue") {
-  .pq_validate_tree_entries(x, context = context)
-  .as_priority_queue(x)
+.pq_restore_tree <- function(x, template = NULL, context = "priority_queue") {
+  priority_type <- if(is.null(template)) NULL else .pq_priority_type_state(template)
+  priority_type <- .pq_validate_tree_entries(x, context = context, priority_type = priority_type)
+  .as_priority_queue(x, priority_type = priority_type)
 }
 
 # Runtime: O(1).
-.pq_make_entry <- function(item, priority) {
-  list(item = item, priority = .pq_assert_priority(priority))
+.pq_make_entry <- function(item, priority, priority_type = NULL) {
+  norm <- .pq_normalize_priority(priority)
+  list(
+    entry = list(item = item, priority = norm$priority),
+    priority_type = .pq_validate_priority_type(priority_type, norm$priority_type)
+  )
 }
 
 # Runtime: O(1) under fixed monoid set.
@@ -82,13 +102,20 @@
 }
 
 # Runtime: O(1).
-.as_priority_queue <- function(x) {
+.as_priority_queue <- function(x, priority_type = NULL) {
   if(!is_structural_node(x)) {
     stop("Expected a structural tree node.")
   }
   class(x) <- unique(c("priority_queue", "flexseq", setdiff(class(x), "list")))
   attr(x, "pq_next_seq") <- NULL
+  attr(x, "pq_priority_type") <- priority_type
   x
+}
+
+# Runtime: O(1).
+.pq_wrap_like <- function(template, tree, priority_type = NULL) {
+  resolved_type <- if(is.null(priority_type)) .pq_priority_type_state(template) else priority_type
+  .as_priority_queue(tree, priority_type = resolved_type)
 }
 
 # Runtime: O(log n) near right edge, with O(1) local name-state checks.
@@ -115,28 +142,26 @@
     }
     if(.ft_cpp_can_use(ms)) {
       out <- if(is.null(nm)) .ft_cpp_add_right(q, entry, ms) else .ft_cpp_add_right_named(q, entry, nm, ms)
-      return(.as_priority_queue(out))
+      return(.pq_wrap_like(q, out))
     }
     entry2 <- if(is.null(nm)) entry else .ft_set_name(entry, nm)
-    return(.as_priority_queue(.add_right_fast(q, entry2, ms)))
+    return(.pq_wrap_like(q, .add_right_fast(q, entry2, ms)))
   }
 
   if(is.null(nm)) {
     stop("Cannot mix named and unnamed elements (insert would create mixed named and unnamed tree).")
   }
   if(.ft_cpp_can_use(ms)) {
-    return(.as_priority_queue(.ft_cpp_add_right_named(q, entry, nm, ms)))
+    return(.pq_wrap_like(q, .ft_cpp_add_right_named(q, entry, nm, ms)))
   }
-  .as_priority_queue(.add_right_fast(q, .ft_set_name(entry, nm), ms))
+  .pq_wrap_like(q, .add_right_fast(q, .ft_set_name(entry, nm), ms))
 }
 
 # Runtime: O(n log n) from underlying sequence construction.
 #' Build a Priority Queue from elements and priorities
 #'
 #' @param x Elements to enqueue.
-#' @param priorities Numeric priorities (same length as `x`).
-#' @param names Optional element names for name-based indexing.
-#' @param monoids Optional additional named list of `measure_monoid` objects.
+#' @param priorities Scalar non-missing orderable priorities (same length as `x`).
 #' @return A `priority_queue`.
 #' @examples
 #' x <- as_priority_queue(letters[1:4], priorities = c(3, 1, 2, 1))
@@ -144,7 +169,12 @@
 #' peek_min(x)
 #' peek_max(x)
 #' @export
-as_priority_queue <- function(x, priorities, names = NULL, monoids = NULL) {
+as_priority_queue <- function(x, priorities) {
+  .as_priority_queue_build(x, priorities = priorities, monoids = NULL)
+}
+
+# Runtime: O(n log n) from underlying sequence construction.
+.as_priority_queue_build <- function(x, priorities, monoids = NULL) {
   x_list <- as.list(x)
   n <- length(x_list)
 
@@ -154,14 +184,14 @@ as_priority_queue <- function(x, priorities, names = NULL, monoids = NULL) {
   }
 
   entries <- vector("list", n)
+  priority_type <- NULL
   for(i in seq_len(n)) {
-    entries[[i]] <- .pq_make_entry(x_list[[i]], p_list[[i]])
+    parsed <- .pq_make_entry(x_list[[i]], p_list[[i]], priority_type = priority_type)
+    priority_type <- parsed$priority_type
+    entries[[i]] <- parsed$entry
   }
 
-  nm <- names
-  if(is.null(nm)) {
-    nm <- names(x)
-  }
+  nm <- names(x)
   if(!is.null(nm) && length(nm) > 0L) {
     if(length(nm) != n) {
       stop("`names` length must match elements length.")
@@ -169,8 +199,8 @@ as_priority_queue <- function(x, priorities, names = NULL, monoids = NULL) {
     names(entries) <- nm
   }
 
-  q <- as_flexseq(entries, monoids = .pq_merge_monoids(monoids))
-  .as_priority_queue(q)
+  q <- .as_flexseq_build(entries, monoids = .pq_merge_monoids(monoids))
+  .as_priority_queue(q, priority_type = priority_type)
 }
 
 # Runtime: O(n log n) from underlying sequence construction.
@@ -181,16 +211,22 @@ as_priority_queue <- function(x, priorities, names = NULL, monoids = NULL) {
 #' cast explicitly with `as_flexseq()`.
 #'
 #' @param ... Elements to enqueue.
-#' @param priorities Numeric priorities matching `...`.
-#' @param names Optional element names.
-#' @param monoids Optional additional named list of `measure_monoid` objects.
+#' @param priorities Scalar non-missing orderable priorities matching `...`.
 #' @return A `priority_queue`.
 #' @examples
 #' x <- priority_queue("a", "b", "c", priorities = c(2, 1, 2))
 #' x
 #' peek_min(x)
 #' @export
-priority_queue <- function(..., priorities = NULL, names = NULL, monoids = NULL) {
+priority_queue <- function(..., priorities) {
+  if(missing(priorities)) {
+    priorities <- NULL
+  }
+  .priority_queue_build(..., priorities = priorities, monoids = NULL)
+}
+
+# Runtime: O(n log n) from underlying sequence construction.
+.priority_queue_build <- function(..., priorities = NULL, monoids = NULL) {
   xs <- list(...)
   n <- length(xs)
 
@@ -198,21 +234,14 @@ priority_queue <- function(..., priorities = NULL, names = NULL, monoids = NULL)
     if(!is.null(priorities) && length(priorities) > 0L) {
       stop("`priorities` must be empty when no elements are supplied.")
     }
-    return(.as_priority_queue(as_flexseq(list(), monoids = .pq_merge_monoids(monoids))))
+    return(.as_priority_queue(.as_flexseq_build(list(), monoids = .pq_merge_monoids(monoids)), priority_type = NULL))
   }
 
   if(is.null(priorities)) {
     stop("`priorities` is required when elements are supplied.")
   }
 
-  if(!is.null(names)) {
-    if(length(names) != n) {
-      stop("`names` length must match number of elements.")
-    }
-    names(xs) <- names
-  }
-
-  as_priority_queue(xs, priorities = priorities, monoids = monoids)
+  .as_priority_queue_build(xs, priorities = priorities, monoids = monoids)
 }
 
 # Runtime: O(1).
@@ -243,7 +272,7 @@ insert.default <- function(x, ...) {
 #' @method insert priority_queue
 #' @param x A `priority_queue`.
 #' @param element Element to insert.
-#' @param priority Numeric scalar priority.
+#' @param priority Scalar non-missing orderable priority.
 #' @param name Optional element name.
 #' @param ... Unused.
 #' @return Updated `priority_queue`.
@@ -258,7 +287,8 @@ insert.default <- function(x, ...) {
 insert.priority_queue <- function(x, element, priority, name = NULL, ...) {
   q <- x
   .pq_assert_queue(q)
-  entry <- .pq_make_entry(element, priority)
+  parsed <- .pq_make_entry(element, priority, priority_type = .pq_priority_type_state(q))
+  entry <- parsed$entry
 
   if(!is.null(name)) {
     entry <- .ft_set_name(entry, name)
@@ -305,11 +335,11 @@ insert.priority_queue <- function(x, element, priority, name = NULL, ...) {
   }
 
   rest <- concat_trees(s$left, s$right)
-  rest <- .as_priority_queue(rest)
+  rest <- .pq_wrap_like(q, rest)
 
   list(
     element = s$elem[["item"]],
-    priority = as.numeric(s$elem[["priority"]]),
+    priority = s$elem[["priority"]],
     remaining = rest
   )
 }
@@ -404,7 +434,7 @@ length.priority_queue <- function(x) {
 
     out[[i]] <- list(
       item = item2,
-      priority = as.numeric(e$priority)
+      priority = e$priority
     )
   }
 
@@ -418,8 +448,8 @@ length.priority_queue <- function(x) {
     user_monoids <- NULL
   }
 
-  q2 <- as_flexseq(out, monoids = .pq_merge_monoids(user_monoids))
-  .as_priority_queue(q2)
+  q2 <- .as_flexseq_build(out, monoids = .pq_merge_monoids(user_monoids))
+  .pq_wrap_like(q, q2)
 }
 
 #' Apply a function over priority queue entries

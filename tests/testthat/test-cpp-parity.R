@@ -121,7 +121,10 @@ testthat::test_that("backend parity: coverage map includes all cpp wrappers", {
   ns <- asNamespace("immutables")
   wrappers <- ls(ns, all.names = TRUE)
   wrappers <- wrappers[startsWith(wrappers, ".ft_cpp_")]
-  wrappers <- setdiff(wrappers, c(".ft_cpp_enabled", ".ft_cpp_eligible_monoids", ".ft_cpp_can_use"))
+  wrappers <- setdiff(
+    wrappers,
+    c(".ft_cpp_enabled", ".ft_cpp_eligible_monoids", ".ft_cpp_can_use", ".ft_cpp_can_use_oms_insert")
+  )
 
   testthat::expect_setequal(names(cpp_wrapper_coverage), wrappers)
 
@@ -136,7 +139,7 @@ testthat::test_that("backend parity: coverage map includes all cpp wrappers", {
 testthat::test_that("backend parity: MeasureMonoid constructor/use", {
   expect_backend_identical({
     m <- measure_monoid(function(a, b) a + b, 0, as.numeric)
-    t <- as_flexseq(1:5, monoids = list(sum = m))
+    t <- add_monoids(as_flexseq(1:5), list(sum = m))
     as.integer(node_measure(t, "sum"))
   })
 })
@@ -159,14 +162,14 @@ testthat::test_that("backend parity: empty_tree", {
 testthat::test_that("backend parity: tree_from", {
   expect_backend_identical({
     ms <- list(sum = measure_monoid(function(a, b) a + b, 0, as.numeric))
-    snapshot_tree(as_flexseq(setNames(as.list(1:8), letters[1:8]), monoids = ms))
+    snapshot_tree(add_monoids(as_flexseq(setNames(as.list(1:8), letters[1:8])), ms))
   })
 })
 
 testthat::test_that("backend parity: tree_from unnamed", {
   expect_backend_identical({
     ms <- list(sum = measure_monoid(function(a, b) a + b, 0, as.numeric))
-    snapshot_tree(as_flexseq(as.list(1:8), monoids = ms))
+    snapshot_tree(add_monoids(as_flexseq(as.list(1:8)), ms))
   })
 })
 
@@ -336,6 +339,21 @@ testthat::test_that("backend parity: ordered_sequence insert", {
   })
 })
 
+testthat::test_that("backend parity: ordered_sequence Date keys use consistent fallback path", {
+  expect_backend_identical({
+    x <- as_ordered_sequence(
+      list("late", "early1", "early2"),
+      keys = as.Date(c("2024-01-03", "2024-01-01", "2024-01-01"))
+    )
+    y <- insert(x, "early3", key = as.Date("2024-01-01"))
+    list(
+      values = as.list(y),
+      lower = lower_bound(y, as.Date("2024-01-01")),
+      upper = upper_bound(y, as.Date("2024-01-01"))
+    )
+  })
+})
+
 testthat::test_that("backend parity: interval_index insert and queries", {
   expect_backend_identical({
     x <- as_interval_index(
@@ -386,12 +404,11 @@ testthat::test_that("backend parity: interval_index user monoid recomputation", 
     sum_item <- measure_monoid(function(a, b) a + b, 0, function(el) as.numeric(el$item))
     width_sum <- measure_monoid(function(a, b) a + b, 0, function(el) as.numeric(el$end - el$start))
 
-    x <- as_interval_index(
+    x <- add_monoids(as_interval_index(
       as.list(c(10, 20, 30)),
       start = c(1, 2, 4),
-      end = c(3, 5, 6),
-      monoids = list(sum_item = sum_item, width_sum = width_sum)
-    )
+      end = c(3, 5, 6)
+    ), list(sum_item = sum_item, width_sum = width_sum))
     y <- insert(x, 40, start = 3, end = 4)
     z <- fapply(y, function(item, start, end, name) item + 1)
     s <- peek_overlaps(z, 2, 3, which = "all", bounds = "[)")

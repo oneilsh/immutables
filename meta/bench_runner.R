@@ -89,6 +89,8 @@
     as_flexseq_only = list(required = c("as_flexseq")),
     ordered_sequence_insert = list(required = c("as_ordered_sequence", "insert")),
     ordered_sequence_bounds = list(required = c("as_ordered_sequence", "lower_bound", "upper_bound")),
+    ordered_sequence_insert_date = list(required = c("as_ordered_sequence", "insert")),
+    ordered_sequence_bounds_date = list(required = c("as_ordered_sequence", "lower_bound", "upper_bound")),
     ordered_sequence_range_queries = list(required = c("as_ordered_sequence", "count_between", "elements_between")),
     ordered_sequence_pop_cycle = list(required = c("as_ordered_sequence", "pop_key", "insert")),
     interval_index_insert = list(required = c("as_interval_index", "insert")),
@@ -98,6 +100,8 @@
     interval_index_bounds_override = list(required = c("as_interval_index", "peek_point", "peek_overlaps", "pop_overlaps")),
     pq_peek_min_max = list(required = c("priority_queue", "insert", "peek_min", "peek_max")),
     pq_pop_min_drain = list(required = c("priority_queue", "insert", "pop_min")),
+    pq_peek_min_max_date = list(required = c("priority_queue", "insert", "peek_min", "peek_max")),
+    pq_pop_min_drain_date = list(required = c("priority_queue", "insert", "pop_min")),
     pq_mixed_ops = list(required = c("priority_queue", "insert", "pop_min", "peek_min")),
     pq_insert_pop = list(required = c("priority_queue", "insert", "pop_min"))
   )
@@ -213,6 +217,27 @@
     }
     return(invisible(TRUE))
   }
+  if(identical(scenario, "ordered_sequence_insert_date")) {
+    x <- as_ordered_sequence(
+      list("late", "early"),
+      keys = as.Date(c("2024-01-03", "2024-01-01"))
+    )
+    y <- insert(x, "mid", key = as.Date("2024-01-02"))
+    if(!inherits(y, "ordered_sequence")) stop("Scenario contract failed: Date-key insert must return ordered_sequence.")
+    return(invisible(TRUE))
+  }
+  if(identical(scenario, "ordered_sequence_bounds_date")) {
+    x <- as_ordered_sequence(
+      list("a", "b", "c"),
+      keys = as.Date(c("2024-01-01", "2024-01-02", "2024-01-02"))
+    )
+    lb <- lower_bound(x, as.Date("2024-01-02"))
+    ub <- upper_bound(x, as.Date("2024-01-02"))
+    if(!is.list(lb) || is.null(lb$found) || !is.list(ub) || is.null(ub$found)) {
+      stop("Scenario contract failed: Date-key lower_bound()/upper_bound() output shape changed.")
+    }
+    return(invisible(TRUE))
+  }
   if(identical(scenario, "ordered_sequence_range_queries")) {
     x <- as_ordered_sequence(list("a", "b", "c"), keys = c(1, 2, 3))
     n <- count_between(x, 1, 2)
@@ -308,6 +333,30 @@
     }
     return(invisible(TRUE))
   }
+  if(identical(scenario, "pq_peek_min_max_date")) {
+    q <- priority_queue()
+    q <- insert(q, "a", priority = as.Date("2024-01-02"))
+    q <- insert(q, "b", priority = as.Date("2024-01-01"))
+    a <- peek_min(q)
+    b <- peek_max(q)
+    if(is.null(a) || is.null(b)) {
+      stop("Scenario contract failed: Date-priority peek_min()/peek_max() returned NULL.")
+    }
+    return(invisible(TRUE))
+  }
+  if(identical(scenario, "pq_pop_min_drain_date")) {
+    q <- priority_queue()
+    q <- insert(q, "a", priority = as.Date("2024-01-02"))
+    q <- insert(q, "b", priority = as.Date("2024-01-01"))
+    out <- pop_min(q)
+    if(!is.list(out) || is.null(out$remaining) || !inherits(out$remaining, "priority_queue")) {
+      stop("Scenario contract failed: Date-priority pop_min() output shape changed.")
+    }
+    if(!inherits(out$priority, "Date")) {
+      stop("Scenario contract failed: Date-priority pop_min() must preserve Date class.")
+    }
+    return(invisible(TRUE))
+  }
   if(identical(scenario, "pq_mixed_ops")) {
     q <- priority_queue()
     q <- insert(q, "a", priority = 2)
@@ -352,6 +401,8 @@
       as_flexseq_only = list(n = 40000L),
       ordered_sequence_insert = list(n = 300L, inserts = 40L, key_space = 250L),
       ordered_sequence_bounds = list(n = 160L, queries = 30L, key_space = 120L),
+      ordered_sequence_insert_date = list(n = 220L, inserts = 30L, day_span = 180L),
+      ordered_sequence_bounds_date = list(n = 140L, queries = 24L, day_span = 160L),
       ordered_sequence_range_queries = list(n = 160L, queries = 30L, key_space = 120L),
       ordered_sequence_pop_cycle = list(n = 120L, steps = 30L, key_space = 100L),
       interval_index_insert = list(n = 90L, inserts = 106L, coord_space = 180L, width_max = 14L),
@@ -361,6 +412,8 @@
       interval_index_bounds_override = list(n = 90L, queries = 11L, coord_space = 180L, width_max = 14L),
       pq_peek_min_max = list(n = 100L, key_space = 80L, queries = 60L),
       pq_pop_min_drain = list(n = 100L, key_space = 80L, pops = 50L),
+      pq_peek_min_max_date = list(n = 90L, day_span = 120L, queries = 48L),
+      pq_pop_min_drain_date = list(n = 90L, day_span = 120L, pops = 40L),
       pq_mixed_ops = list(n = 90L, key_space = 70L, ops = 110L, insert_prob = 0.55),
       pq_insert_pop = list(n = 100L, key_space = 80L, pops = 50L)
     ))
@@ -380,6 +433,8 @@
     as_flexseq_only = list(n = 12000L),
     ordered_sequence_insert = list(n = 500L, inserts = 70L, key_space = 400L),
     ordered_sequence_bounds = list(n = 220L, queries = 44L, key_space = 170L),
+    ordered_sequence_insert_date = list(n = 320L, inserts = 44L, day_span = 260L),
+    ordered_sequence_bounds_date = list(n = 200L, queries = 36L, day_span = 220L),
     ordered_sequence_range_queries = list(n = 220L, queries = 44L, key_space = 170L),
     ordered_sequence_pop_cycle = list(n = 160L, steps = 44L, key_space = 130L),
     interval_index_insert = list(n = 140L, inserts = 20L, coord_space = 260L, width_max = 18L),
@@ -389,6 +444,8 @@
     interval_index_bounds_override = list(n = 140L, queries = 20L, coord_space = 260L, width_max = 18L),
     pq_peek_min_max = list(n = 140L, key_space = 100L, queries = 80L),
     pq_pop_min_drain = list(n = 140L, key_space = 100L, pops = 70L),
+    pq_peek_min_max_date = list(n = 120L, day_span = 180L, queries = 60L),
+    pq_pop_min_drain_date = list(n = 120L, day_span = 180L, pops = 60L),
     pq_mixed_ops = list(n = 120L, key_space = 90L, ops = 150L, insert_prob = 0.55),
     pq_insert_pop = list(n = 140L, key_space = 100L, pops = 70L)
   )
@@ -539,6 +596,41 @@
   seq <- as_ordered_sequence(vals, keys = keys)
 
   q <- sample.int(key_space, queries, replace = TRUE)
+  for(k in q) {
+    invisible(lower_bound(seq, k))
+    invisible(upper_bound(seq, k))
+  }
+  invisible(NULL)
+}
+
+# Non-primitive ordered keys route comparison through R predicate paths; these
+# are expected to run slower than primitive-key scenarios.
+.bench_scenario_ordered_sequence_insert_date <- function(n, inserts, day_span) {
+  n <- as.integer(n)
+  inserts <- as.integer(inserts)
+  day_span <- as.integer(day_span)
+
+  base_vals <- as.list(seq_len(n))
+  base_keys <- as.Date(sample.int(day_span, n, replace = TRUE), origin = "2020-01-01")
+  seq <- as_ordered_sequence(base_vals, keys = base_keys)
+
+  ins_keys <- as.Date(sample.int(day_span, inserts, replace = TRUE), origin = "2020-01-01")
+  for(i in seq_len(inserts)) {
+    seq <- insert(seq, i, key = ins_keys[[i]])
+  }
+  invisible(seq)
+}
+
+.bench_scenario_ordered_sequence_bounds_date <- function(n, queries, day_span) {
+  n <- as.integer(n)
+  queries <- as.integer(queries)
+  day_span <- as.integer(day_span)
+
+  vals <- as.list(seq_len(n))
+  keys <- as.Date(sample.int(day_span, n, replace = TRUE), origin = "2020-01-01")
+  seq <- as_ordered_sequence(vals, keys = keys)
+
+  q <- as.list(as.Date(sample.int(day_span, queries, replace = TRUE), origin = "2020-01-01"))
   for(k in q) {
     invisible(lower_bound(seq, k))
     invisible(upper_bound(seq, k))
@@ -724,6 +816,17 @@
   q
 }
 
+.bench_build_priority_queue_date <- function(n, day_span) {
+  n <- as.integer(n)
+  day_span <- as.integer(day_span)
+  priorities <- as.Date(sample.int(day_span, n, replace = TRUE), origin = "2020-01-01")
+  q <- priority_queue()
+  for(i in seq_len(n)) {
+    q <- insert(q, i, priority = priorities[[i]])
+  }
+  q
+}
+
 .bench_scenario_pq_insert_pop <- function(n, key_space, pops) {
   pops <- as.integer(pops)
   q <- .bench_build_priority_queue(n, key_space)
@@ -747,6 +850,29 @@
 .bench_scenario_pq_pop_min_drain <- function(n, key_space, pops) {
   pops <- as.integer(pops)
   q <- .bench_build_priority_queue(n, key_space)
+  k <- min(pops, as.integer(n))
+  for(i in seq_len(k)) {
+    q <- pop_min(q)$remaining
+    if(length(q) == 0L) {
+      break
+    }
+  }
+  invisible(q)
+}
+
+.bench_scenario_pq_peek_min_max_date <- function(n, day_span, queries) {
+  queries <- as.integer(queries)
+  q <- .bench_build_priority_queue_date(n, day_span)
+  for(i in seq_len(queries)) {
+    invisible(peek_min(q))
+    invisible(peek_max(q))
+  }
+  invisible(NULL)
+}
+
+.bench_scenario_pq_pop_min_drain_date <- function(n, day_span, pops) {
+  pops <- as.integer(pops)
+  q <- .bench_build_priority_queue_date(n, day_span)
   k <- min(pops, as.integer(n))
   for(i in seq_len(k)) {
     q <- pop_min(q)$remaining
@@ -795,6 +921,8 @@
     "as_flexseq_only",
     "ordered_sequence_insert",
     "ordered_sequence_bounds",
+    "ordered_sequence_insert_date",
+    "ordered_sequence_bounds_date",
     "ordered_sequence_range_queries",
     "ordered_sequence_pop_cycle",
     "interval_index_insert",
@@ -804,6 +932,8 @@
     "interval_index_bounds_override",
     "pq_peek_min_max",
     "pq_pop_min_drain",
+    "pq_peek_min_max_date",
+    "pq_pop_min_drain_date",
     "pq_mixed_ops",
     "pq_insert_pop"
   )
@@ -826,6 +956,8 @@
     as_flexseq_only = do.call(.bench_scenario_as_flexseq_only, params),
     ordered_sequence_insert = do.call(.bench_scenario_ordered_sequence_insert, params),
     ordered_sequence_bounds = do.call(.bench_scenario_ordered_sequence_bounds, params),
+    ordered_sequence_insert_date = do.call(.bench_scenario_ordered_sequence_insert_date, params),
+    ordered_sequence_bounds_date = do.call(.bench_scenario_ordered_sequence_bounds_date, params),
     ordered_sequence_range_queries = do.call(.bench_scenario_ordered_sequence_range_queries, params),
     ordered_sequence_pop_cycle = do.call(.bench_scenario_ordered_sequence_pop_cycle, params),
     interval_index_insert = do.call(.bench_scenario_interval_index_insert, params),
@@ -835,6 +967,8 @@
     interval_index_bounds_override = do.call(.bench_scenario_interval_index_bounds_override, params),
     pq_peek_min_max = do.call(.bench_scenario_pq_peek_min_max, params),
     pq_pop_min_drain = do.call(.bench_scenario_pq_pop_min_drain, params),
+    pq_peek_min_max_date = do.call(.bench_scenario_pq_peek_min_max_date, params),
+    pq_pop_min_drain_date = do.call(.bench_scenario_pq_pop_min_drain_date, params),
     pq_mixed_ops = do.call(.bench_scenario_pq_mixed_ops, params),
     pq_insert_pop = do.call(.bench_scenario_pq_insert_pop, params),
     stop("Unknown benchmark scenario: ", name)

@@ -23,7 +23,7 @@ testthat::test_that("locate_by_predicate metadata for .size is symmetric", {
 
 testthat::test_that("locate_by_predicate metadata works with non-size monoid and .size index", {
   sum_m <- measure_monoid(`+`, 0, as.numeric)
-  t <- as_flexseq(1:6, monoids = list(sum = sum_m))
+  t <- add_monoids(as_flexseq(1:6), list(sum = sum_m))
 
   l <- locate_by_predicate(t, function(v) v >= 10, "sum", include_metadata = TRUE)
 

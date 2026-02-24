@@ -4,16 +4,12 @@
 \alias{priority_queue}
 \title{Construct a Priority Queue}
 \usage{
-priority_queue(..., priorities = NULL, names = NULL, monoids = NULL)
+priority_queue(..., priorities)
 }
 \arguments{
 \item{...}{Elements to enqueue.}
 
-\item{priorities}{Numeric priorities matching `...`.}
-
-\item{names}{Optional element names.}
-
-\item{monoids}{Optional additional named list of `measure_monoid` objects.}
+\item{priorities}{Scalar non-missing orderable priorities matching `...`.}
 }
 \value{
 A `priority_queue`.

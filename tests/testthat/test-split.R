@@ -1,6 +1,6 @@
 testthat::test_that("split_around_by_predicate returns distinguished element and context", {
   mr <- measure_monoid(function(a, b) a + b, 0, function(el) 1)
-  t <- as_flexseq(letters[1:6], monoids = list(count = mr))
+  t <- add_monoids(as_flexseq(letters[1:6]), list(count = mr))
 
   s <- split_around_by_predicate(t, function(v) v >= 4, ".size")
   testthat::expect_identical(s$elem, "d")
@@ -10,7 +10,7 @@ testthat::test_that("split_around_by_predicate returns distinguished element and
 
 testthat::test_that("split_by_predicate returns left/right trees with split element prepended to right", {
   mr <- measure_monoid(function(a, b) a + b, 0, function(el) 1)
-  t <- as_flexseq(letters[1:6], monoids = list(count = mr))
+  t <- add_monoids(as_flexseq(letters[1:6]), list(count = mr))
 
   s <- split_by_predicate(t, function(v) v >= 4, ".size")
   testthat::expect_identical(attr(s$left, "measures")$.size, 3)

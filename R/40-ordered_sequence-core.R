@@ -24,18 +24,67 @@
   list(item = item, key = key_value)
 }
 
-# Runtime: O(n log n) from ordering by key then stable position.
+# Runtime: O(n log n) for stable merge sort by key.
+.oms_merge_sort_indices <- function(idx, entries, key_type) {
+  n <- length(idx)
+  if(n <= 1L) {
+    return(idx)
+  }
+
+  mid <- as.integer(n %/% 2L)
+  left <- .oms_merge_sort_indices(idx[seq_len(mid)], entries, key_type)
+  right <- .oms_merge_sort_indices(idx[(mid + 1L):n], entries, key_type)
+
+  out <- integer(n)
+  i <- 1L
+  j <- 1L
+  k <- 1L
+  while(i <= length(left) && j <= length(right)) {
+    cmp <- .oms_compare_key(entries[[left[[i]]]]$key, entries[[right[[j]]]]$key, key_type)
+    if(cmp <= 0L) {
+      out[[k]] <- left[[i]]
+      i <- i + 1L
+    } else {
+      out[[k]] <- right[[j]]
+      j <- j + 1L
+    }
+    k <- k + 1L
+  }
+
+  while(i <= length(left)) {
+    out[[k]] <- left[[i]]
+    i <- i + 1L
+    k <- k + 1L
+  }
+  while(j <= length(right)) {
+    out[[k]] <- right[[j]]
+    j <- j + 1L
+    k <- k + 1L
+  }
+  out
+}
+
+# Runtime: O(n log n) stable by key and FIFO on ties.
 .oms_order_entries <- function(entries, key_type) {
-  if(length(entries) == 0L) {
+  if(length(entries) <= 1L) {
     return(entries)
   }
+
   idx <- seq_along(entries)
-  ord <- if(key_type == "numeric") {
+  ord <- if(identical(key_type, "numeric")) {
     order(vapply(entries, function(e) e$key, numeric(1)), idx)
-  } else if(key_type == "character") {
+  } else if(identical(key_type, "character")) {
     order(vapply(entries, function(e) e$key, character(1)), idx)
+  } else if(identical(key_type, "logical")) {
+    order(vapply(entries, function(e) e$key, logical(1)), idx)
   } else {
-    order(vapply(entries, function(e) as.integer(isTRUE(e$key)), integer(1)), idx)
+    keys <- lapply(entries, function(e) e$key)
+    ord_try <- tryCatch(order(do.call(c, keys), idx), error = function(e) NULL)
+    if(is.null(ord_try) || length(ord_try) != length(entries)) {
+      .oms_merge_sort_indices(idx, entries, key_type)
+    } else {
+      ord_try
+    }
   }
   entries[ord]
 }
@@ -78,11 +127,6 @@
 }
 
 # Runtime: O(1).
-.oms_wrap_tree <- function(template, tree, key_type = NULL) {
-  .ord_wrap_like(template, tree, key_type = key_type)
-}
-
-# Runtime: O(1).
 .oms_validate_key_type <- function(oms_key_type, new_key_type) {
   if(is.null(oms_key_type)) {
     return(new_key_type)
@@ -110,7 +154,7 @@
     if(!is.null(keys) && length(as.list(keys)) > 0L) {
       stop("`keys` must be empty when no elements are supplied.")
     }
-    base <- as_flexseq(list(), monoids = .oms_merge_monoids(monoids))
+    base <- .as_flexseq_build(list(), monoids = .oms_merge_monoids(monoids))
     return(.as_ordered_sequence(base, key_type = NULL))
   }
 
@@ -233,7 +277,6 @@
 #'
 #' @param x Elements to add.
 #' @param keys Scalar key values matching `x` length.
-#' @param monoids Optional additional named list of `measure_monoid` objects.
 #'
 #' Ordered sequences are always key-sorted. Subsetting with `[` is intentionally
 #' constrained to strictly increasing mapped positions (no duplicates or
@@ -244,7 +287,12 @@
 #' xs
 #' length(elements_between(xs, 1, 1))
 #' @export
-as_ordered_sequence <- function(x, keys = NULL, monoids = NULL) {
+as_ordered_sequence <- function(x, keys) {
+  .as_ordered_sequence_build(x, keys = keys, monoids = NULL)
+}
+
+# Runtime: O(n log n) from build and ordering.
+.as_ordered_sequence_build <- function(x, keys = NULL, monoids = NULL) {
   .oms_build_from_items(as.list(x), keys = keys, monoids = monoids)
 }
 
@@ -253,15 +301,22 @@ as_ordered_sequence <- function(x, keys = NULL, monoids = NULL) {
 #'
 #' @param ... Elements to add.
 #' @param keys Scalar key values matching `...` length.
-#' @param monoids Optional additional named list of `measure_monoid` objects.
 #' @return An `ordered_sequence`.
 #' @examples
 #' xs <- ordered_sequence("bb", "a", "ccc", keys = c(2, 1, 3))
 #' xs
 #' lower_bound(xs, 2)
 #' @export
-ordered_sequence <- function(..., keys = NULL, monoids = NULL) {
-  as_ordered_sequence(list(...), keys = keys, monoids = monoids)
+ordered_sequence <- function(..., keys) {
+  if(missing(keys)) {
+    keys <- NULL
+  }
+  .ordered_sequence_build(..., keys = keys, monoids = NULL)
+}
+
+# Runtime: O(n log n) from build and ordering.
+.ordered_sequence_build <- function(..., keys = NULL, monoids = NULL) {
+  .as_ordered_sequence_build(list(...), keys = keys, monoids = monoids)
 }
 
 # Runtime: O(log n) near insertion/split point depth.
@@ -274,7 +329,7 @@ ordered_sequence <- function(..., keys = NULL, monoids = NULL) {
   entry <- .oms_make_entry(element, norm$key)
   ms <- attr(x, "monoids", exact = TRUE)
 
-  out <- if(.ft_cpp_can_use(ms)) {
+  out <- if(.ft_cpp_can_use_oms_insert(ms, key_type)) {
     .as_flexseq(.ft_cpp_oms_insert(x, entry, ms, key_type))
   } else {
     s <- split_by_predicate(

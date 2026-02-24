@@ -4,14 +4,12 @@
 \alias{ordered_sequence}
 \title{Construct an Ordered Sequence}
 \usage{
-ordered_sequence(..., keys = NULL, monoids = NULL)
+ordered_sequence(..., keys)
 }
 \arguments{
 \item{...}{Elements to add.}
 
 \item{keys}{Scalar key values matching `...` length.}
-
-\item{monoids}{Optional additional named list of `measure_monoid` objects.}
 }
 \value{
 An `ordered_sequence`.

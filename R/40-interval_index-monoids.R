@@ -1,69 +1,30 @@
 # Runtime: O(1).
 .ivx_endpoint_type <- function(v) {
-  if(inherits(v, "Date")) {
-    return("Date")
-  }
-  if(inherits(v, "POSIXct")) {
-    return("POSIXct")
-  }
-  if(is.numeric(v)) {
-    return("numeric")
-  }
-  if(is.character(v)) {
-    return("character")
-  }
-  if(is.logical(v)) {
-    return("logical")
-  }
-  cls <- class(v)
-  if(length(cls) > 0L) {
-    return(paste0("class:", paste(cls, collapse = "/")))
-  }
-  paste0("typeof:", typeof(v))
+  .ft_scalar_domain(v)
 }
 
 # Runtime: O(1).
 .ivx_compare_scalar <- function(a, b, endpoint_type = NULL) {
-  lt <- suppressWarnings(tryCatch(a < b, error = function(e) e))
-  gt <- suppressWarnings(tryCatch(a > b, error = function(e) e))
-
-  if(inherits(lt, "error") || inherits(gt, "error") || length(lt) != 1L || length(gt) != 1L) {
-    stop("Interval endpoints must support scalar ordering with `<` and `>`.")
-  }
-  if(is.na(lt) || is.na(gt)) {
-    stop("Interval endpoints must support scalar ordering with `<` and `>`.")
-  }
-
-  if(isTRUE(lt)) {
-    return(-1L)
-  }
-  if(isTRUE(gt)) {
-    return(1L)
-  }
-  0L
+  .ft_scalar_compare(
+    a,
+    b,
+    error_message = "Interval endpoints must support scalar ordering with `<` and `>`."
+  )
 }
 
 # Runtime: O(1).
 .ivx_is_fast_endpoint_type <- function(endpoint_type) {
-  isTRUE(endpoint_type %in% c("numeric", "character", "logical", "Date", "POSIXct"))
+  .ft_scalar_is_fast_domain(endpoint_type)
 }
 
 # Runtime: O(1).
 .ivx_compare_scalar_fast <- function(a, b, endpoint_type = NULL) {
-  if(.ivx_is_fast_endpoint_type(endpoint_type)) {
-    lt <- a < b
-    gt <- a > b
-    if(length(lt) == 1L && length(gt) == 1L && !is.na(lt) && !is.na(gt)) {
-      if(isTRUE(lt)) {
-        return(-1L)
-      }
-      if(isTRUE(gt)) {
-        return(1L)
-      }
-      return(0L)
-    }
-  }
-  .ivx_compare_scalar(a, b, endpoint_type = endpoint_type)
+  .ft_scalar_compare_fast(
+    a,
+    b,
+    domain = endpoint_type,
+    error_message = "Interval endpoints must support scalar ordering with `<` and `>`."
+  )
 }
 
 # Runtime: O(1).

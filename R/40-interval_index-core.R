@@ -398,7 +398,7 @@
       stop("`end` must be empty when no elements are supplied.")
     }
 
-    base <- as_flexseq(list(), monoids = .ivx_merge_monoids(monoids))
+    base <- .as_flexseq_build(list(), monoids = .ivx_merge_monoids(monoids))
     return(.as_interval_index(base, endpoint_type = NULL, bounds = bounds))
   }
 
@@ -710,14 +710,18 @@
 #' @param start Scalar start endpoints (same length as `x`).
 #' @param end Scalar end endpoints (same length as `x`).
 #' @param bounds One of `"[)"`, `"[]"`, `"()"`, `"(]"`.
-#' @param monoids Optional additional named list of `measure_monoid` objects.
 #' @return An `interval_index`.
 #' @examples
 #' ix <- as_interval_index(c("a", "b", "c"), start = c(1, 2, 2), end = c(3, 2, 4))
 #' ix
 #' as.list(peek_point(ix, 2, which = "all"))
 #' @export
-as_interval_index <- function(x, start, end, bounds = "[)", monoids = NULL) {
+as_interval_index <- function(x, start, end, bounds = "[)") {
+  .as_interval_index_build(x, start = start, end = end, bounds = bounds, monoids = NULL)
+}
+
+# Runtime: O(n log n) from sort + bulk build.
+.as_interval_index_build <- function(x, start, end, bounds = "[)", monoids = NULL) {
   .ivx_build_from_items(as.list(x), start = start, end = end, bounds = bounds, monoids = monoids)
 }
 
@@ -728,14 +732,24 @@ as_interval_index <- function(x, start, end, bounds = "[)", monoids = NULL) {
 #' @param start Scalar start endpoints matching `...`.
 #' @param end Scalar end endpoints matching `...`.
 #' @param bounds One of `"[)"`, `"[]"`, `"()"`, `"(]"`.
-#' @param monoids Optional additional named list of `measure_monoid` objects.
 #' @return An `interval_index`.
 #' @examples
 #' ix <- interval_index("a", "b", "c", start = c(1, 2, 2), end = c(3, 2, 4))
 #' ix
 #' @export
-interval_index <- function(..., start = NULL, end = NULL, bounds = "[)", monoids = NULL) {
-  as_interval_index(list(...), start = start, end = end, bounds = bounds, monoids = monoids)
+interval_index <- function(..., start, end, bounds = "[)") {
+  if(missing(start)) {
+    start <- NULL
+  }
+  if(missing(end)) {
+    end <- NULL
+  }
+  .interval_index_build(..., start = start, end = end, bounds = bounds, monoids = NULL)
+}
+
+# Runtime: O(n log n) from sort + bulk build.
+.interval_index_build <- function(..., start = NULL, end = NULL, bounds = "[)", monoids = NULL) {
+  .as_interval_index_build(list(...), start = start, end = end, bounds = bounds, monoids = monoids)
 }
 
 # Runtime: O(log n) near split point depth.

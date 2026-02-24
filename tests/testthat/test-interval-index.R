@@ -170,6 +170,25 @@ testthat::test_that("interval_index indexing preserves class and blocks replacem
   testthat::expect_error({ ix$b <- "qq" }, "not supported")
 })
 
+testthat::test_that("interval replacement blocker messages never leak structural classes", {
+  ix <- as_interval_index(
+    setNames(as.list(c("xa", "xb")), c("a", "b")),
+    start = c(1, 2),
+    end = c(2, 3)
+  )
+
+  msg1 <- testthat::expect_error({ ix[[1]] <- "qq" })$message
+  msg2 <- testthat::expect_error({ ix[1] <- list("qq") })$message
+  msg3 <- testthat::expect_error({ ix$a <- "qq" })$message
+
+  testthat::expect_match(msg1, "interval_index")
+  testthat::expect_match(msg2, "interval_index")
+  testthat::expect_match(msg3, "interval_index")
+  testthat::expect_false(grepl("Deep", msg1, fixed = TRUE))
+  testthat::expect_false(grepl("Deep", msg2, fixed = TRUE))
+  testthat::expect_false(grepl("Deep", msg3, fixed = TRUE))
+})
+
 testthat::test_that("front/back/at peek/pop helpers are blocked on interval_index", {
   ix <- as_interval_index("a", start = 1, end = 2)
 
@@ -218,12 +237,11 @@ testthat::test_that("interval_index recomputes user monoids across insert, fappl
   sum_item <- measure_monoid(function(a, b) a + b, 0, function(el) as.numeric(el$item))
   width_sum <- measure_monoid(function(a, b) a + b, 0, function(el) as.numeric(el$end - el$start))
 
-  ix <- as_interval_index(
+  ix <- add_monoids(as_interval_index(
     as.list(c(10, 20, 30)),
     start = c(1, 2, 4),
-    end = c(3, 5, 6),
-    monoids = list(sum_item = sum_item, width_sum = width_sum)
-  )
+    end = c(3, 5, 6)
+  ), list(sum_item = sum_item, width_sum = width_sum))
   testthat::expect_equal(node_measure(ix, "sum_item"), 60)
   testthat::expect_equal(node_measure(ix, "width_sum"), 7)
 
@@ -252,12 +270,11 @@ testthat::test_that("interval_index recomputes user monoids across insert, fappl
 
 testthat::test_that("interval_index casts down to flexseq explicitly", {
   width_sum <- measure_monoid(`+`, 0, function(el) as.numeric(el$end - el$start))
-  ix <- as_interval_index(
+  ix <- add_monoids(as_interval_index(
     setNames(list("x", "y"), c("ix", "iy")),
     start = c(1, 3),
-    end = c(2, 5),
-    monoids = list(width_sum = width_sum)
-  )
+    end = c(2, 5)
+  ), list(width_sum = width_sum))
 
   fx <- as_flexseq(ix)
   testthat::expect_s3_class(fx, "flexseq")

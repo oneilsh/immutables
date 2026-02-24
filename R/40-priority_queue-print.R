@@ -17,7 +17,7 @@
   }
 
   rest <- concat_trees(s$left, s$right)
-  rest <- .as_priority_queue(rest)
+  rest <- .pq_wrap_like(q, rest)
   list(entry = s$elem, remaining = rest)
 }
 

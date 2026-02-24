@@ -342,6 +342,459 @@ int oms_compare_keys(SEXP a, SEXP b, const std::string& key_type) {
   stop("Unsupported ordered_multiset key type.");
 }
 
+bool monoid_name_is_pq_minmax(const std::string& monoid_name, bool& is_min) {
+  if(monoid_name == ".pq_min") {
+    is_min = true;
+    return true;
+  }
+  if(monoid_name == ".pq_max") {
+    is_min = false;
+    return true;
+  }
+  return false;
+}
+
+bool scalar_string_non_missing(SEXP x) {
+  return TYPEOF(x) == STRSXP && XLENGTH(x) == 1 && STRING_ELT(x, 0) != NA_STRING;
+}
+
+bool scalar_logical_non_missing(SEXP x) {
+  if(TYPEOF(x) != LGLSXP || XLENGTH(x) != 1) {
+    return false;
+  }
+  return LOGICAL(x)[0] != NA_LOGICAL;
+}
+
+bool scalar_numeric_non_missing(SEXP x) {
+  if(TYPEOF(x) == REALSXP && XLENGTH(x) == 1) {
+    const double v = REAL(x)[0];
+    return !ISNA(v) && !ISNAN(v);
+  }
+  if(TYPEOF(x) == INTSXP && XLENGTH(x) == 1) {
+    return INTEGER(x)[0] != NA_INTEGER;
+  }
+  return false;
+}
+
+bool has_non_fast_numeric_class(SEXP x) {
+  if(TYPEOF(x) != REALSXP && TYPEOF(x) != INTSXP) {
+    return false;
+  }
+  if(Rf_inherits(x, "Date") || Rf_inherits(x, "POSIXct")) {
+    return false;
+  }
+  SEXP cls = Rf_getAttrib(x, class_sym);
+  return !Rf_isNull(cls) && XLENGTH(cls) > 0;
+}
+
+enum class ScalarKind {
+  UNKNOWN = 0,
+  NUMERIC,
+  CHARACTER,
+  LOGICAL,
+  DATE,
+  POSIXCT
+};
+
+const char* scalar_kind_name(ScalarKind kind) {
+  switch(kind) {
+  case ScalarKind::NUMERIC:
+    return "numeric";
+  case ScalarKind::CHARACTER:
+    return "character";
+  case ScalarKind::LOGICAL:
+    return "logical";
+  case ScalarKind::DATE:
+    return "Date";
+  case ScalarKind::POSIXCT:
+    return "POSIXct";
+  default:
+    return "";
+  }
+}
+
+ScalarKind scalar_kind_from_type_name(SEXP type_name) {
+  if(!scalar_string_non_missing(type_name)) {
+    return ScalarKind::UNKNOWN;
+  }
+  const std::string t = as<std::string>(type_name);
+  if(t == "numeric") {
+    return ScalarKind::NUMERIC;
+  }
+  if(t == "character") {
+    return ScalarKind::CHARACTER;
+  }
+  if(t == "logical") {
+    return ScalarKind::LOGICAL;
+  }
+  if(t == "Date") {
+    return ScalarKind::DATE;
+  }
+  if(t == "POSIXct") {
+    return ScalarKind::POSIXCT;
+  }
+  return ScalarKind::UNKNOWN;
+}
+
+ScalarKind scalar_kind_from_value(SEXP x) {
+  if(scalar_string_non_missing(x)) {
+    return ScalarKind::CHARACTER;
+  }
+  if(scalar_logical_non_missing(x)) {
+    return ScalarKind::LOGICAL;
+  }
+  if(scalar_numeric_non_missing(x)) {
+    if(Rf_inherits(x, "Date")) {
+      return ScalarKind::DATE;
+    }
+    if(Rf_inherits(x, "POSIXct")) {
+      return ScalarKind::POSIXCT;
+    }
+    if(has_non_fast_numeric_class(x)) {
+      return ScalarKind::UNKNOWN;
+    }
+    return ScalarKind::NUMERIC;
+  }
+  return ScalarKind::UNKNOWN;
+}
+
+double scalar_numeric_value(SEXP x) {
+  return TYPEOF(x) == REALSXP ? REAL(x)[0] : static_cast<double>(INTEGER(x)[0]);
+}
+
+bool scalar_compare_fast(SEXP a, SEXP b, ScalarKind kind, int& cmp_out) {
+  if(kind == ScalarKind::CHARACTER) {
+    if(!scalar_string_non_missing(a) || !scalar_string_non_missing(b)) {
+      return false;
+    }
+    const std::string sa = as<std::string>(a);
+    const std::string sb = as<std::string>(b);
+    if(sa < sb) cmp_out = -1;
+    else if(sa > sb) cmp_out = 1;
+    else cmp_out = 0;
+    return true;
+  }
+
+  if(kind == ScalarKind::LOGICAL) {
+    if(!scalar_logical_non_missing(a) || !scalar_logical_non_missing(b)) {
+      return false;
+    }
+    const int ia = LOGICAL(a)[0];
+    const int ib = LOGICAL(b)[0];
+    if(ia < ib) cmp_out = -1;
+    else if(ia > ib) cmp_out = 1;
+    else cmp_out = 0;
+    return true;
+  }
+
+  if(kind == ScalarKind::NUMERIC || kind == ScalarKind::DATE || kind == ScalarKind::POSIXCT) {
+    if(!scalar_numeric_non_missing(a) || !scalar_numeric_non_missing(b)) {
+      return false;
+    }
+    if(kind == ScalarKind::NUMERIC) {
+      if(Rf_inherits(a, "Date") || Rf_inherits(a, "POSIXct") || Rf_inherits(b, "Date") || Rf_inherits(b, "POSIXct")) {
+        return false;
+      }
+      if(has_non_fast_numeric_class(a) || has_non_fast_numeric_class(b)) {
+        return false;
+      }
+    } else if(kind == ScalarKind::DATE) {
+      if(!Rf_inherits(a, "Date") || !Rf_inherits(b, "Date")) {
+        return false;
+      }
+    } else {
+      if(!Rf_inherits(a, "POSIXct") || !Rf_inherits(b, "POSIXct")) {
+        return false;
+      }
+    }
+    const double da = scalar_numeric_value(a);
+    const double db = scalar_numeric_value(b);
+    if(da < db) cmp_out = -1;
+    else if(da > db) cmp_out = 1;
+    else cmp_out = 0;
+    return true;
+  }
+
+  return false;
+}
+
+bool pq_extract_priority_from_entry(SEXP x, SEXP& priority_out) {
+  if(TYPEOF(x) != VECSXP) {
+    return false;
+  }
+  List el(x);
+  if(!el.containsElementNamed("priority")) {
+    return false;
+  }
+  SEXP priority = el["priority"];
+  if(Rf_isNull(priority) || XLENGTH(priority) != 1) {
+    return false;
+  }
+  priority_out = priority;
+  return true;
+}
+
+bool oms_extract_key_from_entry(SEXP x, SEXP& key_out) {
+  if(TYPEOF(x) != VECSXP) {
+    return false;
+  }
+  List el(x);
+  SEXP key = R_NilValue;
+  if(el.containsElementNamed("key")) {
+    key = el["key"];
+  } else if(el.size() >= 2) {
+    key = el[1];
+  } else {
+    return false;
+  }
+  if(Rf_isNull(key) || XLENGTH(key) != 1) {
+    return false;
+  }
+  key_out = key;
+  return true;
+}
+
+bool ivx_extract_start_from_entry(SEXP x, SEXP& start_out) {
+  if(TYPEOF(x) != VECSXP) {
+    return false;
+  }
+  List el(x);
+  SEXP start = R_NilValue;
+  if(el.containsElementNamed("start")) {
+    start = el["start"];
+  } else if(el.size() >= 2) {
+    start = el[1];
+  } else {
+    return false;
+  }
+  if(Rf_isNull(start) || XLENGTH(start) != 1) {
+    return false;
+  }
+  start_out = start;
+  return true;
+}
+
+bool measure_parse_has(SEXP measure, bool& has_out, SEXP& payload_out, const char* payload_name, int payload_idx);
+
+bool pq_parse_measure(SEXP measure, bool& has_out, SEXP& priority_out) {
+  return measure_parse_has(measure, has_out, priority_out, "priority", 1);
+}
+
+SEXP pq_make_measure(SEXP priority) {
+  return List::create(_["has"] = true, _["priority"] = priority);
+}
+
+bool pq_combine_measure_fast(SEXP left, SEXP right, bool is_min, SEXP& out) {
+  bool left_has = false;
+  bool right_has = false;
+  SEXP left_priority = R_NilValue;
+  SEXP right_priority = R_NilValue;
+  if(!pq_parse_measure(left, left_has, left_priority) || !pq_parse_measure(right, right_has, right_priority)) {
+    return false;
+  }
+  if(!left_has) {
+    out = right;
+    return true;
+  }
+  if(!right_has) {
+    out = left;
+    return true;
+  }
+  int cmp = 0;
+  const ScalarKind kind = scalar_kind_from_value(left_priority);
+  if(kind == ScalarKind::UNKNOWN || !scalar_compare_fast(left_priority, right_priority, kind, cmp)) {
+    return false;
+  }
+  const bool take_left = is_min ? (cmp <= 0) : (cmp >= 0);
+  out = take_left ? left : right;
+  return true;
+}
+
+bool measure_parse_has(SEXP measure, bool& has_out, SEXP& payload_out, const char* payload_name, int payload_idx) {
+  if(TYPEOF(measure) != VECSXP) {
+    return false;
+  }
+  List m(measure);
+  SEXP has_val = R_NilValue;
+  if(m.containsElementNamed("has")) {
+    has_val = m["has"];
+  } else if(m.size() >= 1) {
+    has_val = m[0];
+  } else {
+    return false;
+  }
+  if(TYPEOF(has_val) != LGLSXP || XLENGTH(has_val) != 1) {
+    return false;
+  }
+  const int hv = LOGICAL(has_val)[0];
+  if(hv == NA_LOGICAL) {
+    return false;
+  }
+  has_out = hv == 1;
+  if(!has_out) {
+    payload_out = R_NilValue;
+    return true;
+  }
+
+  SEXP payload = R_NilValue;
+  if(m.containsElementNamed(payload_name)) {
+    payload = m[payload_name];
+  } else if(m.size() > payload_idx) {
+    payload = m[payload_idx];
+  } else {
+    return false;
+  }
+  if(Rf_isNull(payload) || XLENGTH(payload) != 1) {
+    return false;
+  }
+  payload_out = payload;
+  return true;
+}
+
+bool oms_parse_measure(SEXP measure, bool& has_out, SEXP& key_out, ScalarKind& kind_out) {
+  if(!measure_parse_has(measure, has_out, key_out, "key", 1)) {
+    return false;
+  }
+  kind_out = ScalarKind::UNKNOWN;
+  if(!has_out) {
+    return true;
+  }
+  List m(measure);
+  SEXP type_val = R_NilValue;
+  if(m.containsElementNamed("key_type")) {
+    type_val = m["key_type"];
+  } else if(m.size() >= 3) {
+    type_val = m[2];
+  }
+  kind_out = scalar_kind_from_type_name(type_val);
+  if(kind_out == ScalarKind::UNKNOWN) {
+    kind_out = scalar_kind_from_value(key_out);
+  }
+  return true;
+}
+
+bool ivx_parse_measure(SEXP measure, bool& has_out, SEXP& start_out, ScalarKind& kind_out) {
+  if(!measure_parse_has(measure, has_out, start_out, "start", 1)) {
+    return false;
+  }
+  kind_out = ScalarKind::UNKNOWN;
+  if(!has_out) {
+    return true;
+  }
+  List m(measure);
+  SEXP type_val = R_NilValue;
+  if(m.containsElementNamed("endpoint_type")) {
+    type_val = m["endpoint_type"];
+  } else if(m.size() >= 3) {
+    type_val = m[2];
+  }
+  kind_out = scalar_kind_from_type_name(type_val);
+  if(kind_out == ScalarKind::UNKNOWN) {
+    kind_out = scalar_kind_from_value(start_out);
+  }
+  return true;
+}
+
+SEXP oms_make_measure(SEXP key, ScalarKind kind) {
+  return List::create(_["has"] = true, _["key"] = key, _["key_type"] = scalar_kind_name(kind));
+}
+
+SEXP ivx_make_measure(SEXP start, ScalarKind kind) {
+  return List::create(_["has"] = true, _["start"] = start, _["endpoint_type"] = scalar_kind_name(kind));
+}
+
+bool oms_combine_measure_fast(SEXP left, SEXP right, SEXP& out) {
+  bool left_has = false;
+  bool right_has = false;
+  SEXP left_key = R_NilValue;
+  SEXP right_key = R_NilValue;
+  ScalarKind left_kind = ScalarKind::UNKNOWN;
+  ScalarKind right_kind = ScalarKind::UNKNOWN;
+  if(!oms_parse_measure(left, left_has, left_key, left_kind) || !oms_parse_measure(right, right_has, right_key, right_kind)) {
+    return false;
+  }
+  if(!left_has) {
+    out = right;
+    return true;
+  }
+  if(!right_has) {
+    out = left;
+    return true;
+  }
+  if(left_kind == ScalarKind::UNKNOWN || right_kind == ScalarKind::UNKNOWN || left_kind != right_kind) {
+    return false;
+  }
+  int cmp = 0;
+  if(!scalar_compare_fast(left_key, right_key, left_kind, cmp)) {
+    return false;
+  }
+  out = (cmp >= 0) ? left : right;
+  return true;
+}
+
+bool ivx_combine_measure_fast(SEXP left, SEXP right, SEXP& out) {
+  bool left_has = false;
+  bool right_has = false;
+  SEXP left_start = R_NilValue;
+  SEXP right_start = R_NilValue;
+  ScalarKind left_kind = ScalarKind::UNKNOWN;
+  ScalarKind right_kind = ScalarKind::UNKNOWN;
+  if(!ivx_parse_measure(left, left_has, left_start, left_kind) || !ivx_parse_measure(right, right_has, right_start, right_kind)) {
+    return false;
+  }
+  if(!left_has) {
+    out = right;
+    return true;
+  }
+  if(!right_has) {
+    out = left;
+    return true;
+  }
+  if(left_kind == ScalarKind::UNKNOWN || right_kind == ScalarKind::UNKNOWN || left_kind != right_kind) {
+    return false;
+  }
+  int cmp = 0;
+  if(!scalar_compare_fast(left_start, right_start, left_kind, cmp)) {
+    return false;
+  }
+  out = (cmp >= 0) ? left : right;
+  return true;
+}
+
+bool monoid_combine_fast(SEXP left, SEXP right, const std::string& monoid_name, SEXP& out) {
+  bool is_min = false;
+  if(monoid_name_is_pq_minmax(monoid_name, is_min)) {
+    return pq_combine_measure_fast(left, right, is_min, out);
+  }
+  if(monoid_name == ".oms_max_key") {
+    return oms_combine_measure_fast(left, right, out);
+  }
+  if(monoid_name == ".ivx_max_start") {
+    return ivx_combine_measure_fast(left, right, out);
+  }
+  return false;
+}
+
+SEXP monoid_combine(
+  SEXP left,
+  SEXP right,
+  const std::string& monoid_name,
+  const List& monoid_spec,
+  const Function* maybe_f = nullptr
+) {
+  SEXP fast = R_NilValue;
+  if(monoid_combine_fast(left, right, monoid_name, fast)) {
+    return fast;
+  }
+  if(maybe_f != nullptr) {
+    return (*maybe_f)(left, right);
+  }
+  Function f = as<Function>(list_get_named_or_index(monoid_spec, "f", 0));
+  return f(left, right);
+}
+
+SEXP monoid_measure_for_child(SEXP ch, const std::string& monoid_name, const List& monoid_spec);
+
 List measures_from_children(const List& children, const List& monoids) {
   CharacterVector nms = monoids.names();
   List out(nms.size());
@@ -367,7 +820,6 @@ List measures_from_children(const List& children, const List& monoids) {
 
     List r = as<List>(monoids[i]);
     Function f = as<Function>(list_get_named_or_index(r, "f", 0));
-    Function measure = as<Function>(list_get_named_or_index(r, "measure", 2));
     ReprotectSEXP acc(list_get_named_or_index(r, "i", 1));
     for(int j = 0; j < children.size(); ++j) {
       SEXP ch = children[j];
@@ -379,10 +831,11 @@ List measures_from_children(const List& children, const List& monoids) {
         }
       }
       if(Rf_isNull(mv)) {
-        mv = measure(ch);
+        mv = monoid_measure_for_child(ch, nm, r);
       }
       Shield<SEXP> mv_protected(mv);
-      acc.set(f(acc.get(), (SEXP)mv_protected));
+      Shield<SEXP> next(monoid_combine(acc.get(), (SEXP)mv_protected, nm, r, &f));
+      acc.set((SEXP)next);
     }
     out[i] = acc.get();
   }
@@ -739,7 +1192,34 @@ SEXP monoid_measure_for_child(SEXP ch, const std::string& monoid_name, const Lis
       return cms[monoid_name];
     }
   }
-  Function measure = as<Function>(monoid_spec["measure"]);
+
+  bool is_min = false;
+  if(monoid_name_is_pq_minmax(monoid_name, is_min)) {
+    SEXP priority = R_NilValue;
+    if(pq_extract_priority_from_entry(ch, priority)) {
+      return pq_make_measure(priority);
+    }
+  }
+  if(monoid_name == ".oms_max_key") {
+    SEXP key = R_NilValue;
+    if(oms_extract_key_from_entry(ch, key)) {
+      const ScalarKind kind = scalar_kind_from_value(key);
+      if(kind != ScalarKind::UNKNOWN) {
+        return oms_make_measure(key, kind);
+      }
+    }
+  }
+  if(monoid_name == ".ivx_max_start") {
+    SEXP start = R_NilValue;
+    if(ivx_extract_start_from_entry(ch, start)) {
+      const ScalarKind kind = scalar_kind_from_value(start);
+      if(kind != ScalarKind::UNKNOWN) {
+        return ivx_make_measure(start, kind);
+      }
+    }
+  }
+
+  Function measure = as<Function>(list_get_named_or_index(monoid_spec, "measure", 2));
   return measure(ch);
 }
 
@@ -755,11 +1235,12 @@ int size_for_child(SEXP ch, const List& size_monoid) {
 }
 
 SEXP measure_sequence(const List& xs, const std::string& monoid_name, const List& monoid_spec) {
-  Function f = as<Function>(monoid_spec["f"]);
-  ReprotectSEXP acc(static_cast<SEXP>(monoid_spec["i"]));
+  Function f = as<Function>(list_get_named_or_index(monoid_spec, "f", 0));
+  ReprotectSEXP acc(list_get_named_or_index(monoid_spec, "i", 1));
   for(int i = 0; i < xs.size(); ++i) {
     Shield<SEXP> m(monoid_measure_for_child(xs[i], monoid_name, monoid_spec));
-    acc.set(f(acc.get(), (SEXP)m));
+    Shield<SEXP> acc_after(monoid_combine(acc.get(), (SEXP)m, monoid_name, monoid_spec, &f));
+    acc.set((SEXP)acc_after);
   }
   return acc.get();
 }
@@ -801,7 +1282,7 @@ List locate_digit_impl_cpp(
     stop("locate_digit called with empty digit");
   }
 
-  Function f = as<Function>(monoid_spec["f"]);
+  Function f = as<Function>(list_get_named_or_index(monoid_spec, "f", 0));
   ReprotectSEXP acc(i);
   int size_before = i_size;
 
@@ -809,7 +1290,7 @@ List locate_digit_impl_cpp(
     SEXP el = digit[idx];
     Shield<SEXP> m_el(monoid_measure_for_child(el, monoid_name, monoid_spec));
     int n_el = size_for_child(el, size_monoid);
-    Shield<SEXP> acc_after(f(acc.get(), (SEXP)m_el));
+    Shield<SEXP> acc_after(monoid_combine(acc.get(), (SEXP)m_el, monoid_name, monoid_spec, &f));
 
     if(predicate_true(predicate, acc_after)) {
       if(is_structural_node_cpp(el)) {
@@ -904,9 +1385,9 @@ List locate_tree_impl_cpp(
     SEXP mmid = mm[monoid_name];
     SEXP msf = sm[monoid_name];
 
-    Function f = as<Function>(monoid_spec["f"]);
-    Shield<SEXP> vpr(f(i, mpr));
-    Shield<SEXP> vm(f(vpr, mmid));
+    Function f = as<Function>(list_get_named_or_index(monoid_spec, "f", 0));
+    Shield<SEXP> vpr(monoid_combine(i, mpr, monoid_name, monoid_spec, &f));
+    Shield<SEXP> vm(monoid_combine(vpr, mmid, monoid_name, monoid_spec, &f));
 
     int npr = as<int>(pm[".size"]);
     int nm = as<int>(mm[".size"]);
@@ -917,8 +1398,8 @@ List locate_tree_impl_cpp(
       );
       if(as<bool>(res["found"])) {
         Shield<SEXP> r(static_cast<SEXP>(res["right_measure"]));
-        Shield<SEXP> rr(f(r, mmid));
-        res["right_measure"] = f(rr, msf);
+        Shield<SEXP> rr(monoid_combine(r, mmid, monoid_name, monoid_spec, &f));
+        res["right_measure"] = monoid_combine(rr, msf, monoid_name, monoid_spec, &f);
       }
       return res;
     }
@@ -929,7 +1410,7 @@ List locate_tree_impl_cpp(
       );
       if(as<bool>(res["found"])) {
         Shield<SEXP> r(static_cast<SEXP>(res["right_measure"]));
-        res["right_measure"] = f(r, msf);
+        res["right_measure"] = monoid_combine(r, msf, monoid_name, monoid_spec, &f);
       }
       return res;
     }
@@ -1096,12 +1577,12 @@ List split_digit_cpp(
     stop("split_digit called with empty digit");
   }
 
-  Function f = as<Function>(monoid_spec["f"]);
+  Function f = as<Function>(list_get_named_or_index(monoid_spec, "f", 0));
   ReprotectSEXP acc(i);
   for(int idx = 0; idx < digit.size(); ++idx) {
     SEXP el = digit[idx];
     Shield<SEXP> m_el(monoid_measure_for_child(el, monoid_name, monoid_spec));
-    Shield<SEXP> acc_after(f(acc.get(), (SEXP)m_el));
+    Shield<SEXP> acc_after(monoid_combine(acc.get(), (SEXP)m_el, monoid_name, monoid_spec, &f));
     if(predicate_true(predicate, acc_after)) {
       List left(idx);
       for(int j = 0; j < idx; ++j) left[j] = digit[j];
@@ -1126,7 +1607,7 @@ List split_tree_impl_cpp(
     stop("split_tree_impl requires a non-empty tree");
   }
 
-  Function f = as<Function>(monoid_spec["f"]);
+  Function f = as<Function>(list_get_named_or_index(monoid_spec, "f", 0));
   if(has_class(t, "Single")) {
     List s(t);
     return List::create(
@@ -1141,8 +1622,8 @@ List split_tree_impl_cpp(
   SEXP middle = d["middle"];
   SEXP suffix = d["suffix"];
 
-  Shield<SEXP> vpr(f(i, node_measure_named(prefix, monoid_name)));
-  Shield<SEXP> vm(f(vpr, node_measure_named(middle, monoid_name)));
+  Shield<SEXP> vpr(monoid_combine(i, node_measure_named(prefix, monoid_name), monoid_name, monoid_spec, &f));
+  Shield<SEXP> vm(monoid_combine(vpr, node_measure_named(middle, monoid_name), monoid_name, monoid_spec, &f));
 
   if(predicate_true(predicate, vpr)) {
     List s = split_digit_cpp(predicate, i, List(prefix), monoid_name, monoid_spec);
@@ -1154,7 +1635,7 @@ List split_tree_impl_cpp(
 
   if(predicate_true(predicate, vm)) {
     List sm = split_tree_impl_cpp(predicate, vpr, middle, monoids, monoid_name, monoid_spec);
-    Shield<SEXP> inode(f(vpr, node_measure_named(sm["left"], monoid_name)));
+    Shield<SEXP> inode(monoid_combine(vpr, node_measure_named(sm["left"], monoid_name), monoid_name, monoid_spec, &f));
     List sx = split_digit_cpp(predicate, inode, List(sm["elem"]), monoid_name, monoid_spec);
     Shield<SEXP> left_digit(build_digit_cpp(as<List>(sx["left"]), monoids));
     Shield<SEXP> right_digit(build_digit_cpp(as<List>(sx["right"]), monoids));

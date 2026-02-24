@@ -157,4 +157,6 @@ Likely root cause:
 Follow-up:
 
 1. Tighten ordered-like owner-class resolution so blocker messages are stable and public-API oriented.
-2. Add tests asserting blocker messages mention only the expected public class names for `ordered_sequence` and `interval_index`.
+   - Status: implemented locally (post-2026-02-23 review).
+   - Resolver now filters internal finger-tree classes (`Deep`, `Single`, `Empty`, `FingerTree`, `Digit`, `Node`) before selecting a displayed owner class.
+   - Replacement-indexing blocker tests now assert public class names (`ordered_sequence`, `interval_index`) and assert that structural names are not leaked.

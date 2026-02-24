@@ -140,6 +140,21 @@ testthat::test_that("order-breaking writes are blocked on ordered types", {
   testthat::expect_error({ xs$a <- "z" }, "not supported")
 })
 
+testthat::test_that("ordered replacement blocker messages never leak structural classes", {
+  xs <- as_ordered_sequence(list(a = "x", b = "y"), keys = c(1, 2))
+
+  msg1 <- testthat::expect_error({ xs[[1]] <- "z" })$message
+  msg2 <- testthat::expect_error({ xs[1] <- list("z") })$message
+  msg3 <- testthat::expect_error({ xs$a <- "z" })$message
+
+  testthat::expect_match(msg1, "ordered_sequence")
+  testthat::expect_match(msg2, "ordered_sequence")
+  testthat::expect_match(msg3, "ordered_sequence")
+  testthat::expect_false(grepl("Deep", msg1, fixed = TRUE))
+  testthat::expect_false(grepl("Deep", msg2, fixed = TRUE))
+  testthat::expect_false(grepl("Deep", msg3, fixed = TRUE))
+})
+
 testthat::test_that("ordered subsetting requires strictly increasing mapped positions", {
   xs <- as_ordered_sequence(
     list(a = "xa", b = "xb", c = "xc", d = "xd"),

@@ -30,9 +30,18 @@
   if(length(cls) == 0L) {
     return("ordered_sequence")
   }
-  keep <- setdiff(cls, c("ordered_sequence", "flexseq", "list"))
+  keep <- setdiff(
+    cls,
+    c(
+      "ordered_sequence", "flexseq", "list",
+      "FingerTree", "Deep", "Single", "Empty", "Digit", "Node"
+    )
+  )
   if(length(keep) > 0L) {
     return(keep[[1L]])
+  }
+  if(inherits(x, "interval_index")) {
+    return("interval_index")
   }
   "ordered_sequence"
 }

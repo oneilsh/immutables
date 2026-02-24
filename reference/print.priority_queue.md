@@ -6,7 +6,7 @@ Print a Priority Queue
 
 ``` r
 # S3 method for class 'priority_queue'
-print(x, ...)
+print(x, max_elements = 4L, ...)
 ```
 
 ## Arguments
@@ -15,9 +15,13 @@ print(x, ...)
 
   A \`priority_queue\`.
 
+- max_elements:
+
+  Maximum number of elements shown in preview (\`head + tail\`).
+
 - ...:
 
-  Unused.
+  Passed through to per-element \`print()\`.
 
 ## Value
 
@@ -26,8 +30,37 @@ print(x, ...)
 ## Examples
 
 ``` r
-x <- priority_queue("a", "b", "c", priorities = c(2, 1, 3))
-x
-#> <priority_queue> size=3
-#> min_priority=1 max_priority=3
+q <- priority_queue(one = 1, two = 2, three = 3, priorities = c(20, 30, 10))
+print(q, max_elements = 4)
+#> Named priority_queue with 3 elements.
+#> Minimum priority: 10, Maximum priority: 30
+#> 
+#> Elements (by priority):
+#> 
+#> $three (priority 10)
+#> [1] 3
+#> 
+#> $one (priority 20)
+#> [1] 1
+#> 
+#> $two (priority 30)
+#> [1] 2
+#> 
+
+q2 <- priority_queue(1, 2, 3, priorities = c(2, 1, 3))
+print(q2, max_elements = 3)
+#> Unnamed priority_queue with 3 elements.
+#> Minimum priority: 1, Maximum priority: 3
+#> 
+#> Elements (by priority):
+#> 
+#> (priority 1)
+#> [1] 2
+#> 
+#> (priority 2)
+#> [1] 1
+#> 
+#> (priority 3)
+#> [1] 3
+#> 
 ```

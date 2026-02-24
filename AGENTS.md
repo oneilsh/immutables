@@ -77,6 +77,8 @@ historical docs/blog-style examples.
   - `R -q -e "devtools::load_all(quiet=TRUE)"`
 - Full tests:
   - `R -q -e "devtools::test()"`
+- Full tests (force pure-R backend reference path):
+  - `R -q -e "old<-getOption('immutables.use_cpp'); options(immutables.use_cpp=FALSE); on.exit(options(immutables.use_cpp=old), add=TRUE); devtools::test()"`
 - Targeted tests:
   - `R -q -e "devtools::test(test_file='test-ordered-sequence.R')"`
   - `R -q -e "devtools::test(test_file='test-priority-queue.R')"`
@@ -255,6 +257,19 @@ of the API or underlying implementations change.
   assert value-level identity for list/data.frame payloads). Risk:
   stricter tests may fail immediately when semantics intentionally
   change and require explicit test updates.
+- `local`: pure-R core execution now routes through reference
+  implementations for `tree_from` bulk build, `concat/app3`, and end-op
+  append/prepend paths; legacy core fast-R files were removed and CI now
+  includes a forced-R backend test workflow (`r-backend-reference`).
+  Risk: fallback mode can be slower, but behavior is now easier to audit
+  against tests/parity.
+- `local`: interval_index now maintains additional reserved subtree
+  monoids (`.ivx_max_end`, `.ivx_min_end`) and routes `peek_*`/`pop_*`
+  relation operations through a shared pruning-aware query engine;
+  `pop_* (which='all')` uses span partition + linear rebuild and
+  benchmark coverage now includes `interval_index_overlaps_all_stress`.
+  Risk: C++-enabled mixed-query scenarios may need follow-up tuning
+  despite improved forced-R fallback times.
 - C++ GC safety in `src/ft_cpp.cpp` — recurring “\$ operator is invalid
   for atomic vectors” root cause and fix patterns:
   - **Root cause**: bare `SEXP` variables holding newly-allocated R

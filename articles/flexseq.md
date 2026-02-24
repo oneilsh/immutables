@@ -8,8 +8,9 @@ returns a new object.
 ``` r
 x <- flexseq(1, 2, 3)
 x
-#> FingerTree <size=3, named=no>
-#>   monoids: none
+#> Unnamed flexseq with 3 elements.
+#> 
+#> Elements:
 #> 
 #> [[1]]
 #> [1] 1
@@ -22,8 +23,9 @@ x
 
 x2 <- as_flexseq(letters[1:5])
 x2
-#> FingerTree <size=5, named=no>
-#>   monoids: none
+#> Unnamed flexseq with 5 elements.
+#> 
+#> Elements:
 #> 
 #> [[1]]
 #> [1] "a"
@@ -31,8 +33,7 @@ x2
 #> [[2]]
 #> [1] "b"
 #> 
-#> [[3]]
-#> [1] "c"
+#> ... (skipping 1 element)
 #> 
 #> [[4]]
 #> [1] "d"
@@ -49,8 +50,9 @@ x2[[3]]
 
 x3 <- x2[c(1, 3, 5)]
 x3
-#> FingerTree <size=3, named=no>
-#>   monoids: none
+#> Unnamed flexseq with 3 elements.
+#> 
+#> Elements:
 #> 
 #> [[1]]
 #> [1] "a"
@@ -67,8 +69,9 @@ x3
 ``` r
 x4 <- push_back(x2, "f")
 x4
-#> FingerTree <size=6, named=no>
-#>   monoids: none
+#> Unnamed flexseq with 6 elements.
+#> 
+#> Elements:
 #> 
 #> [[1]]
 #> [1] "a"
@@ -76,11 +79,7 @@ x4
 #> [[2]]
 #> [1] "b"
 #> 
-#> [[3]]
-#> [1] "c"
-#> 
-#> [[4]]
-#> [1] "d"
+#> ... (skipping 2 elements)
 #> 
 #> [[5]]
 #> [1] "e"
@@ -90,8 +89,9 @@ x4
 
 x5 <- push_front(x4, "start")
 x5
-#> FingerTree <size=7, named=no>
-#>   monoids: none
+#> Unnamed flexseq with 7 elements.
+#> 
+#> Elements:
 #> 
 #> [[1]]
 #> [1] "start"
@@ -99,19 +99,13 @@ x5
 #> [[2]]
 #> [1] "a"
 #> 
-#> [[3]]
-#> [1] "b"
-#> 
-#> [[4]]
-#> [1] "c"
-#> 
-#> [[5]]
-#> [1] "d"
+#> ... (skipping 3 elements)
 #> 
 #> [[6]]
 #> [1] "e"
 #> 
-#> ... and 1 more element not shown
+#> [[7]]
+#> [1] "f"
 ```
 
 ## Peeking and popping
@@ -126,8 +120,9 @@ pf <- pop_front(x5)
 pf$element
 #> [1] "start"
 pf$remaining
-#> FingerTree <size=6, named=no>
-#>   monoids: none
+#> Unnamed flexseq with 6 elements.
+#> 
+#> Elements:
 #> 
 #> [[1]]
 #> [1] "a"
@@ -135,11 +130,7 @@ pf$remaining
 #> [[2]]
 #> [1] "b"
 #> 
-#> [[3]]
-#> [1] "c"
-#> 
-#> [[4]]
-#> [1] "d"
+#> ... (skipping 2 elements)
 #> 
 #> [[5]]
 #> [1] "e"
@@ -153,8 +144,9 @@ pf$remaining
 ``` r
 x_named <- as_flexseq(list(a = 1, b = 2, c = 3))
 x_named
-#> FingerTree <size=3, named=yes>
-#>   monoids: none
+#> Named flexseq with 3 elements.
+#> 
+#> Elements:
 #> 
 #> $a
 #> [1] 1
@@ -177,8 +169,9 @@ x_named$c
 x6 <- as_flexseq(4:6)
 x7 <- c(x, x6)
 x7
-#> FingerTree <size=6, named=no>
-#>   monoids: none
+#> Unnamed flexseq with 6 elements.
+#> 
+#> Elements:
 #> 
 #> [[1]]
 #> [1] 1
@@ -186,11 +179,7 @@ x7
 #> [[2]]
 #> [1] 2
 #> 
-#> [[3]]
-#> [1] 3
-#> 
-#> [[4]]
-#> [1] 4
+#> ... (skipping 2 elements)
 #> 
 #> [[5]]
 #> [1] 5
@@ -204,8 +193,9 @@ x7
 ``` r
 x8 <- as_flexseq(1:5)
 fapply(x8, function(el) el * 10)
-#> FingerTree <size=5, named=no>
-#>   monoids: none
+#> Unnamed flexseq with 5 elements.
+#> 
+#> Elements:
 #> 
 #> [[1]]
 #> [1] 10
@@ -213,8 +203,7 @@ fapply(x8, function(el) el * 10)
 #> [[2]]
 #> [1] 20
 #> 
-#> [[3]]
-#> [1] 30
+#> ... (skipping 1 element)
 #> 
 #> [[4]]
 #> [1] 40

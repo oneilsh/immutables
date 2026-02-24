@@ -43,7 +43,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">ordered_sequence</span><span class="op">(</span><span class="va">...</span>, keys <span class="op">=</span> <span class="cn">NULL</span>, monoids <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">ordered_sequence</span><span class="op">(</span><span class="va">...</span>, <span class="va">keys</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -57,10 +57,6 @@
 <dt id="arg-keys">keys<a class="anchor" aria-label="anchor" href="#arg-keys"></a></dt>
 <dd><p>Scalar key values matching `...` length.</p></dd>
 
-
-<dt id="arg-monoids">monoids<a class="anchor" aria-label="anchor" href="#arg-monoids"></a></dt>
-<dd><p>Optional additional named list of `measure_monoid` objects.</p></dd>
-
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -71,8 +67,19 @@
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">xs</span> <span class="op">&lt;-</span> <span class="fu">ordered_sequence</span><span class="op">(</span><span class="st">"bb"</span>, <span class="st">"a"</span>, <span class="st">"ccc"</span>, keys <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">xs</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;ordered_sequence&gt; size=3 key_type=numeric</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   preview[3]: {key= num 1 item= chr "a"} | {key= num 2 item= chr "bb"} | {key= num 3 item= chr "ccc"}</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Unnamed ordered_sequence with 3 elements.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Elements (by key order):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]] (key 1)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "a"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]] (key 2)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "bb"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]] (key 3)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "ccc"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span><span class="fu"><a href="lower_bound.html">lower_bound</a></span><span class="op">(</span><span class="va">xs</span>, <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $found</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>

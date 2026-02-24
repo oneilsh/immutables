@@ -49,8 +49,9 @@ right_measure, index))\`.
 ``` r
 x <- as_flexseq(letters[1:6])
 x
-#> FingerTree <size=6, named=no>
-#>   monoids: none
+#> Unnamed flexseq with 6 elements.
+#> 
+#> Elements:
 #> 
 #> [[1]]
 #> [1] "a"
@@ -58,11 +59,7 @@ x
 #> [[2]]
 #> [1] "b"
 #> 
-#> [[3]]
-#> [1] "c"
-#> 
-#> [[4]]
-#> [1] "d"
+#> ... (skipping 2 elements)
 #> 
 #> [[5]]
 #> [1] "e"
@@ -82,7 +79,7 @@ loc
 
 # include metadata with a custom monoid
 sum_m <- measure_monoid(`+`, 0, as.numeric)
-x2 <- as_flexseq(1:6, monoids = list(sum = sum_m))
+x2 <- add_monoids(as_flexseq(1:6), list(sum = sum_m))
 loc2 <- locate_by_predicate(x2, function(v) v >= 10, "sum", include_metadata = TRUE)
 loc2
 #> $found

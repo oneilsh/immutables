@@ -79,8 +79,9 @@ x$b
 #> [1] 20
 x <- as_flexseq(letters[1:6])
 x
-#> FingerTree <size=6, named=no>
-#>   monoids: none
+#> Unnamed flexseq with 6 elements.
+#> 
+#> Elements:
 #> 
 #> [[1]]
 #> [1] "a"
@@ -88,11 +89,7 @@ x
 #> [[2]]
 #> [1] "b"
 #> 
-#> [[3]]
-#> [1] "c"
-#> 
-#> [[4]]
-#> [1] "d"
+#> ... (skipping 2 elements)
 #> 
 #> [[5]]
 #> [1] "e"
@@ -103,8 +100,9 @@ x
 
 x2 <- x[c(2, 4, 6)]
 x2
-#> FingerTree <size=3, named=no>
-#>   monoids: none
+#> Unnamed flexseq with 3 elements.
+#> 
+#> Elements:
 #> 
 #> [[1]]
 #> [1] "b"
@@ -120,8 +118,9 @@ x2
 x3 <- as_flexseq(setNames(as.list(letters[1:4]), c("w", "x", "y", "z")))
 x4 <- x3[c("y", "missing", "w")]
 x4
-#> FingerTree <size=3, named=no>
-#>   monoids: none
+#> Unnamed flexseq with 3 elements.
+#> 
+#> Elements:
 #> 
 #> [[1]]
 #> [1] "c"
@@ -135,8 +134,9 @@ x4
 
 # logical indexing supports recycling
 x[c(TRUE, FALSE)]
-#> FingerTree <size=3, named=no>
-#>   monoids: none
+#> Unnamed flexseq with 3 elements.
+#> 
+#> Elements:
 #> 
 #> [[1]]
 #> [1] "a"
@@ -160,8 +160,9 @@ x2[["a2"]]
 # [<- replaces selected elements
 x <- as_flexseq(1:6)
 x
-#> FingerTree <size=6, named=no>
-#>   monoids: none
+#> Unnamed flexseq with 6 elements.
+#> 
+#> Elements:
 #> 
 #> [[1]]
 #> [1] 1
@@ -169,11 +170,7 @@ x
 #> [[2]]
 #> [1] 2
 #> 
-#> [[3]]
-#> [1] 3
-#> 
-#> [[4]]
-#> [1] 4
+#> ... (skipping 2 elements)
 #> 
 #> [[5]]
 #> [1] 5
@@ -185,8 +182,9 @@ x
 x2 <- x
 x2[c(2, 5)] <- list(20, 50)
 x2
-#> FingerTree <size=6, named=no>
-#>   monoids: none
+#> Unnamed flexseq with 6 elements.
+#> 
+#> Elements:
 #> 
 #> [[1]]
 #> [1] 1
@@ -194,11 +192,7 @@ x2
 #> [[2]]
 #> [1] 20
 #> 
-#> [[3]]
-#> [1] 3
-#> 
-#> [[4]]
-#> [1] 4
+#> ... (skipping 2 elements)
 #> 
 #> [[5]]
 #> [1] 50
@@ -211,8 +205,9 @@ x2
 x3 <- as_flexseq(setNames(as.list(1:4), c("a", "b", "c", "d")))
 x3[c("d", "a")] <- list(40, 10)
 x3
-#> FingerTree <size=4, named=yes>
-#>   monoids: none
+#> Named flexseq with 4 elements.
+#> 
+#> Elements:
 #> 
 #> $a
 #> [1] 10
@@ -231,8 +226,9 @@ x3
 x4 <- x
 x4[c(TRUE, FALSE, TRUE, FALSE, TRUE, FALSE)] <- list(1)
 x4
-#> FingerTree <size=6, named=no>
-#>   monoids: none
+#> Unnamed flexseq with 6 elements.
+#> 
+#> Elements:
 #> 
 #> [[1]]
 #> [1] 1
@@ -240,11 +236,7 @@ x4
 #> [[2]]
 #> [1] 2
 #> 
-#> [[3]]
-#> [1] 1
-#> 
-#> [[4]]
-#> [1] 4
+#> ... (skipping 2 elements)
 #> 
 #> [[5]]
 #> [1] 1
@@ -258,8 +250,9 @@ x <- as_flexseq(letters[1:4])
 x2 <- x
 x2[[2]] <- "ZZ"
 x2
-#> FingerTree <size=4, named=no>
-#>   monoids: none
+#> Unnamed flexseq with 4 elements.
+#> 
+#> Elements:
 #> 
 #> [[1]]
 #> [1] "a"
@@ -277,8 +270,9 @@ x2
 x3 <- as_flexseq(setNames(as.list(1:3), c("x", "y", "z")))
 x3[["y"]] <- 99
 x3
-#> FingerTree <size=3, named=yes>
-#>   monoids: none
+#> Named flexseq with 3 elements.
+#> 
+#> Elements:
 #> 
 #> $x
 #> [1] 1
@@ -294,8 +288,9 @@ x3
 x4 <- as_flexseq(letters[1:4])
 x4[[2]] <- NULL
 x4
-#> FingerTree <size=3, named=no>
-#>   monoids: none
+#> Unnamed flexseq with 3 elements.
+#> 
+#> Elements:
 #> 
 #> [[1]]
 #> [1] "a"

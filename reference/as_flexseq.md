@@ -6,7 +6,7 @@ returns a plain \`flexseq\` so full sequence operations are available.
 ## Usage
 
 ``` r
-as_flexseq(x, monoids = NULL)
+as_flexseq(x)
 ```
 
 ## Arguments
@@ -14,10 +14,6 @@ as_flexseq(x, monoids = NULL)
 - x:
 
   Input vector/list-like object.
-
-- monoids:
-
-  Optional named list of measure monoids.
 
 ## Value
 
@@ -34,8 +30,9 @@ stored entries.
 ``` r
 x <- as_flexseq(1:5)
 x
-#> FingerTree <size=5, named=no>
-#>   monoids: none
+#> Unnamed flexseq with 5 elements.
+#> 
+#> Elements:
 #> 
 #> [[1]]
 #> [1] 1
@@ -43,8 +40,7 @@ x
 #> [[2]]
 #> [1] 2
 #> 
-#> [[3]]
-#> [1] 3
+#> ... (skipping 1 element)
 #> 
 #> [[4]]
 #> [1] 4
@@ -55,8 +51,9 @@ x
 
 x2 <- as_flexseq(list(one = 1, two = 2, three = 3))
 x2
-#> FingerTree <size=3, named=yes>
-#>   monoids: none
+#> Named flexseq with 3 elements.
+#> 
+#> Elements:
 #> 
 #> $one
 #> [1] 1
@@ -70,22 +67,23 @@ x2
 
 q <- priority_queue("a", "b", priorities = c(2, 1))
 as_flexseq(q)
-#> FingerTree <size=2, named=no>
-#>   monoids: none
+#> Unnamed flexseq with 2 elements.
+#> 
+#> Elements:
 #> 
 #> [[1]]
-#> [[1]]$item
+#> $item
 #> [1] "a"
 #> 
-#> [[1]]$priority
+#> $priority
 #> [1] 2
 #> 
 #> 
 #> [[2]]
-#> [[2]]$item
+#> $item
 #> [1] "b"
 #> 
-#> [[2]]$priority
+#> $priority
 #> [1] 1
 #> 
 #> 

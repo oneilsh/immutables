@@ -37,8 +37,9 @@ A split list, shape controlled by \`pull_index\`.
 x <- as_flexseq(setNames(as.list(letters[1:6]), LETTERS[1:6]))
 split_at(x, 3)
 #> $left
-#> FingerTree <size=2, named=yes>
-#>   monoids: none
+#> Named flexseq with 2 elements.
+#> 
+#> Elements:
 #> 
 #> $A
 #> [1] "a"
@@ -53,8 +54,9 @@ split_at(x, 3)
 #> [1] "C"
 #> 
 #> $right
-#> FingerTree <size=3, named=yes>
-#>   monoids: none
+#> Named flexseq with 3 elements.
+#> 
+#> Elements:
 #> 
 #> $D
 #> [1] "d"
@@ -68,8 +70,9 @@ split_at(x, 3)
 #> 
 split_at(x, "C", pull_index = TRUE)
 #> $left
-#> FingerTree <size=2, named=yes>
-#>   monoids: none
+#> Named flexseq with 2 elements.
+#> 
+#> Elements:
 #> 
 #> $A
 #> [1] "a"
@@ -79,8 +82,9 @@ split_at(x, "C", pull_index = TRUE)
 #> 
 #> 
 #> $right
-#> FingerTree <size=4, named=yes>
-#>   monoids: none
+#> Named flexseq with 4 elements.
+#> 
+#> Elements:
 #> 
 #> $C
 #> [1] "c"

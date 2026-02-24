@@ -29,8 +29,9 @@ invalid.
 s <- as_flexseq(letters[2:4])
 s2 <- push_front(s, "a")
 s2
-#> FingerTree <size=4, named=no>
-#>   monoids: none
+#> Unnamed flexseq with 4 elements.
+#> 
+#> Elements:
 #> 
 #> [[1]]
 #> [1] "a"
@@ -49,8 +50,9 @@ n <- as_flexseq(list(two = 2, three = 3))
 new_el <- 1
 names(new_el) <- "one"
 push_front(n, new_el)
-#> FingerTree <size=3, named=yes>
-#>   monoids: none
+#> Named flexseq with 3 elements.
+#> 
+#> Elements:
 #> 
 #> $one
 #> one 

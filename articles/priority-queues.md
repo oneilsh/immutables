@@ -5,8 +5,19 @@
 ``` r
 x <- priority_queue("task_a", "task_b", "task_c", priorities = c(3, 1, 2))
 x
-#> <priority_queue> size=3
-#> min_priority=1 max_priority=3
+#> Unnamed priority_queue with 3 elements.
+#> Minimum priority: 1, Maximum priority: 3
+#> 
+#> Elements (by priority):
+#> 
+#> (priority 1)
+#> [1] "task_b"
+#> 
+#> (priority 2)
+#> [1] "task_c"
+#> 
+#> (priority 3)
+#> [1] "task_a"
 ```
 
 ## Peeking at extremes
@@ -32,8 +43,16 @@ x2$element
 x2$priority
 #> [1] 1
 x2$remaining
-#> <priority_queue> size=2
-#> min_priority=2 max_priority=3
+#> Unnamed priority_queue with 2 elements.
+#> Minimum priority: 2, Maximum priority: 3
+#> 
+#> Elements (by priority):
+#> 
+#> (priority 2)
+#> [1] "task_c"
+#> 
+#> (priority 3)
+#> [1] "task_a"
 ```
 
 ## Inserting elements
@@ -41,8 +60,22 @@ x2$remaining
 ``` r
 x3 <- insert(x, "task_d", priority = 0)
 x3
-#> <priority_queue> size=4
-#> min_priority=0 max_priority=3
+#> Unnamed priority_queue with 4 elements.
+#> Minimum priority: 0, Maximum priority: 3
+#> 
+#> Elements (by priority):
+#> 
+#> (priority 0)
+#> [1] "task_d"
+#> 
+#> (priority 1)
+#> [1] "task_b"
+#> 
+#> (priority 2)
+#> [1] "task_c"
+#> 
+#> (priority 3)
+#> [1] "task_a"
 peek_min(x3)
 #> [1] "task_d"
 ```

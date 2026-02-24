@@ -6,7 +6,7 @@ measured finger-tree internals.
 ## Usage
 
 ``` r
-flexseq(..., monoids = NULL)
+flexseq(...)
 ```
 
 ## Arguments
@@ -14,10 +14,6 @@ flexseq(..., monoids = NULL)
 - ...:
 
   Sequence elements.
-
-- monoids:
-
-  Optional named list of measure monoids.
 
 ## Value
 
@@ -28,8 +24,9 @@ A \`flexseq\` object.
 ``` r
 x <- flexseq(1, 2, 3)
 x
-#> FingerTree <size=3, named=no>
-#>   monoids: none
+#> Unnamed flexseq with 3 elements.
+#> 
+#> Elements:
 #> 
 #> [[1]]
 #> [1] 1
@@ -43,8 +40,9 @@ x
 
 x2 <- flexseq("a", "b", "c")
 x2
-#> FingerTree <size=3, named=no>
-#>   monoids: none
+#> Unnamed flexseq with 3 elements.
+#> 
+#> Elements:
 #> 
 #> [[1]]
 #> [1] "a"

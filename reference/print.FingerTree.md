@@ -6,7 +6,7 @@ Print a compact summary of a finger tree
 
 ``` r
 # S3 method for class 'FingerTree'
-print(x, max_elements = 6L, show_internal_monoids = FALSE, ...)
+print(x, max_elements = 4L, show_internal_monoids = FALSE, ...)
 
 # S3 method for class 'Deep'
 print(x, ...)
@@ -26,8 +26,8 @@ print(x, ...)
 
 - max_elements:
 
-  Maximum number of elements to show in list-style preview. Default
-  \`6\`.
+  Maximum number of elements shown in preview (\`head + tail\`). Default
+  \`4\`.
 
 - show_internal_monoids:
 
@@ -45,49 +45,42 @@ print(x, ...)
 ## Examples
 
 ``` r
-x <- as_flexseq(letters[1:10])
-x
-#> FingerTree <size=10, named=no>
-#>   monoids: none
+x <- as_flexseq(setNames(as.list(1:6), letters[1:6]))
+print(x, max_elements = 4)
+#> Named flexseq with 6 elements.
 #> 
-#> [[1]]
-#> [1] "a"
+#> Elements:
 #> 
-#> [[2]]
-#> [1] "b"
-#> 
-#> [[3]]
-#> [1] "c"
-#> 
-#> [[4]]
-#> [1] "d"
-#> 
-#> [[5]]
-#> [1] "e"
-#> 
-#> [[6]]
-#> [1] "f"
-#> 
-#> ... and 4 more elements not shown
-
-x2 <- as_flexseq(setNames(as.list(1:5), paste0("k", 1:5)))
-x2
-#> FingerTree <size=5, named=yes>
-#>   monoids: none
-#> 
-#> $k1
+#> $a
 #> [1] 1
 #> 
-#> $k2
+#> $b
 #> [1] 2
 #> 
-#> $k3
-#> [1] 3
+#> ... (skipping 2 elements)
 #> 
-#> $k4
-#> [1] 4
-#> 
-#> $k5
+#> $e
 #> [1] 5
+#> 
+#> $f
+#> [1] 6
+#> 
+
+y <- as_flexseq(as.list(1:6))
+print(y, max_elements = 3)
+#> Unnamed flexseq with 6 elements.
+#> 
+#> Elements:
+#> 
+#> [[1]]
+#> [1] 1
+#> 
+#> [[2]]
+#> [1] 2
+#> 
+#> ... (skipping 3 elements)
+#> 
+#> [[6]]
+#> [1] 6
 #> 
 ```

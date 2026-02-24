@@ -72,8 +72,16 @@ unsupported.
 ``` r
 x <- as_ordered_sequence(list("b", "a", "c"), keys = c(2, 1, 3))
 x[1:2]
-#> <ordered_sequence> size=2 key_type=numeric
-#>   preview[2]: {key= num 1 item= chr "a"} | {key= num 2 item= chr "b"}
+#> Unnamed ordered_sequence with 2 elements.
+#> 
+#> Elements (by key order):
+#> 
+#> [[1]] (key 1)
+#> [1] "a"
+#> 
+#> [[2]] (key 2)
+#> [1] "b"
+#> 
 try(x[c(2, 1)])
 #> Error in .ord_assert_positions_strict(idx) : 
 #>   Ordered subsetting requires strictly increasing indices (no duplicates or reordering).

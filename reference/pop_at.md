@@ -30,8 +30,9 @@ out <- pop_at(s, 3)
 out$element
 #> [1] "c"
 out$remaining
-#> FingerTree <size=3, named=no>
-#>   monoids: none
+#> Unnamed flexseq with 3 elements.
+#> 
+#> Elements:
 #> 
 #> [[1]]
 #> [1] "a"

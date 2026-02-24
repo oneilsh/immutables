@@ -31,8 +31,9 @@ Updated sequence with inserted elements.
 ``` r
 s <- as_flexseq(letters[1:4])
 insert_at(s, 3, c("x", "y"))
-#> FingerTree <size=6, named=no>
-#>   monoids: none
+#> Unnamed flexseq with 6 elements.
+#> 
+#> Elements:
 #> 
 #> [[1]]
 #> [1] "a"
@@ -40,11 +41,7 @@ insert_at(s, 3, c("x", "y"))
 #> [[2]]
 #> [1] "b"
 #> 
-#> [[3]]
-#> [1] "x"
-#> 
-#> [[4]]
-#> [1] "y"
+#> ... (skipping 2 elements)
 #> 
 #> [[5]]
 #> [1] "c"

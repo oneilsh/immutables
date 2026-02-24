@@ -26,362 +26,111 @@ add_monoids(t, monoids, overwrite = FALSE)
 
 A persistent copy with recomputed cached measures.
 
+## Details
+
+\`add_monoids()\` is the advanced user-facing API for attaching custom
+monoids after constructing a structure.
+
+The \`measure(el)\` input shape depends on structure type:
+
+\- \`flexseq\`: payload element. - \`priority_queue\`: entry list with
+\`item\` and \`priority\`. - \`ordered_sequence\`: entry list with
+\`item\` and \`key\`. - \`interval_index\`: entry list with \`item\`,
+\`start\`, and \`end\`.
+
 ## Examples
 
 ``` r
-x <- as_flexseq(1:5)
-x
-#> FingerTree <size=5, named=no>
-#>   monoids: none
+# Common workflow:
+# 1) construct structure
+# 2) attach monoid with add_monoids()
+# 3) query with split_around_by_predicate()
+
+# flexseq: split a stream by cumulative token budget
+tokens <- as_flexseq(c(120, 80, 50, 200))
+token_sum <- measure_monoid(`+`, 0, as.numeric)
+budgeted <- add_monoids(tokens, list(token_sum = token_sum))
+cut <- split_around_by_predicate(budgeted, function(v) v > 200, "token_sum")
+cut$left   # still within budget
+#> Unnamed flexseq with 2 elements.
+#> Custom monoids: token_sum
+#> 
+#> Elements:
 #> 
 #> [[1]]
-#> [1] 1
+#> [1] 120
 #> 
 #> [[2]]
-#> [1] 2
+#> [1] 80
 #> 
-#> [[3]]
-#> [1] 3
+cut$elem   # first element that crosses budget
+#> [1] 50
+cut$right  # remaining tail
+#> Unnamed flexseq with 1 element.
+#> Custom monoids: token_sum
 #> 
-#> [[4]]
-#> [1] 4
+#> Elements:
 #> 
-#> [[5]]
-#> [1] 5
+#> [[1]]
+#> [1] 200
 #> 
 
-sum_m <- measure_monoid(`+`, 0, as.numeric)
-x2 <- add_monoids(x, list(sum = sum_m))
-x2
-#> $prefix
+# interval_index: split by cumulative interval width
+ix <- interval_index("A", "B", "C", start = c(0, 4, 9), end = c(3, 8, 10))
+width_sum <- measure_monoid(`+`, 0, function(el) as.numeric(el$end - el$start))
+ix2 <- add_monoids(ix, list(width_sum = width_sum))
+cut_ix <- split_around_by_predicate(as_flexseq(ix2), function(v) v > 6, "width_sum")
+cut_ix$left        # intervals before width budget is exceeded
+#> Unnamed flexseq with 1 element.
+#> Custom monoids: width_sum
+#> 
+#> Elements:
+#> 
 #> [[1]]
-#> [1] 1
+#> $item
+#> [1] "A"
 #> 
-#> attr(,"class")
-#> [1] "Digit" "list" 
-#> attr(,"monoids")
-#> attr(,"monoids")$.size
-#> $f
-#> function(a, b) a + b
-#> <environment: 0x559ba3747830>
-#> 
-#> $i
+#> $start
 #> [1] 0
 #> 
-#> $measure
-#> function(el) 1
-#> <environment: 0x559ba3747830>
-#> 
-#> attr(,"class")
-#> [1] "measure_monoid" "MeasureMonoid"  "list"          
-#> 
-#> attr(,"monoids")$.named_count
-#> $f
-#> function(a, b) a + b
-#> <environment: 0x559ba376a8e0>
-#> 
-#> $i
-#> [1] 0
-#> 
-#> $measure
-#> function(el) {
-#>     if (isTRUE(.ft_has_name(el)))
-#>       1L
-#>     else 0L
-#>   }
-#> <environment: 0x559ba376a8e0>
-#> 
-#> attr(,"class")
-#> [1] "measure_monoid" "MeasureMonoid"  "list"          
-#> 
-#> attr(,"monoids")$sum
-#> $f
-#> function (e1, e2)  .Primitive("+")
-#> 
-#> $i
-#> [1] 0
-#> 
-#> $measure
-#> function (x, ...)  .Primitive("as.double")
-#> 
-#> attr(,"class")
-#> [1] "measure_monoid" "MeasureMonoid"  "list"          
-#> 
-#> attr(,"measures")
-#> attr(,"measures")$.size
-#> [1] 1
-#> 
-#> attr(,"measures")$.named_count
-#> [1] 0
-#> 
-#> attr(,"measures")$sum
-#> [1] 1
-#> 
-#> 
-#> $middle
-#> [[1]]
-#> [[1]]
-#> [1] 2
-#> 
-#> [[2]]
+#> $end
 #> [1] 3
 #> 
-#> attr(,"class")
-#> [1] "Node2" "Node"  "list" 
-#> attr(,"monoids")
-#> attr(,"monoids")$.size
-#> $f
-#> function(a, b) a + b
-#> <environment: 0x559ba394a180>
-#> 
-#> $i
+#> $key
 #> [1] 0
 #> 
-#> $measure
-#> function(el) 1
-#> <environment: 0x559ba394a180>
 #> 
-#> attr(,"class")
-#> [1] "measure_monoid" "MeasureMonoid"  "list"          
+cut_ix$elem        # first interval that crosses width budget (value at cut_ix$elem$item)
+#> $item
+#> [1] "B"
 #> 
-#> attr(,"monoids")$.named_count
-#> $f
-#> function(a, b) a + b
-#> <environment: 0x559ba3987248>
-#> 
-#> $i
-#> [1] 0
-#> 
-#> $measure
-#> function(el) {
-#>     if (isTRUE(.ft_has_name(el)))
-#>       1L
-#>     else 0L
-#>   }
-#> <environment: 0x559ba3987248>
-#> 
-#> attr(,"class")
-#> [1] "measure_monoid" "MeasureMonoid"  "list"          
-#> 
-#> attr(,"monoids")$sum
-#> $f
-#> function (e1, e2)  .Primitive("+")
-#> 
-#> $i
-#> [1] 0
-#> 
-#> $measure
-#> function (x, ...)  .Primitive("as.double")
-#> 
-#> attr(,"class")
-#> [1] "measure_monoid" "MeasureMonoid"  "list"          
-#> 
-#> attr(,"measures")
-#> attr(,"measures")$.size
-#> [1] 2
-#> 
-#> attr(,"measures")$.named_count
-#> [1] 0
-#> 
-#> attr(,"measures")$sum
-#> [1] 5
-#> 
-#> 
-#> attr(,"class")
-#> [1] "Single"     "FingerTree" "list"      
-#> attr(,"monoids")
-#> attr(,"monoids")$.size
-#> $f
-#> function(a, b) a + b
-#> <environment: 0x559ba441ca48>
-#> 
-#> $i
-#> [1] 0
-#> 
-#> $measure
-#> function(el) 1
-#> <environment: 0x559ba441ca48>
-#> 
-#> attr(,"class")
-#> [1] "measure_monoid" "MeasureMonoid"  "list"          
-#> 
-#> attr(,"monoids")$.named_count
-#> $f
-#> function(a, b) a + b
-#> <environment: 0x559ba444e320>
-#> 
-#> $i
-#> [1] 0
-#> 
-#> $measure
-#> function(el) {
-#>     if (isTRUE(.ft_has_name(el)))
-#>       1L
-#>     else 0L
-#>   }
-#> <environment: 0x559ba444e320>
-#> 
-#> attr(,"class")
-#> [1] "measure_monoid" "MeasureMonoid"  "list"          
-#> 
-#> attr(,"monoids")$sum
-#> $f
-#> function (e1, e2)  .Primitive("+")
-#> 
-#> $i
-#> [1] 0
-#> 
-#> $measure
-#> function (x, ...)  .Primitive("as.double")
-#> 
-#> attr(,"class")
-#> [1] "measure_monoid" "MeasureMonoid"  "list"          
-#> 
-#> attr(,"measures")
-#> attr(,"measures")$.size
-#> [1] 2
-#> 
-#> attr(,"measures")$.named_count
-#> [1] 0
-#> 
-#> attr(,"measures")$sum
-#> [1] 5
-#> 
-#> 
-#> $suffix
-#> [[1]]
+#> $start
 #> [1] 4
 #> 
-#> [[2]]
-#> [1] 5
+#> $end
+#> [1] 8
 #> 
-#> attr(,"class")
-#> [1] "Digit" "list" 
-#> attr(,"monoids")
-#> attr(,"monoids")$.size
-#> $f
-#> function(a, b) a + b
-#> <environment: 0x559ba1bc8cd8>
+#> $key
+#> [1] 4
 #> 
-#> $i
-#> [1] 0
+cut_ix$right       # remaining interval
+#> Unnamed flexseq with 1 element.
+#> Custom monoids: width_sum
 #> 
-#> $measure
-#> function(el) 1
-#> <environment: 0x559ba1bc8cd8>
+#> Elements:
 #> 
-#> attr(,"class")
-#> [1] "measure_monoid" "MeasureMonoid"  "list"          
+#> [[1]]
+#> $item
+#> [1] "C"
 #> 
-#> attr(,"monoids")$.named_count
-#> $f
-#> function(a, b) a + b
-#> <environment: 0x559ba1b4ea30>
+#> $start
+#> [1] 9
 #> 
-#> $i
-#> [1] 0
+#> $end
+#> [1] 10
 #> 
-#> $measure
-#> function(el) {
-#>     if (isTRUE(.ft_has_name(el)))
-#>       1L
-#>     else 0L
-#>   }
-#> <environment: 0x559ba1b4ea30>
-#> 
-#> attr(,"class")
-#> [1] "measure_monoid" "MeasureMonoid"  "list"          
-#> 
-#> attr(,"monoids")$sum
-#> $f
-#> function (e1, e2)  .Primitive("+")
-#> 
-#> $i
-#> [1] 0
-#> 
-#> $measure
-#> function (x, ...)  .Primitive("as.double")
-#> 
-#> attr(,"class")
-#> [1] "measure_monoid" "MeasureMonoid"  "list"          
-#> 
-#> attr(,"measures")
-#> attr(,"measures")$.size
-#> [1] 2
-#> 
-#> attr(,"measures")$.named_count
-#> [1] 0
-#> 
-#> attr(,"measures")$sum
+#> $key
 #> [1] 9
 #> 
 #> 
-#> attr(,"class")
-#> [1] "Deep"       "FingerTree" "list"      
-#> attr(,"monoids")
-#> attr(,"monoids")$.size
-#> $f
-#> function(a, b) a + b
-#> <environment: 0x559ba3696b70>
-#> 
-#> $i
-#> [1] 0
-#> 
-#> $measure
-#> function(el) 1
-#> <environment: 0x559ba3696b70>
-#> 
-#> attr(,"class")
-#> [1] "measure_monoid" "MeasureMonoid"  "list"          
-#> 
-#> attr(,"monoids")$.named_count
-#> $f
-#> function(a, b) a + b
-#> <environment: 0x559ba36b3948>
-#> 
-#> $i
-#> [1] 0
-#> 
-#> $measure
-#> function(el) {
-#>     if (isTRUE(.ft_has_name(el)))
-#>       1L
-#>     else 0L
-#>   }
-#> <environment: 0x559ba36b3948>
-#> 
-#> attr(,"class")
-#> [1] "measure_monoid" "MeasureMonoid"  "list"          
-#> 
-#> attr(,"monoids")$sum
-#> $f
-#> function (e1, e2)  .Primitive("+")
-#> 
-#> $i
-#> [1] 0
-#> 
-#> $measure
-#> function (x, ...)  .Primitive("as.double")
-#> 
-#> attr(,"class")
-#> [1] "measure_monoid" "MeasureMonoid"  "list"          
-#> 
-#> attr(,"measures")
-#> attr(,"measures")$.size
-#> [1] 5
-#> 
-#> attr(,"measures")$.named_count
-#> [1] 0
-#> 
-#> attr(,"measures")$sum
-#> [1] 15
-#> 
-attr(x2, "measures")$sum
-#> [1] 15
-
-# replace an existing monoid definition
-prod_m <- measure_monoid(`*`, 1, as.numeric)
-x3 <- add_monoids(x2, list(sum = prod_m), overwrite = TRUE)
-attr(x3, "measures")$sum
-#> [1] 120
 ```

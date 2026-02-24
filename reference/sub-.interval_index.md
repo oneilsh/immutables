@@ -87,8 +87,16 @@ unsupported.
 ``` r
 x <- as_interval_index(list("a", "b", "c"), start = c(1, 2, 3), end = c(2, 4, 5))
 x[1:2]
-#> <interval_index> size=2 endpoint_type=numeric bounds=[)
-#>   preview[2]: {start= num 1 end= num 2 item= chr "a"} | {start= num 2 end= num 4 item= chr "b"}
+#> Unnamed interval_index with 2 elements, default bounds [start, end).
+#> 
+#> Elements (by interval start order):
+#> 
+#> [[1]] (interval [1, 2))
+#> [1] "a"
+#> 
+#> [[2]] (interval [2, 4))
+#> [1] "b"
+#> 
 try(x[c(2, 1)])
 #> Error in .ord_assert_positions_strict(idx) : 
 #>   Ordered subsetting requires strictly increasing indices (no duplicates or reordering).

@@ -26,8 +26,9 @@ out <- pop_back(s)
 out$element
 #> [1] "c"
 out$remaining
-#> FingerTree <size=2, named=no>
-#>   monoids: none
+#> Unnamed flexseq with 2 elements.
+#> 
+#> Elements:
 #> 
 #> [[1]]
 #> [1] "a"

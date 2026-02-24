@@ -43,7 +43,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">as_ordered_sequence</span><span class="op">(</span><span class="va">x</span>, keys <span class="op">=</span> <span class="cn">NULL</span>, monoids <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">as_ordered_sequence</span><span class="op">(</span><span class="va">x</span>, <span class="va">keys</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -55,11 +55,7 @@
 
 
 <dt id="arg-keys">keys<a class="anchor" aria-label="anchor" href="#arg-keys"></a></dt>
-<dd><p>Scalar key values matching `x` length.</p></dd>
-
-
-<dt id="arg-monoids">monoids<a class="anchor" aria-label="anchor" href="#arg-monoids"></a></dt>
-<dd><p>Optional additional named list of `measure_monoid` objects.</p>
+<dd><p>Scalar key values matching `x` length.</p>
 <p>Ordered sequences are always key-sorted. Subsetting with `[` is intentionally
 constrained to strictly increasing mapped positions (no duplicates or
 reordering) so the result remains ordered.</p></dd>
@@ -74,8 +70,22 @@ reordering) so the result remains ordered.</p></dd>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">xs</span> <span class="op">&lt;-</span> <span class="fu">as_ordered_sequence</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span>, keys <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">xs</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;ordered_sequence&gt; size=4 key_type=numeric</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   preview[4]: {key= num 1 item= num 1} | {key= num 1 item= num 1} | {key= num 2 item= num 2} | {key= num 4 item= num 4}</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Unnamed ordered_sequence with 4 elements.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Elements (by key order):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]] (key 1)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]] (key 1)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]] (key 2)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]] (key 4)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="fu"><a href="elements_between.html">elements_between</a></span><span class="op">(</span><span class="va">xs</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 2</span>
 </code></pre></div>

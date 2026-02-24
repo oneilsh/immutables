@@ -21,7 +21,7 @@ insert(x, element, priority, name = NULL, ...)
 
 - priority:
 
-  Numeric scalar priority.
+  Scalar non-missing orderable priority.
 
 - name:
 
@@ -40,13 +40,34 @@ Updated \`priority_queue\`.
 ``` r
 x <- priority_queue("a", "b", priorities = c(2, 1))
 x
-#> <priority_queue> size=2
-#> min_priority=1 max_priority=2
+#> Unnamed priority_queue with 2 elements.
+#> Minimum priority: 1, Maximum priority: 2
+#> 
+#> Elements (by priority):
+#> 
+#> (priority 1)
+#> [1] "b"
+#> 
+#> (priority 2)
+#> [1] "a"
+#> 
 
 x2 <- insert(x, "c", priority = 1)
 x2
-#> <priority_queue> size=3
-#> min_priority=1 max_priority=2
+#> Unnamed priority_queue with 3 elements.
+#> Minimum priority: 1, Maximum priority: 2
+#> 
+#> Elements (by priority):
+#> 
+#> (priority 1)
+#> [1] "b"
+#> 
+#> (priority 1)
+#> [1] "c"
+#> 
+#> (priority 2)
+#> [1] "a"
+#> 
 peek_min(x2)
 #> [1] "b"
 ```

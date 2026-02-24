@@ -28,6 +28,15 @@ out$element
 out$priority
 #> [1] 1
 out$remaining
-#> <priority_queue> size=2
-#> min_priority=1 max_priority=2
+#> Unnamed priority_queue with 2 elements.
+#> Minimum priority: 1, Maximum priority: 2
+#> 
+#> Elements (by priority):
+#> 
+#> (priority 1)
+#> [1] "c"
+#> 
+#> (priority 2)
+#> [1] "a"
+#> 
 ```

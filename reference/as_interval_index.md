@@ -5,7 +5,7 @@ Build an Interval Index from elements and interval bounds
 ## Usage
 
 ``` r
-as_interval_index(x, start, end, bounds = "[)", monoids = NULL)
+as_interval_index(x, start, end, bounds = "[)")
 ```
 
 ## Arguments
@@ -26,10 +26,6 @@ as_interval_index(x, start, end, bounds = "[)", monoids = NULL)
 
   One of \`"\[)"\`, \`"\[\]"\`, \`"()"\`, \`"(\]"\`.
 
-- monoids:
-
-  Optional additional named list of \`measure_monoid\` objects.
-
 ## Value
 
 An \`interval_index\`.
@@ -39,8 +35,19 @@ An \`interval_index\`.
 ``` r
 ix <- as_interval_index(c("a", "b", "c"), start = c(1, 2, 2), end = c(3, 2, 4))
 ix
-#> <interval_index> size=3 endpoint_type=numeric bounds=[)
-#>   preview[3]: {start= num 1 end= num 3 item= chr "a"} | {start= num 2 end= num 2 item= chr "b"} | {start= num 2 end= num 4 item= chr "c"}
+#> Unnamed interval_index with 3 elements, default bounds [start, end).
+#> 
+#> Elements (by interval start order):
+#> 
+#> [[1]] (interval [1, 3))
+#> [1] "a"
+#> 
+#> [[2]] (interval [2, 2))
+#> [1] "b"
+#> 
+#> [[3]] (interval [2, 4))
+#> [1] "c"
+#> 
 as.list(peek_point(ix, 2, which = "all"))
 #> [[1]]
 #> [1] "a"

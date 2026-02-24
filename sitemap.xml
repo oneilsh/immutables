@@ -7,7 +7,6 @@
 <url><loc>https://oneilsh.github.io/immutables/articles/index.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/articles/priority-queues.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/authors.html</loc></url>
-<url><loc>https://oneilsh.github.io/immutables/consistency_notes.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/index.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/Predicate.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/add_monoids.html</loc></url>
@@ -84,6 +83,7 @@
 <url><loc>https://oneilsh.github.io/immutables/reference/split_around_by_predicate.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/split_at.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/split_by_predicate.html</loc></url>
+<url><loc>https://oneilsh.github.io/immutables/reference/str.flexseq.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/sub-.flexseq.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/sub-.interval_index.html</loc></url>
 <url><loc>https://oneilsh.github.io/immutables/reference/sub-.ordered_sequence.html</loc></url>

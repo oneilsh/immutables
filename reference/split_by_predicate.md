@@ -32,8 +32,9 @@ A list with \`left\` and \`right\` flexseq objects.
 ``` r
 x <- as_flexseq(letters[1:6])
 x
-#> FingerTree <size=6, named=no>
-#>   monoids: none
+#> Unnamed flexseq with 6 elements.
+#> 
+#> Elements:
 #> 
 #> [[1]]
 #> [1] "a"
@@ -41,11 +42,7 @@ x
 #> [[2]]
 #> [1] "b"
 #> 
-#> [[3]]
-#> [1] "c"
-#> 
-#> [[4]]
-#> [1] "d"
+#> ... (skipping 2 elements)
 #> 
 #> [[5]]
 #> [1] "e"
@@ -56,8 +53,9 @@ x
 
 s <- split_by_predicate(x, function(v) v >= 4, ".size")
 s$left
-#> FingerTree <size=3, named=no>
-#>   monoids: none
+#> Unnamed flexseq with 3 elements.
+#> 
+#> Elements:
 #> 
 #> [[1]]
 #> [1] "a"
@@ -69,8 +67,9 @@ s$left
 #> [1] "c"
 #> 
 s$right
-#> FingerTree <size=3, named=no>
-#>   monoids: none
+#> Unnamed flexseq with 3 elements.
+#> 
+#> Elements:
 #> 
 #> [[1]]
 #> [1] "d"

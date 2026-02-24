@@ -7,7 +7,7 @@ editing and traversal, cast explicitly with \`as_flexseq()\`.
 ## Usage
 
 ``` r
-priority_queue(..., priorities = NULL, names = NULL, monoids = NULL)
+priority_queue(..., priorities)
 ```
 
 ## Arguments
@@ -18,15 +18,7 @@ priority_queue(..., priorities = NULL, names = NULL, monoids = NULL)
 
 - priorities:
 
-  Numeric priorities matching \`...\`.
-
-- names:
-
-  Optional element names.
-
-- monoids:
-
-  Optional additional named list of \`measure_monoid\` objects.
+  Scalar non-missing orderable priorities matching \`...\`.
 
 ## Value
 
@@ -37,8 +29,20 @@ A \`priority_queue\`.
 ``` r
 x <- priority_queue("a", "b", "c", priorities = c(2, 1, 2))
 x
-#> <priority_queue> size=3
-#> min_priority=1 max_priority=2
+#> Unnamed priority_queue with 3 elements.
+#> Minimum priority: 1, Maximum priority: 2
+#> 
+#> Elements (by priority):
+#> 
+#> (priority 1)
+#> [1] "b"
+#> 
+#> (priority 2)
+#> [1] "a"
+#> 
+#> (priority 2)
+#> [1] "c"
+#> 
 peek_min(x)
 #> [1] "b"
 ```

@@ -65,10 +65,16 @@ indexing.
 ## Examples
 
 ``` r
-q <- as_priority_queue(c("A", "B"), priorities = c(2, 1), names = c("a", "b"))
+q <- as_priority_queue(setNames(c("A", "B"), c("a", "b")), priorities = c(2, 1))
 q["a"]
-#> <priority_queue> size=1
-#> min_priority=2 max_priority=2
+#> Unnamed priority_queue with 1 element.
+#> Minimum priority: 2, Maximum priority: 2
+#> 
+#> Elements (by priority):
+#> 
+#> (priority 2)
+#> [1] "A"
+#> 
 q[["b"]]
 #> [1] "B"
 try(q[[1]])

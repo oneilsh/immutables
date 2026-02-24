@@ -78,8 +78,9 @@ If `FALSE`, uses [split_around_by_predicate()] and returns
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="as_flexseq.html">as_flexseq</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link">setNames</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">as.list</a></span><span class="op">(</span><span class="va">letters</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span><span class="op">)</span>, <span class="va">LETTERS</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">split_at</span><span class="op">(</span><span class="va">x</span>, <span class="fl">3</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $left</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> FingerTree &lt;size=2, named=yes&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   monoids: none</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Named flexseq with 2 elements.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Elements:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $A</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "a"</span>
@@ -94,8 +95,9 @@ If `FALSE`, uses [split_around_by_predicate()] and returns
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "C"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $right</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> FingerTree &lt;size=3, named=yes&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   monoids: none</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Named flexseq with 3 elements.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Elements:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $D</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "d"</span>
@@ -109,8 +111,9 @@ If `FALSE`, uses [split_around_by_predicate()] and returns
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span><span class="fu">split_at</span><span class="op">(</span><span class="va">x</span>, <span class="st">"C"</span>, pull_index <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $left</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> FingerTree &lt;size=2, named=yes&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   monoids: none</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Named flexseq with 2 elements.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Elements:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $A</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "a"</span>
@@ -120,8 +123,9 @@ If `FALSE`, uses [split_around_by_predicate()] and returns
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $right</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> FingerTree &lt;size=4, named=yes&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   monoids: none</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Named flexseq with 4 elements.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Elements:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $C</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "c"</span>

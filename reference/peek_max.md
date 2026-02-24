@@ -23,8 +23,20 @@ Element with maximum priority (stable on ties).
 ``` r
 x <- priority_queue("a", "b", "c", priorities = c(2, 3, 3))
 x
-#> <priority_queue> size=3
-#> min_priority=2 max_priority=3
+#> Unnamed priority_queue with 3 elements.
+#> Minimum priority: 2, Maximum priority: 3
+#> 
+#> Elements (by priority):
+#> 
+#> (priority 2)
+#> [1] "a"
+#> 
+#> (priority 3)
+#> [1] "b"
+#> 
+#> (priority 3)
+#> [1] "c"
+#> 
 peek_max(x)
 #> [1] "b"
 ```

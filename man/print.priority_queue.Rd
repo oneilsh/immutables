@@ -4,12 +4,14 @@
 \alias{print.priority_queue}
 \title{Print a Priority Queue}
 \usage{
-\method{print}{priority_queue}(x, ...)
+\method{print}{priority_queue}(x, max_elements = 4L, ...)
 }
 \arguments{
 \item{x}{A `priority_queue`.}
 
-\item{...}{Unused.}
+\item{max_elements}{Maximum number of elements shown in preview (`head + tail`).}
+
+\item{...}{Passed through to per-element `print()`.}
 }
 \value{
 `x` invisibly.
@@ -18,6 +20,9 @@
 Print a Priority Queue
 }
 \examples{
-x <- priority_queue("a", "b", "c", priorities = c(2, 1, 3))
-x
+q <- priority_queue(one = 1, two = 2, three = 3, priorities = c(20, 30, 10))
+print(q, max_elements = 4)
+
+q2 <- priority_queue(1, 2, 3, priorities = c(2, 1, 3))
+print(q2, max_elements = 3)
 }

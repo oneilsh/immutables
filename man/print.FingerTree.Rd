@@ -7,7 +7,7 @@
 \alias{print.Empty}
 \title{Print a compact summary of a finger tree}
 \usage{
-\method{print}{FingerTree}(x, max_elements = 6L, show_internal_monoids = FALSE, ...)
+\method{print}{FingerTree}(x, max_elements = 4L, show_internal_monoids = FALSE, ...)
 
 \method{print}{Deep}(x, ...)
 
@@ -18,8 +18,8 @@
 \arguments{
 \item{x}{FingerTree.}
 
-\item{max_elements}{Maximum number of elements to show in list-style preview.
-Default `6`.}
+\item{max_elements}{Maximum number of elements shown in preview (`head + tail`).
+Default `4`.}
 
 \item{show_internal_monoids}{Logical; show internal monoids (`.size`,
 `.named_count`). Default `FALSE`.}
@@ -33,10 +33,10 @@ Default `6`.}
 Print a compact summary of a finger tree
 }
 \examples{
-x <- as_flexseq(letters[1:10])
-x
+x <- as_flexseq(setNames(as.list(1:6), letters[1:6]))
+print(x, max_elements = 4)
 
-x2 <- as_flexseq(setNames(as.list(1:5), paste0("k", 1:5)))
-x2
+y <- as_flexseq(as.list(1:6))
+print(y, max_elements = 3)
 }
 \keyword{internal}

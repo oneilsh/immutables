@@ -6,4 +6,5 @@ src/*.o
 src/*.so
 .DS_Store
 meta/bench-results/
-.vscode
+.vscode/
+docs/

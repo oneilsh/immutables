@@ -4,13 +4,25 @@
 \alias{print.flexseq}
 \title{Print a flexseq}
 \usage{
-\method{print}{flexseq}(x, ...)
+\method{print}{flexseq}(x, max_elements = 4L, show_internal_monoids = FALSE, ...)
 }
 \arguments{
 \item{x}{A `flexseq`.}
 
-\item{...}{Passed through to `print.FingerTree`.}
+\item{max_elements}{Maximum number of elements shown in preview (`head + tail`).}
+
+\item{show_internal_monoids}{Logical; include internal monoids in the
+"Custom monoids" line.}
+
+\item{...}{Passed through to per-element `print()`.}
 }
 \description{
 Print a flexseq
+}
+\examples{
+x <- as_flexseq(setNames(as.list(1:6), letters[1:6]))
+print(x, max_elements = 4)
+
+y <- as_flexseq(as.list(1:6))
+print(y, max_elements = 3)
 }

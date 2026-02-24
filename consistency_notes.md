@@ -65,3 +65,96 @@ Scope: user-facing API surface and semantics, based on current source/tests.
 2. `interval_index` uses interval-first query/pop APIs; sequence front/back/at endpoints remain blocked.
 3. `interval_index` point queries use `peek_point`/`pop_point` with `which = "first"|"all"` semantics.
 4. Ordered merge remains unavailable and there is currently no retained internal merge primitive.
+
+## Monoid API Exposure Notes (2026-02-23)
+
+Context: we discussed whether to remove user-facing `monoids =` constructor parameters and push advanced monoid attachment to `add_monoids()`.
+
+### Current Behavior
+
+- Constructors support `monoids =` and can build with monoids in one pass, including C++ fast paths.
+- `add_monoids()` is available, but currently acts as a full rebind/recompute pass over the built tree.
+- `measure_monoid()` is a developer API; element shape differs by structure:
+  - `flexseq`: raw payload element.
+  - `priority_queue`: entry wrapper (`item`, `priority`).
+  - `ordered_sequence`: entry wrapper (`item`, `key`).
+  - `interval_index`: entry wrapper (`item`, `start`, `end`).
+
+### Performance Finding (directional)
+
+Routing construction through `as_*()` then `add_monoids()` instead of constructor-time `monoids =` has significant cost:
+
+- R backend: roughly `~3.1x` to `~3.3x` slower in local checks.
+- C++ backend batch builds: dramatically slower in local checks (orders of magnitude in small calibrated runs), because the one-pass C++ build advantage is lost and monoid recomputation is forced through the rebind pass.
+
+Interpretation: replacing internal constructor-time monoid wiring with `add_monoids()` broadly would be a material regression, especially for C++ batch paths.
+
+### Preferred Direction
+
+1. Keep internal monoid-aware builders (fast path) for implementation and batch operations.
+2. Simplify public constructors over time (hide/remove `monoids =` from user-facing entry points).
+3. Keep `add_monoids()` as the advanced user/developer API, with clearer documentation of per-structure `measure(el)` contracts.
+4. If constructor `monoids =` is removed publicly, do it as a surface/API change only; do not replace internal fast-path plumbing with two-step `add_monoids()` calls.
+
+## Scalar Comparable Keys/Priorities (2026-02-23)
+
+Context: we discussed expanding `ordered_sequence` keys and `priority_queue` priorities beyond current primitive constraints, to allow any scalar type with valid ordering.
+
+### Current Constraints
+
+- `ordered_sequence` keys currently accept only scalar `numeric` / `character` / `logical`.
+- `priority_queue` priorities currently accept only scalar non-missing `numeric`.
+- `interval_index` already supports broader scalar endpoint types so long as `<` and `>` are valid (for example `Date`/`POSIXct`), with mixed-type objects rejected.
+
+### Feasibility Assessment
+
+- Expanding support is feasible.
+- The practical model is:
+  - keep C++ fast paths for primitive key/priority types;
+  - use R comparator fallback for other scalar orderable types.
+- This matches existing interval-index behavior and preserves performance where the backend can optimize.
+
+### Suggested Contract (if implemented)
+
+1. Values must be scalar and non-missing.
+2. Values must support deterministic scalar `<` and `>` comparisons.
+3. Types must be homogeneous within an object (no mixed key/priority domains).
+4. Equality semantics should be derived from comparator outcomes (`a < b`, `a > b`, otherwise equal), not from class-specific ad hoc checks.
+
+### Implementation Notes
+
+- `ordered_sequence`:
+  - Generalize key normalization/type tagging to permit non-primitive scalar orderable types.
+  - Keep existing C++ OMS insert path only for primitive key types; fallback to R split/compare path otherwise.
+- `priority_queue`:
+  - Replace numeric-only priority validator with scalar orderability validator.
+  - Generalize `.pq_min` / `.pq_max` monoid compare logic away from numeric-only assumptions.
+  - Maintain tie stability (FIFO within equal-priority runs).
+
+### Risk Notes
+
+- Comparator edge cases (`NA`, class-specific Ops behavior, mixed classes) need explicit validation and tests.
+- Performance for non-primitive types will be R-fallback and should be documented as such.
+
+## Ordered/Interval Error UX: Replacement Indexing (2026-02-23)
+
+Observed issue:
+
+- For ordered-like structures, replacement indexing is correctly blocked, but the current error target can leak internal structural classes.
+- Example observed:
+  - `` `[[<-()` is not supported for Deep. Replacement indexing is not supported. ``
+
+Expected user-facing behavior:
+
+- Error should reference the concrete public class (`ordered_sequence` or `interval_index`), never internal tree node classes (`Deep`, `Single`, `Empty`).
+- Message should remain action-oriented (for ordered-like types, replacements are blocked to preserve order invariants).
+
+Likely root cause:
+
+- Ordered-like blocker helper derives target class from `class(x)` and currently permits structural classes through in some paths.
+- The class selection logic should explicitly filter finger-tree implementation classes before choosing a displayed owner class.
+
+Follow-up:
+
+1. Tighten ordered-like owner-class resolution so blocker messages are stable and public-API oriented.
+2. Add tests asserting blocker messages mention only the expected public class names for `ordered_sequence` and `interval_index`.

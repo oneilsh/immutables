@@ -4,18 +4,28 @@
 \alias{print.interval_index}
 \title{Print an interval index summary}
 \usage{
-\method{print}{interval_index}(x, max_elements = 8L, ...)
+\method{print}{interval_index}(x, max_elements = 4L, ...)
 }
 \arguments{
 \item{x}{An `interval_index`.}
 
-\item{max_elements}{Maximum number of elements shown in preview.}
+\item{max_elements}{Maximum number of elements shown in preview (`head + tail`).}
 
-\item{...}{Unused.}
+\item{...}{Passed through to per-element `print()`.}
 }
 \value{
 Invisibly returns `x`.
 }
 \description{
 Print an interval index summary
+}
+\examples{
+ix <- interval_index(
+  one = 1, two = 2, three = 3,
+  start = c(20, 30, 10), end = c(25, 37, 24)
+)
+print(ix, max_elements = 4)
+
+ix2 <- interval_index(1, 2, 3, start = c(2, 4, 6), end = c(3, 5, 8), bounds = "[]")
+print(ix2, max_elements = 3)
 }

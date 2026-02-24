@@ -175,7 +175,7 @@ as_flexseq.ordered_sequence <- function(x) {
   out_monoids <- monoids
   if(is.null(out_monoids)) {
     ms <- attr(x, "monoids", exact = TRUE)
-    out_monoids <- ms[setdiff(names(ms), c(".ivx_max_start", ".oms_max_key"))]
+    out_monoids <- ms[setdiff(names(ms), c(".ivx_max_start", ".ivx_max_end", ".ivx_min_end", ".oms_max_key"))]
   }
   .as_flexseq_build.default(entries, monoids = out_monoids)
 }

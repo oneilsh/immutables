@@ -98,6 +98,7 @@
     interval_index_pop_cycle = list(required = c("as_interval_index", "pop_overlaps", "insert")),
     interval_index_fapply = list(required = c("as_interval_index", "fapply")),
     interval_index_bounds_override = list(required = c("as_interval_index", "peek_point", "peek_overlaps", "pop_overlaps")),
+    interval_index_overlaps_all_stress = list(required = c("as_interval_index", "peek_overlaps", "pop_overlaps")),
     pq_peek_min_max = list(required = c("priority_queue", "insert", "peek_min", "peek_max")),
     pq_pop_min_drain = list(required = c("priority_queue", "insert", "pop_min")),
     pq_peek_min_max_date = list(required = c("priority_queue", "insert", "peek_min", "peek_max")),
@@ -312,6 +313,15 @@
     }
     return(invisible(TRUE))
   }
+  if(identical(scenario, "interval_index_overlaps_all_stress")) {
+    x <- as_interval_index(list("a", "b", "c"), start = c(1, 2, 3), end = c(4, 5, 6), bounds = "[]")
+    p <- peek_overlaps(x, 1, 5, which = "all")
+    r <- pop_overlaps(x, 1, 5, which = "all")
+    if(!inherits(p, "interval_index") || !is.list(r) || !inherits(r$element, "interval_index") || !inherits(r$remaining, "interval_index")) {
+      stop("Scenario contract failed: interval overlap stress paths changed.")
+    }
+    return(invisible(TRUE))
+  }
   if(identical(scenario, "pq_peek_min_max")) {
     q <- priority_queue()
     q <- insert(q, "a", priority = 2)
@@ -410,6 +420,7 @@
       interval_index_pop_cycle = list(n = 75L, steps = 19L, coord_space = 180L, width_max = 14L),
       interval_index_fapply = list(n = 90L, reps = 111L, coord_space = 180L, width_max = 14L),
       interval_index_bounds_override = list(n = 90L, queries = 11L, coord_space = 180L, width_max = 14L),
+      interval_index_overlaps_all_stress = list(n = 120L, queries = 16L, coord_space = 220L, width_max = 20L),
       pq_peek_min_max = list(n = 100L, key_space = 80L, queries = 60L),
       pq_pop_min_drain = list(n = 100L, key_space = 80L, pops = 50L),
       pq_peek_min_max_date = list(n = 90L, day_span = 120L, queries = 48L),
@@ -442,6 +453,7 @@
     interval_index_pop_cycle = list(n = 110L, steps = 16L, coord_space = 260L, width_max = 18L),
     interval_index_fapply = list(n = 120L, reps = 4L, coord_space = 260L, width_max = 18L),
     interval_index_bounds_override = list(n = 140L, queries = 20L, coord_space = 260L, width_max = 18L),
+    interval_index_overlaps_all_stress = list(n = 220L, queries = 24L, coord_space = 320L, width_max = 26L),
     pq_peek_min_max = list(n = 140L, key_space = 100L, queries = 80L),
     pq_pop_min_drain = list(n = 140L, key_space = 100L, pops = 70L),
     pq_peek_min_max_date = list(n = 120L, day_span = 180L, queries = 60L),
@@ -805,6 +817,27 @@
   invisible(ix)
 }
 
+.bench_scenario_interval_index_overlaps_all_stress <- function(n, queries, coord_space, width_max) {
+  n <- as.integer(n)
+  queries <- as.integer(queries)
+  coord_space <- as.integer(coord_space)
+  width_max <- as.integer(width_max)
+  ix <- .bench_build_interval_index(n, coord_space, width_max, bounds = "[]")
+
+  lo_max <- max(2L, as.integer(coord_space %/% 5L))
+  span <- max(1L, as.integer(coord_space %/% 2L))
+  q_start <- sample.int(lo_max, queries, replace = TRUE) - 1L
+  q_end <- pmin(q_start + span, coord_space)
+
+  for(i in seq_len(queries)) {
+    a <- q_start[[i]]
+    b <- q_end[[i]]
+    invisible(peek_overlaps(ix, a, b, which = "all"))
+    invisible(pop_overlaps(ix, a, b, which = "all"))
+  }
+  invisible(NULL)
+}
+
 .bench_build_priority_queue <- function(n, key_space) {
   n <- as.integer(n)
   key_space <- as.integer(key_space)
@@ -930,6 +963,7 @@
     "interval_index_pop_cycle",
     "interval_index_fapply",
     "interval_index_bounds_override",
+    "interval_index_overlaps_all_stress",
     "pq_peek_min_max",
     "pq_pop_min_drain",
     "pq_peek_min_max_date",
@@ -965,6 +999,7 @@
     interval_index_pop_cycle = do.call(.bench_scenario_interval_index_pop_cycle, params),
     interval_index_fapply = do.call(.bench_scenario_interval_index_fapply, params),
     interval_index_bounds_override = do.call(.bench_scenario_interval_index_bounds_override, params),
+    interval_index_overlaps_all_stress = do.call(.bench_scenario_interval_index_overlaps_all_stress, params),
     pq_peek_min_max = do.call(.bench_scenario_pq_peek_min_max, params),
     pq_pop_min_drain = do.call(.bench_scenario_pq_pop_min_drain, params),
     pq_peek_min_max_date = do.call(.bench_scenario_pq_peek_min_max_date, params),

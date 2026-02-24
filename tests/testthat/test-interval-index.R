@@ -78,6 +78,106 @@ testthat::test_that("peek overlap/contain/within queries are deterministic", {
   testthat::expect_identical(length(miss), 0L)
 })
 
+testthat::test_that("relation query/pop contracts hold across all bounds tokens", {
+  ix <- as_interval_index(
+    list("A", "B", "C", "D"),
+    start = c(1, 2, 3, 2),
+    end = c(2, 3, 4, 2),
+    bounds = "[)"
+  )
+  vals <- as.list(ix)
+  bnd <- interval_bounds(ix)
+  starts <- as.numeric(unlist(lapply(bnd$start, identity), use.names = FALSE))
+  ends <- as.numeric(unlist(lapply(bnd$end, identity), use.names = FALSE))
+
+  contains_point <- function(start, end, point, bounds) {
+    include_start <- substr(bounds, 1L, 1L) == "["
+    include_end <- substr(bounds, 2L, 2L) == "]"
+    left_ok <- if(include_start) point >= start else point > start
+    right_ok <- if(include_end) point <= end else point < end
+    isTRUE(left_ok && right_ok)
+  }
+  overlaps <- function(a_start, a_end, b_start, b_end, bounds) {
+    touching_is_overlap <- identical(bounds, "[]")
+    a_before_b <- if(touching_is_overlap) a_end < b_start else a_end <= b_start
+    b_before_a <- if(touching_is_overlap) b_end < a_start else b_end <= a_start
+    !isTRUE(a_before_b || b_before_a)
+  }
+  containing <- function(start, end, q_start, q_end, bounds) {
+    overlaps(start, end, q_start, q_end, bounds) && start <= q_start && end >= q_end
+  }
+  within <- function(start, end, q_start, q_end, bounds) {
+    overlaps(start, end, q_start, q_end, bounds) && q_start <= start && q_end >= end
+  }
+
+  bounds_tokens <- c("[)", "[]", "()", "(]")
+  for(bt in bounds_tokens) {
+    idx_point <- which(vapply(seq_along(vals), function(i) contains_point(starts[[i]], ends[[i]], 2, bt), logical(1)))
+    idx_over <- which(vapply(seq_along(vals), function(i) overlaps(starts[[i]], ends[[i]], 2, 3, bt), logical(1)))
+    idx_cont <- which(vapply(seq_along(vals), function(i) containing(starts[[i]], ends[[i]], 2, 3, bt), logical(1)))
+    idx_with <- which(vapply(seq_along(vals), function(i) within(starts[[i]], ends[[i]], 2, 3, bt), logical(1)))
+
+    expect_relation <- function(peek_first, peek_all, pop_first, pop_all, idx) {
+      expect_all <- vals[idx]
+      expect_rest <- vals[setdiff(seq_along(vals), idx)]
+
+      testthat::expect_equal(as.list(peek_all), expect_all)
+      if(length(expect_all) == 0L) {
+        testthat::expect_null(peek_first)
+      } else {
+        testthat::expect_equal(peek_first, expect_all[[1L]])
+      }
+
+      if(length(expect_all) == 0L) {
+        testthat::expect_null(pop_first$element)
+        testthat::expect_null(pop_first$start)
+        testthat::expect_null(pop_first$end)
+        testthat::expect_equal(as.list(pop_first$remaining), vals)
+      } else {
+        i <- idx[[1L]]
+        testthat::expect_equal(pop_first$element, vals[[i]])
+        testthat::expect_equal(pop_first$start, starts[[i]])
+        testthat::expect_equal(pop_first$end, ends[[i]])
+        testthat::expect_equal(as.list(pop_first$remaining), vals[-i])
+      }
+
+      testthat::expect_equal(as.list(pop_all$element), expect_all)
+      testthat::expect_null(pop_all$start)
+      testthat::expect_null(pop_all$end)
+      testthat::expect_equal(as.list(pop_all$remaining), expect_rest)
+    }
+
+    expect_relation(
+      peek_first = peek_point(ix, 2, which = "first", bounds = bt),
+      peek_all = peek_point(ix, 2, which = "all", bounds = bt),
+      pop_first = pop_point(ix, 2, which = "first", bounds = bt),
+      pop_all = pop_point(ix, 2, which = "all", bounds = bt),
+      idx = idx_point
+    )
+    expect_relation(
+      peek_first = peek_overlaps(ix, 2, 3, which = "first", bounds = bt),
+      peek_all = peek_overlaps(ix, 2, 3, which = "all", bounds = bt),
+      pop_first = pop_overlaps(ix, 2, 3, which = "first", bounds = bt),
+      pop_all = pop_overlaps(ix, 2, 3, which = "all", bounds = bt),
+      idx = idx_over
+    )
+    expect_relation(
+      peek_first = peek_containing(ix, 2, 3, which = "first", bounds = bt),
+      peek_all = peek_containing(ix, 2, 3, which = "all", bounds = bt),
+      pop_first = pop_containing(ix, 2, 3, which = "first", bounds = bt),
+      pop_all = pop_containing(ix, 2, 3, which = "all", bounds = bt),
+      idx = idx_cont
+    )
+    expect_relation(
+      peek_first = peek_within(ix, 2, 3, which = "first", bounds = bt),
+      peek_all = peek_within(ix, 2, 3, which = "all", bounds = bt),
+      pop_first = pop_within(ix, 2, 3, which = "first", bounds = bt),
+      pop_all = pop_within(ix, 2, 3, which = "all", bounds = bt),
+      idx = idx_with
+    )
+  }
+})
+
 testthat::test_that("pop helpers follow first/all contracts and preserve persistence", {
   ix <- as_interval_index(
     list("A", "B", "C", "D"),
@@ -286,6 +386,8 @@ testthat::test_that("interval_index casts down to flexseq explicitly", {
   ms <- names(attr(fx, "monoids", exact = TRUE))
   testthat::expect_true(all(c(".size", ".named_count", "width_sum") %in% ms))
   testthat::expect_false(".ivx_max_start" %in% ms)
+  testthat::expect_false(".ivx_max_end" %in% ms)
+  testthat::expect_false(".ivx_min_end" %in% ms)
   testthat::expect_false(".oms_max_key" %in% ms)
   testthat::expect_identical(node_measure(fx, "width_sum"), 3)
 })

@@ -249,7 +249,7 @@
 # Runtime: O(m), where m = number of attached monoids.
 .ivx_user_monoids <- function(x) {
   ms <- attr(x, "monoids", exact = TRUE)
-  out <- ms[setdiff(names(ms), c(".size", ".named_count", ".ivx_max_start", ".oms_max_key"))]
+  out <- ms[setdiff(names(ms), c(".size", ".named_count", ".ivx_max_start", ".ivx_max_end", ".ivx_min_end", ".oms_max_key"))]
   if(length(out) == 0L) {
     return(NULL)
   }
@@ -570,36 +570,471 @@
   list(start = as.integer(start), end_excl = as.integer(end_excl), empty = FALSE)
 }
 
-# Runtime: O(log n + c log n), where c = candidate count.
-.ivx_query_candidate_entries <- function(x, lower = NULL, lower_strict = FALSE, upper = NULL, upper_strict = FALSE) {
-  span <- .ivx_query_candidate_span(
-    x,
-    lower = lower,
-    lower_strict = lower_strict,
-    upper = upper,
-    upper_strict = upper_strict
-  )
-  if(isTRUE(span$empty)) {
-    return(list())
+# Runtime: O(1).
+.ivx_subtree_size <- function(node) {
+  if(!.ivx_is_structural_fast(node)) {
+    return(1L)
   }
-  .ft_get_elems_at(x, seq.int(span$start, span$end_excl - 1L))
+  as.integer(node_measure(node, ".size"))
 }
 
-# Runtime: O(log n + c log n), where c = candidate count.
-.ivx_query_candidate_window <- function(x, lower = NULL, lower_strict = FALSE, upper = NULL, upper_strict = FALSE) {
+# Runtime: O(log n) near split point depth.
+.ivx_split_at_index <- function(x, index) {
+  n <- length(x)
+  idx <- as.integer(index)
+  if(is.na(idx)) {
+    stop("`index` must be a non-missing integer.")
+  }
+
+  if(n == 0L) {
+    empty <- .ivx_empty_like(x)
+    return(list(left = empty, right = empty))
+  }
+  if(idx <= 1L) {
+    return(list(left = .ivx_empty_like(x), right = x))
+  }
+  if(idx > n) {
+    return(list(left = x, right = .ivx_empty_like(x)))
+  }
+
+  s <- split_by_predicate(x, function(v) v >= idx, ".size")
+  list(
+    left = .ivx_wrap_like(x, s$left),
+    right = .ivx_wrap_like(x, s$right)
+  )
+}
+
+# Runtime: O(log n) near boundary split points.
+.ivx_partition_span <- function(x, span) {
+  s1 <- .ivx_split_at_index(x, span$start)
+  left <- s1$left
+  tail <- s1$right
+  cand_len <- as.integer(max(0L, span$end_excl - span$start))
+
+  if(cand_len <= 0L) {
+    return(list(left = left, candidate = .ivx_empty_like(x), right = tail))
+  }
+
+  s2 <- .ivx_split_at_index(tail, cand_len + 1L)
+  list(left = left, candidate = s2$left, right = s2$right)
+}
+
+# Runtime: O(1).
+.ivx_concat3_like <- function(template, left, middle, right) {
+  out <- concat_trees(left, middle)
+  out <- concat_trees(out, right)
+  .ivx_wrap_like(template, out)
+}
+
+# Runtime: O(1).
+.ivx_query_peek_miss <- function(x, which = c("first", "all")) {
+  which <- match.arg(which)
+  if(identical(which, "all")) {
+    return(.ivx_empty_like(x))
+  }
+  NULL
+}
+
+# Runtime: O(1).
+.ivx_query_pop_miss <- function(x, which = c("first", "all")) {
+  which <- match.arg(which)
+  if(identical(which, "all")) {
+    return(list(element = .ivx_empty_like(x), start = NULL, end = NULL, remaining = x))
+  }
+  list(element = NULL, start = NULL, end = NULL, remaining = x)
+}
+
+# Runtime: O(s), where s is traversed subtree size after pruning.
+.ivx_collect_query <- function(
+    tree,
+    no_match_subtree,
+    leaf_match,
+    collect_unmatched = FALSE,
+    stop_after_first = FALSE
+) {
+  st <- new.env(parent = emptyenv())
+  st$index <- 0L
+  st$first_index <- NULL
+  st$first_entry <- NULL
+  st$m <- 0L
+  st$u <- 0L
+  st$matched <- list()
+  st$unmatched <- list()
+
+  append_many <- function(bucket, entries) {
+    if(length(entries) == 0L) {
+      return(invisible(NULL))
+    }
+    if(identical(bucket, "unmatched")) {
+      for(el in entries) {
+        st$u <- st$u + 1L
+        st$unmatched[[st$u]] <- el
+      }
+      return(invisible(NULL))
+    }
+    for(el in entries) {
+      st$m <- st$m + 1L
+      st$matched[[st$m]] <- el
+    }
+    invisible(NULL)
+  }
+
+  walk <- function(node) {
+    if(isTRUE(stop_after_first) && !is.null(st$first_index)) {
+      return(invisible(NULL))
+    }
+
+    if(!.ivx_is_structural_fast(node)) {
+      st$index <- st$index + 1L
+      hit <- isTRUE(leaf_match(node))
+
+      if(isTRUE(hit)) {
+        if(is.null(st$first_index)) {
+          st$first_index <- st$index
+          st$first_entry <- node
+        }
+        st$m <- st$m + 1L
+        st$matched[[st$m]] <- node
+      } else if(isTRUE(collect_unmatched)) {
+        st$u <- st$u + 1L
+        st$unmatched[[st$u]] <- node
+      }
+      return(invisible(NULL))
+    }
+
+    can_prune <- inherits(node, "Deep")
+    if(isTRUE(can_prune) && isTRUE(no_match_subtree(node))) {
+      sz <- .ivx_subtree_size(node)
+      if(isTRUE(collect_unmatched) && sz > 0L) {
+        append_many("unmatched", .ivx_entries(node))
+      }
+      st$index <- st$index + sz
+      return(invisible(NULL))
+    }
+
+    if(inherits(node, "Empty")) {
+      return(invisible(NULL))
+    }
+    if(inherits(node, "Single")) {
+      walk(.subset2(node, 1L))
+      return(invisible(NULL))
+    }
+    if(inherits(node, "Deep")) {
+      walk(.subset2(node, "prefix"))
+      walk(.subset2(node, "middle"))
+      walk(.subset2(node, "suffix"))
+      return(invisible(NULL))
+    }
+
+    for(el in node) {
+      walk(el)
+    }
+    invisible(NULL)
+  }
+
+  walk(tree)
+
+  list(
+    first_found = !is.null(st$first_index),
+    first_index = st$first_index,
+    first_entry = st$first_entry,
+    matched_entries = if(st$m > 0L) st$matched[seq_len(st$m)] else list(),
+    unmatched_entries = if(st$u > 0L) st$unmatched[seq_len(st$u)] else list()
+  )
+}
+
+# Runtime: O(log n + s), where s is traversed candidate subtree size after pruning.
+.ivx_run_relation_query <- function(x, spec, mode = c("peek", "pop"), which = c("first", "all")) {
+  mode <- match.arg(mode)
+  which <- match.arg(which)
+  ms <- resolve_tree_monoids(x, required = TRUE)
+  use_window_fast_path <- isTRUE(.ft_cpp_can_use(ms))
+
   span <- .ivx_query_candidate_span(
     x,
-    lower = lower,
-    lower_strict = lower_strict,
-    upper = upper,
-    upper_strict = upper_strict
+    lower = spec$lower,
+    lower_strict = spec$lower_strict,
+    upper = spec$upper,
+    upper_strict = spec$upper_strict
   )
   if(isTRUE(span$empty)) {
-    return(list(entries = list(), start = span$start))
+    if(identical(mode, "peek")) {
+      return(.ivx_query_peek_miss(x, which = which))
+    }
+    return(.ivx_query_pop_miss(x, which = which))
   }
+
+  # Fast path for read-heavy queries and single-pop operations:
+  # scan only start-range candidates and avoid split/concat overhead.
+  if(isTRUE(use_window_fast_path) && (identical(mode, "peek") || identical(which, "first"))) {
+    entries <- .ft_get_elems_at(x, seq.int(span$start, span$end_excl - 1L))
+    n <- length(entries)
+    if(n == 0L) {
+      if(identical(mode, "peek")) {
+        return(.ivx_query_peek_miss(x, which = which))
+      }
+      return(.ivx_query_pop_miss(x, which = which))
+    }
+
+    first_i <- NULL
+    hit <- if(!identical(which, "first")) logical(n) else NULL
+    for(i in seq_len(n)) {
+      ok <- isTRUE(spec$leaf_match(entries[[i]]))
+      if(ok) {
+        if(is.null(first_i)) {
+          first_i <- i
+          if(identical(which, "first")) {
+            break
+          }
+        }
+      }
+      if(!is.null(hit)) {
+        hit[[i]] <- ok
+      }
+    }
+
+    if(is.null(first_i)) {
+      if(identical(mode, "peek")) {
+        return(.ivx_query_peek_miss(x, which = which))
+      }
+      return(.ivx_query_pop_miss(x, which = which))
+    }
+
+    if(identical(which, "first")) {
+      if(identical(mode, "peek")) {
+        return(entries[[first_i]]$item)
+      }
+      abs_idx <- as.integer(span$start + first_i - 1L)
+      return(.ivx_pop_positions(x, abs_idx, which = "first"))
+    }
+
+    matched_entries <- entries[hit]
+    if(length(matched_entries) == 0L) {
+      return(.ivx_query_peek_miss(x, which = which))
+    }
+    return(.ivx_slice_entries(x, matched_entries))
+  }
+
+  parts <- .ivx_partition_span(x, span)
+  cand <- parts$candidate
+  if(length(cand) == 0L) {
+    if(identical(mode, "peek")) {
+      return(.ivx_query_peek_miss(x, which = which))
+    }
+    return(.ivx_query_pop_miss(x, which = which))
+  }
+
+  if(identical(mode, "peek")) {
+    hit <- .ivx_collect_query(
+      cand,
+      no_match_subtree = spec$no_match_subtree,
+      leaf_match = spec$leaf_match,
+      collect_unmatched = FALSE,
+      stop_after_first = identical(which, "first")
+    )
+
+    if(identical(which, "first")) {
+      if(!isTRUE(hit$first_found)) {
+        return(.ivx_query_peek_miss(x, which = which))
+      }
+      return(hit$first_entry$item)
+    }
+
+    if(length(hit$matched_entries) == 0L) {
+      return(.ivx_query_peek_miss(x, which = which))
+    }
+    return(.ivx_slice_entries(x, hit$matched_entries))
+  }
+
+  if(identical(which, "first")) {
+    hit <- .ivx_collect_query(
+      cand,
+      no_match_subtree = spec$no_match_subtree,
+      leaf_match = spec$leaf_match,
+      collect_unmatched = FALSE,
+      stop_after_first = TRUE
+    )
+
+    if(!isTRUE(hit$first_found)) {
+      return(.ivx_query_pop_miss(x, which = which))
+    }
+    abs_idx <- as.integer(span$start + hit$first_index - 1L)
+    return(.ivx_pop_positions(x, abs_idx, which = "first"))
+  }
+
+  hit <- .ivx_collect_query(
+    cand,
+    no_match_subtree = spec$no_match_subtree,
+    leaf_match = spec$leaf_match,
+    collect_unmatched = TRUE,
+    stop_after_first = FALSE
+  )
+  if(length(hit$matched_entries) == 0L) {
+    return(.ivx_query_pop_miss(x, which = which))
+  }
+
+  matched <- .ivx_slice_entries(x, hit$matched_entries)
+  unmatched <- .ivx_slice_entries(x, hit$unmatched_entries)
+  remaining <- .ivx_concat3_like(x, parts$left, unmatched, parts$right)
+
+  list(element = matched, start = NULL, end = NULL, remaining = remaining)
+}
+
+# Runtime: O(1).
+.ivx_spec_point <- function(qp, bounds, flags) {
+  include_start <- isTRUE(flags$include_start)
+  include_end <- isTRUE(flags$include_end)
+
+  leaf_match <- if(.ivx_is_fast_endpoint_type(qp$endpoint_type)) {
+    function(e) {
+      left_ok <- if(include_start) isTRUE(qp$value >= e$start) else isTRUE(qp$value > e$start)
+      right_ok <- if(include_end) isTRUE(qp$value <= e$end) else isTRUE(qp$value < e$end)
+      isTRUE(left_ok && right_ok)
+    }
+  } else {
+    function(e) .ivx_contains_point(e$start, e$end, qp$value, bounds, qp$endpoint_type)
+  }
+
   list(
-    entries = .ft_get_elems_at(x, seq.int(span$start, span$end_excl - 1L)),
-    start = span$start
+    lower = NULL,
+    lower_strict = FALSE,
+    upper = qp$value,
+    upper_strict = FALSE,
+    no_match_subtree = function(node) {
+      m <- node_measure(node, ".ivx_max_end")
+      if(!isTRUE(m$has)) {
+        return(TRUE)
+      }
+      cmp <- .ivx_compare_scalar_fast(m$end, qp$value, endpoint_type = qp$endpoint_type)
+      if(include_end) {
+        cmp < 0L
+      } else {
+        cmp <= 0L
+      }
+    },
+    leaf_match = leaf_match
+  )
+}
+
+# Runtime: O(1).
+.ivx_spec_overlaps <- function(q, bounds, flags) {
+  touching_is_overlap <- isTRUE(flags$include_start) && isTRUE(flags$include_end)
+
+  leaf_match <- if(.ivx_is_fast_endpoint_type(q$endpoint_type)) {
+    function(e) {
+      a_before_b <- if(touching_is_overlap) isTRUE(e$end < q$start) else isTRUE(e$end <= q$start)
+      b_before_a <- if(touching_is_overlap) isTRUE(q$end < e$start) else isTRUE(q$end <= e$start)
+      !isTRUE(a_before_b || b_before_a)
+    }
+  } else {
+    function(e) .ivx_overlaps_interval(e$start, e$end, q$start, q$end, bounds, q$endpoint_type)
+  }
+
+  list(
+    lower = NULL,
+    lower_strict = FALSE,
+    upper = q$end,
+    upper_strict = !isTRUE(touching_is_overlap),
+    no_match_subtree = function(node) {
+      m <- node_measure(node, ".ivx_max_end")
+      if(!isTRUE(m$has)) {
+        return(TRUE)
+      }
+      cmp <- .ivx_compare_scalar_fast(m$end, q$start, endpoint_type = q$endpoint_type)
+      if(touching_is_overlap) {
+        cmp < 0L
+      } else {
+        cmp <= 0L
+      }
+    },
+    leaf_match = leaf_match
+  )
+}
+
+# Runtime: O(1).
+.ivx_spec_containing <- function(q, bounds, flags) {
+  touching_is_overlap <- isTRUE(flags$include_start) && isTRUE(flags$include_end)
+
+  leaf_match <- if(.ivx_is_fast_endpoint_type(q$endpoint_type)) {
+    function(e) {
+      contains <- isTRUE(e$start <= q$start) && isTRUE(e$end >= q$end)
+      if(!contains) {
+        return(FALSE)
+      }
+      a_before_b <- if(touching_is_overlap) isTRUE(e$end < q$start) else isTRUE(e$end <= q$start)
+      b_before_a <- if(touching_is_overlap) isTRUE(q$end < e$start) else isTRUE(q$end <= e$start)
+      !isTRUE(a_before_b || b_before_a)
+    }
+  } else {
+    function(e) {
+      .ivx_overlaps_interval(e$start, e$end, q$start, q$end, bounds, q$endpoint_type) &&
+        .ivx_contains_interval(e$start, e$end, q$start, q$end, q$endpoint_type)
+    }
+  }
+
+  list(
+    lower = NULL,
+    lower_strict = FALSE,
+    upper = q$start,
+    upper_strict = FALSE,
+    no_match_subtree = function(node) {
+      m <- node_measure(node, ".ivx_max_end")
+      if(!isTRUE(m$has)) {
+        return(TRUE)
+      }
+      .ivx_compare_scalar_fast(m$end, q$end, endpoint_type = q$endpoint_type) < 0L
+    },
+    leaf_match = leaf_match
+  )
+}
+
+# Runtime: O(1).
+.ivx_spec_within <- function(q, bounds, flags) {
+  touching_is_overlap <- isTRUE(flags$include_start) && isTRUE(flags$include_end)
+
+  leaf_match <- if(.ivx_is_fast_endpoint_type(q$endpoint_type)) {
+    function(e) {
+      within <- isTRUE(q$start <= e$start) && isTRUE(q$end >= e$end)
+      if(!within) {
+        return(FALSE)
+      }
+      a_before_b <- if(touching_is_overlap) isTRUE(e$end < q$start) else isTRUE(e$end <= q$start)
+      b_before_a <- if(touching_is_overlap) isTRUE(q$end < e$start) else isTRUE(q$end <= e$start)
+      !isTRUE(a_before_b || b_before_a)
+    }
+  } else {
+    function(e) {
+      .ivx_overlaps_interval(e$start, e$end, q$start, q$end, bounds, q$endpoint_type) &&
+        .ivx_contains_interval(q$start, q$end, e$start, e$end, q$endpoint_type)
+    }
+  }
+
+  list(
+    lower = q$start,
+    lower_strict = FALSE,
+    upper = q$end,
+    upper_strict = !isTRUE(touching_is_overlap),
+    no_match_subtree = function(node) {
+      mmin <- node_measure(node, ".ivx_min_end")
+      mmax <- node_measure(node, ".ivx_max_end")
+      if(!isTRUE(mmin$has) || !isTRUE(mmax$has)) {
+        return(TRUE)
+      }
+
+      # No interval in subtree can satisfy end <= q.end.
+      if(.ivx_compare_scalar_fast(mmin$end, q$end, endpoint_type = q$endpoint_type) > 0L) {
+        return(TRUE)
+      }
+
+      # Even the largest end is too far left to overlap q.
+      cmp <- .ivx_compare_scalar_fast(mmax$end, q$start, endpoint_type = q$endpoint_type)
+      if(touching_is_overlap) {
+        cmp < 0L
+      } else {
+        cmp <= 0L
+      }
+    },
+    leaf_match = leaf_match
   )
 }
 
@@ -854,45 +1289,8 @@ peek_point <- function(x, point, which = c("first", "all"), bounds = NULL) {
   peek_which <- match.arg(which)
   b <- .ivx_resolve_bounds(x, bounds)
   qp <- .ivx_normalize_endpoint(point, "point", endpoint_type = .ivx_endpoint_type_state(x))
-  f <- .ivx_bounds_flags(b)
-
-  # start > point can never contain point.
-  window <- .ivx_query_candidate_window(
-    x,
-    upper = qp$value,
-    upper_strict = FALSE
-  )
-  entries <- window$entries
-  n <- length(entries)
-  if(n == 0L) {
-    return(.ivx_peek_positions(x, integer(0), which = peek_which))
-  }
-
-  if(.ivx_is_fast_endpoint_type(qp$endpoint_type)) {
-    hit <- logical(n)
-    include_start <- isTRUE(f$include_start)
-    include_end <- isTRUE(f$include_end)
-    for(i in seq_len(n)) {
-      e <- entries[[i]]
-      left_ok <- if(include_start) isTRUE(qp$value >= e$start) else isTRUE(qp$value > e$start)
-      right_ok <- if(include_end) isTRUE(qp$value <= e$end) else isTRUE(qp$value < e$end)
-      hit[[i]] <- isTRUE(left_ok && right_ok)
-    }
-  } else {
-    hit <- logical(n)
-    for(i in seq_len(n)) {
-      e <- entries[[i]]
-      hit[[i]] <- .ivx_contains_point(e$start, e$end, qp$value, b, qp$endpoint_type)
-    }
-  }
-
-  pos_local <- base::which(hit)
-  if(length(pos_local) == 0L) {
-    return(.ivx_peek_positions(x, integer(0), which = peek_which))
-  }
-  pos_abs <- as.integer(window$start + pos_local - 1L)
-
-  .ivx_peek_positions(x, pos_abs, which = peek_which)
+  spec <- .ivx_spec_point(qp, b, .ivx_bounds_flags(b))
+  .ivx_run_relation_query(x, spec, mode = "peek", which = peek_which)
 }
 
 # Runtime: O(log n + c) for `which = "first"`; O(n log n) for `which = "all"`.
@@ -911,43 +1309,8 @@ pop_point <- function(x, point, which = c("first", "all"), bounds = NULL) {
   pop_which <- match.arg(which)
   b <- .ivx_resolve_bounds(x, bounds)
   qp <- .ivx_normalize_endpoint(point, "point", endpoint_type = .ivx_endpoint_type_state(x))
-  f <- .ivx_bounds_flags(b)
-
-  window <- .ivx_query_candidate_window(
-    x,
-    upper = qp$value,
-    upper_strict = FALSE
-  )
-  entries <- window$entries
-  n <- length(entries)
-  if(n == 0L) {
-    return(.ivx_pop_positions(x, integer(0), which = pop_which))
-  }
-
-  hit <- logical(n)
-  if(.ivx_is_fast_endpoint_type(qp$endpoint_type)) {
-    include_start <- isTRUE(f$include_start)
-    include_end <- isTRUE(f$include_end)
-    for(i in seq_len(n)) {
-      e <- entries[[i]]
-      left_ok <- if(include_start) isTRUE(qp$value >= e$start) else isTRUE(qp$value > e$start)
-      right_ok <- if(include_end) isTRUE(qp$value <= e$end) else isTRUE(qp$value < e$end)
-      hit[[i]] <- isTRUE(left_ok && right_ok)
-    }
-  } else {
-    for(i in seq_len(n)) {
-      e <- entries[[i]]
-      hit[[i]] <- .ivx_contains_point(e$start, e$end, qp$value, b, qp$endpoint_type)
-    }
-  }
-
-  pos_local <- base::which(hit)
-  if(length(pos_local) == 0L) {
-    return(.ivx_pop_positions(x, integer(0), which = pop_which))
-  }
-  pos_abs <- as.integer(window$start + pos_local - 1L)
-
-  .ivx_pop_positions(x, pos_abs, which = pop_which)
+  spec <- .ivx_spec_point(qp, b, .ivx_bounds_flags(b))
+  .ivx_run_relation_query(x, spec, mode = "pop", which = pop_which)
 }
 
 # Runtime: O(log n + c + k), where c = candidate count and k = matched count (worst-case O(n)).
@@ -967,43 +1330,8 @@ peek_overlaps <- function(x, start, end, which = c("first", "all"), bounds = NUL
   peek_which <- match.arg(which)
   b <- .ivx_resolve_bounds(x, bounds)
   q <- .ivx_normalize_interval(start, end, endpoint_type = .ivx_endpoint_type_state(x))
-  f <- .ivx_bounds_flags(b)
-  touching_is_overlap <- isTRUE(f$include_start) && isTRUE(f$include_end)
-
-  window <- .ivx_query_candidate_window(
-    x,
-    upper = q$end,
-    upper_strict = !isTRUE(touching_is_overlap)
-  )
-  entries <- window$entries
-  n <- length(entries)
-  if(n == 0L) {
-    return(.ivx_peek_positions(x, integer(0), which = peek_which))
-  }
-
-  if(.ivx_is_fast_endpoint_type(q$endpoint_type)) {
-    hit <- logical(n)
-    for(i in seq_len(n)) {
-      e <- entries[[i]]
-      a_before_b <- if(touching_is_overlap) isTRUE(e$end < q$start) else isTRUE(e$end <= q$start)
-      b_before_a <- if(touching_is_overlap) isTRUE(q$end < e$start) else isTRUE(q$end <= e$start)
-      hit[[i]] <- !isTRUE(a_before_b || b_before_a)
-    }
-  } else {
-    hit <- logical(n)
-    for(i in seq_len(n)) {
-      e <- entries[[i]]
-      hit[[i]] <- .ivx_overlaps_interval(e$start, e$end, q$start, q$end, b, q$endpoint_type)
-    }
-  }
-
-  pos_local <- base::which(hit)
-  if(length(pos_local) == 0L) {
-    return(.ivx_peek_positions(x, integer(0), which = peek_which))
-  }
-  pos_abs <- as.integer(window$start + pos_local - 1L)
-
-  .ivx_peek_positions(x, pos_abs, which = peek_which)
+  spec <- .ivx_spec_overlaps(q, b, .ivx_bounds_flags(b))
+  .ivx_run_relation_query(x, spec, mode = "peek", which = peek_which)
 }
 
 # Runtime: O(log n + c + k), where c = candidate count and k = matched count (worst-case O(n)).
@@ -1023,49 +1351,8 @@ peek_containing <- function(x, start, end, which = c("first", "all"), bounds = N
   peek_which <- match.arg(which)
   b <- .ivx_resolve_bounds(x, bounds)
   q <- .ivx_normalize_interval(start, end, endpoint_type = .ivx_endpoint_type_state(x))
-  f <- .ivx_bounds_flags(b)
-  touching_is_overlap <- isTRUE(f$include_start) && isTRUE(f$include_end)
-
-  window <- .ivx_query_candidate_window(
-    x,
-    upper = q$start,
-    upper_strict = FALSE
-  )
-  entries <- window$entries
-  n <- length(entries)
-  if(n == 0L) {
-    return(.ivx_peek_positions(x, integer(0), which = peek_which))
-  }
-
-  if(.ivx_is_fast_endpoint_type(q$endpoint_type)) {
-    hit <- logical(n)
-    for(i in seq_len(n)) {
-      e <- entries[[i]]
-      contains <- isTRUE(e$start <= q$start) && isTRUE(e$end >= q$end)
-      if(!contains) {
-        hit[[i]] <- FALSE
-      } else {
-        a_before_b <- if(touching_is_overlap) isTRUE(e$end < q$start) else isTRUE(e$end <= q$start)
-        b_before_a <- if(touching_is_overlap) isTRUE(q$end < e$start) else isTRUE(q$end <= e$start)
-        hit[[i]] <- !isTRUE(a_before_b || b_before_a)
-      }
-    }
-  } else {
-    hit <- logical(n)
-    for(i in seq_len(n)) {
-      e <- entries[[i]]
-      hit[[i]] <- .ivx_overlaps_interval(e$start, e$end, q$start, q$end, b, q$endpoint_type) &&
-        .ivx_contains_interval(e$start, e$end, q$start, q$end, q$endpoint_type)
-    }
-  }
-
-  pos_local <- base::which(hit)
-  if(length(pos_local) == 0L) {
-    return(.ivx_peek_positions(x, integer(0), which = peek_which))
-  }
-  pos_abs <- as.integer(window$start + pos_local - 1L)
-
-  .ivx_peek_positions(x, pos_abs, which = peek_which)
+  spec <- .ivx_spec_containing(q, b, .ivx_bounds_flags(b))
+  .ivx_run_relation_query(x, spec, mode = "peek", which = peek_which)
 }
 
 # Runtime: O(log n + c + k), where c = candidate count and k = matched count (worst-case O(n)).
@@ -1085,51 +1372,8 @@ peek_within <- function(x, start, end, which = c("first", "all"), bounds = NULL)
   peek_which <- match.arg(which)
   b <- .ivx_resolve_bounds(x, bounds)
   q <- .ivx_normalize_interval(start, end, endpoint_type = .ivx_endpoint_type_state(x))
-  f <- .ivx_bounds_flags(b)
-  touching_is_overlap <- isTRUE(f$include_start) && isTRUE(f$include_end)
-
-  window <- .ivx_query_candidate_window(
-    x,
-    lower = q$start,
-    lower_strict = FALSE,
-    upper = q$end,
-    upper_strict = !isTRUE(touching_is_overlap)
-  )
-  entries <- window$entries
-  n <- length(entries)
-  if(n == 0L) {
-    return(.ivx_peek_positions(x, integer(0), which = peek_which))
-  }
-
-  if(.ivx_is_fast_endpoint_type(q$endpoint_type)) {
-    hit <- logical(n)
-    for(i in seq_len(n)) {
-      e <- entries[[i]]
-      within <- isTRUE(q$start <= e$start) && isTRUE(q$end >= e$end)
-      if(!within) {
-        hit[[i]] <- FALSE
-      } else {
-        a_before_b <- if(touching_is_overlap) isTRUE(e$end < q$start) else isTRUE(e$end <= q$start)
-        b_before_a <- if(touching_is_overlap) isTRUE(q$end < e$start) else isTRUE(q$end <= e$start)
-        hit[[i]] <- !isTRUE(a_before_b || b_before_a)
-      }
-    }
-  } else {
-    hit <- logical(n)
-    for(i in seq_len(n)) {
-      e <- entries[[i]]
-      hit[[i]] <- .ivx_overlaps_interval(e$start, e$end, q$start, q$end, b, q$endpoint_type) &&
-        .ivx_contains_interval(q$start, q$end, e$start, e$end, q$endpoint_type)
-    }
-  }
-
-  pos_local <- base::which(hit)
-  if(length(pos_local) == 0L) {
-    return(.ivx_peek_positions(x, integer(0), which = peek_which))
-  }
-  pos_abs <- as.integer(window$start + pos_local - 1L)
-
-  .ivx_peek_positions(x, pos_abs, which = peek_which)
+  spec <- .ivx_spec_within(q, b, .ivx_bounds_flags(b))
+  .ivx_run_relation_query(x, spec, mode = "peek", which = peek_which)
 }
 
 # Runtime: O(log n + c) for `which = "first"`; O(n log n) for `which = "all"`.
@@ -1149,45 +1393,8 @@ pop_overlaps <- function(x, start, end, which = c("first", "all"), bounds = NULL
   pop_which <- match.arg(which)
   b <- .ivx_resolve_bounds(x, bounds)
   q <- .ivx_normalize_interval(start, end, endpoint_type = .ivx_endpoint_type_state(x))
-  f <- .ivx_bounds_flags(b)
-  touching_is_overlap <- isTRUE(f$include_start) && isTRUE(f$include_end)
-
-  window <- .ivx_query_candidate_window(
-    x,
-    upper = q$end,
-    upper_strict = !isTRUE(touching_is_overlap)
-  )
-  entries <- window$entries
-  n <- length(entries)
-  if(n == 0L) {
-    return(.ivx_pop_positions(x, integer(0), which = pop_which))
-  }
-
-  hit <- logical(n)
-  if(.ivx_is_fast_endpoint_type(q$endpoint_type)) {
-    for(i in seq_len(n)) {
-      e <- entries[[i]]
-      a_before_b <- if(touching_is_overlap) isTRUE(e$end < q$start) else isTRUE(e$end <= q$start)
-      b_before_a <- if(touching_is_overlap) isTRUE(q$end < e$start) else isTRUE(q$end <= e$start)
-      hit[[i]] <- !isTRUE(a_before_b || b_before_a)
-    }
-  } else {
-    for(i in seq_len(n)) {
-      e <- entries[[i]]
-      hit[[i]] <- .ivx_overlaps_interval(e$start, e$end, q$start, q$end, b, q$endpoint_type)
-    }
-  }
-
-  pos_local <- base::which(hit)
-  if(length(pos_local) == 0L) {
-    return(.ivx_pop_positions(x, integer(0), which = pop_which))
-  }
-  pos_abs <- as.integer(window$start + pos_local - 1L)
-
-  if(identical(pop_which, "first")) {
-    return(.ivx_pop_positions(x, pos_abs[[1L]], which = pop_which))
-  }
-  .ivx_pop_positions(x, pos_abs, which = pop_which)
+  spec <- .ivx_spec_overlaps(q, b, .ivx_bounds_flags(b))
+  .ivx_run_relation_query(x, spec, mode = "pop", which = pop_which)
 }
 
 # Runtime: O(log n + c) for `which = "first"`; O(n log n) for `which = "all"`.
@@ -1207,51 +1414,8 @@ pop_containing <- function(x, start, end, which = c("first", "all"), bounds = NU
   pop_which <- match.arg(which)
   b <- .ivx_resolve_bounds(x, bounds)
   q <- .ivx_normalize_interval(start, end, endpoint_type = .ivx_endpoint_type_state(x))
-  f <- .ivx_bounds_flags(b)
-  touching_is_overlap <- isTRUE(f$include_start) && isTRUE(f$include_end)
-
-  window <- .ivx_query_candidate_window(
-    x,
-    upper = q$start,
-    upper_strict = FALSE
-  )
-  entries <- window$entries
-  n <- length(entries)
-  if(n == 0L) {
-    return(.ivx_pop_positions(x, integer(0), which = pop_which))
-  }
-
-  hit <- logical(n)
-  if(.ivx_is_fast_endpoint_type(q$endpoint_type)) {
-    for(i in seq_len(n)) {
-      e <- entries[[i]]
-      contains <- isTRUE(e$start <= q$start) && isTRUE(e$end >= q$end)
-      if(!contains) {
-        hit[[i]] <- FALSE
-      } else {
-        a_before_b <- if(touching_is_overlap) isTRUE(e$end < q$start) else isTRUE(e$end <= q$start)
-        b_before_a <- if(touching_is_overlap) isTRUE(q$end < e$start) else isTRUE(q$end <= e$start)
-        hit[[i]] <- !isTRUE(a_before_b || b_before_a)
-      }
-    }
-  } else {
-    for(i in seq_len(n)) {
-      e <- entries[[i]]
-      hit[[i]] <- .ivx_overlaps_interval(e$start, e$end, q$start, q$end, b, q$endpoint_type) &&
-        .ivx_contains_interval(e$start, e$end, q$start, q$end, q$endpoint_type)
-    }
-  }
-
-  pos_local <- base::which(hit)
-  if(length(pos_local) == 0L) {
-    return(.ivx_pop_positions(x, integer(0), which = pop_which))
-  }
-  pos_abs <- as.integer(window$start + pos_local - 1L)
-
-  if(identical(pop_which, "first")) {
-    return(.ivx_pop_positions(x, pos_abs[[1L]], which = pop_which))
-  }
-  .ivx_pop_positions(x, pos_abs, which = pop_which)
+  spec <- .ivx_spec_containing(q, b, .ivx_bounds_flags(b))
+  .ivx_run_relation_query(x, spec, mode = "pop", which = pop_which)
 }
 
 # Runtime: O(log n + c) for `which = "first"`; O(n log n) for `which = "all"`.
@@ -1271,53 +1435,8 @@ pop_within <- function(x, start, end, which = c("first", "all"), bounds = NULL) 
   pop_which <- match.arg(which)
   b <- .ivx_resolve_bounds(x, bounds)
   q <- .ivx_normalize_interval(start, end, endpoint_type = .ivx_endpoint_type_state(x))
-  f <- .ivx_bounds_flags(b)
-  touching_is_overlap <- isTRUE(f$include_start) && isTRUE(f$include_end)
-
-  window <- .ivx_query_candidate_window(
-    x,
-    lower = q$start,
-    lower_strict = FALSE,
-    upper = q$end,
-    upper_strict = !isTRUE(touching_is_overlap)
-  )
-  entries <- window$entries
-  n <- length(entries)
-  if(n == 0L) {
-    return(.ivx_pop_positions(x, integer(0), which = pop_which))
-  }
-
-  hit <- logical(n)
-  if(.ivx_is_fast_endpoint_type(q$endpoint_type)) {
-    for(i in seq_len(n)) {
-      e <- entries[[i]]
-      within <- isTRUE(q$start <= e$start) && isTRUE(q$end >= e$end)
-      if(!within) {
-        hit[[i]] <- FALSE
-      } else {
-        a_before_b <- if(touching_is_overlap) isTRUE(e$end < q$start) else isTRUE(e$end <= q$start)
-        b_before_a <- if(touching_is_overlap) isTRUE(q$end < e$start) else isTRUE(q$end <= e$start)
-        hit[[i]] <- !isTRUE(a_before_b || b_before_a)
-      }
-    }
-  } else {
-    for(i in seq_len(n)) {
-      e <- entries[[i]]
-      hit[[i]] <- .ivx_overlaps_interval(e$start, e$end, q$start, q$end, b, q$endpoint_type) &&
-        .ivx_contains_interval(q$start, q$end, e$start, e$end, q$endpoint_type)
-    }
-  }
-
-  pos_local <- base::which(hit)
-  if(length(pos_local) == 0L) {
-    return(.ivx_pop_positions(x, integer(0), which = pop_which))
-  }
-  pos_abs <- as.integer(window$start + pos_local - 1L)
-
-  if(identical(pop_which, "first")) {
-    return(.ivx_pop_positions(x, pos_abs[[1L]], which = pop_which))
-  }
-  .ivx_pop_positions(x, pos_abs, which = pop_which)
+  spec <- .ivx_spec_within(q, b, .ivx_bounds_flags(b))
+  .ivx_run_relation_query(x, spec, mode = "pop", which = pop_which)
 }
 
 #' Plot an Interval Index Tree

@@ -367,10 +367,25 @@ testthat::test_that("backend parity: interval_index insert and queries", {
     p0 <- pop_point(y, 2, which = "first")
     p1 <- pop_overlaps(y, 2, 3, which = "first")
     p2 <- pop_within(y, 2, 5, which = "all")
+    bounds_tokens <- c("[)", "[]", "()", "(]")
+    bounds_matrix <- lapply(bounds_tokens, function(bt) {
+      list(
+        token = bt,
+        point = as.list(peek_point(y, 2, which = "all", bounds = bt)),
+        overlaps = as.list(peek_overlaps(y, 2, 3, which = "all", bounds = bt)),
+        containing = as.list(peek_containing(y, 2, 3, which = "all", bounds = bt)),
+        within = as.list(peek_within(y, 2, 3, which = "all", bounds = bt)),
+        pop_point = as.list(pop_point(y, 2, which = "all", bounds = bt)$element),
+        pop_overlaps = as.list(pop_overlaps(y, 2, 3, which = "all", bounds = bt)$element),
+        pop_containing = as.list(pop_containing(y, 2, 3, which = "all", bounds = bt)$element),
+        pop_within = as.list(pop_within(y, 2, 3, which = "all", bounds = bt)$element)
+      )
+    })
 
     list(
       values = as.list(y),
       bounds = interval_bounds(y),
+      bounds_matrix = bounds_matrix,
       point_first = peek_point(y, 2, which = "first"),
       point = as.list(peek_point(y, 2, which = "all")),
       overlaps_first = peek_overlaps(y, 2, 3, which = "first"),

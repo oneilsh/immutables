@@ -38,7 +38,7 @@
   if(!identical(a$endpoint_type, b$endpoint_type)) {
     stop("Incompatible endpoint types encountered in interval_index measures.")
   }
-  cmp <- .ivx_compare_scalar(a$start, b$start, a$endpoint_type)
+  cmp <- .ivx_compare_scalar_fast(a$start, b$start, endpoint_type = a$endpoint_type)
   if(cmp >= 0L) a else b
 }
 
@@ -57,6 +57,66 @@
   )
 }
 
+# Runtime: O(1).
+.ivx_choose_max_end <- function(a, b) {
+  if(!isTRUE(a$has)) {
+    return(b)
+  }
+  if(!isTRUE(b$has)) {
+    return(a)
+  }
+  if(!identical(a$endpoint_type, b$endpoint_type)) {
+    stop("Incompatible endpoint types encountered in interval_index measures.")
+  }
+  cmp <- .ivx_compare_scalar_fast(a$end, b$end, endpoint_type = a$endpoint_type)
+  if(cmp >= 0L) a else b
+}
+
+# Runtime: O(1).
+.ivx_max_end_monoid <- function() {
+  measure_monoid(
+    .ivx_choose_max_end,
+    list(has = FALSE, end = NULL, endpoint_type = NULL),
+    function(el) {
+      list(
+        has = TRUE,
+        end = el$end,
+        endpoint_type = .ivx_endpoint_type(el$end)
+      )
+    }
+  )
+}
+
+# Runtime: O(1).
+.ivx_choose_min_end <- function(a, b) {
+  if(!isTRUE(a$has)) {
+    return(b)
+  }
+  if(!isTRUE(b$has)) {
+    return(a)
+  }
+  if(!identical(a$endpoint_type, b$endpoint_type)) {
+    stop("Incompatible endpoint types encountered in interval_index measures.")
+  }
+  cmp <- .ivx_compare_scalar_fast(a$end, b$end, endpoint_type = a$endpoint_type)
+  if(cmp <= 0L) a else b
+}
+
+# Runtime: O(1).
+.ivx_min_end_monoid <- function() {
+  measure_monoid(
+    .ivx_choose_min_end,
+    list(has = FALSE, end = NULL, endpoint_type = NULL),
+    function(el) {
+      list(
+        has = TRUE,
+        end = el$end,
+        endpoint_type = .ivx_endpoint_type(el$end)
+      )
+    }
+  )
+}
+
 # Runtime: O(m), where m = number of user-supplied monoids.
 .ivx_supports_oms_key_type <- function(endpoint_type) {
   isTRUE(endpoint_type %in% c("numeric", "character", "logical"))
@@ -66,13 +126,17 @@
 .ivx_merge_monoids <- function(monoids = NULL, endpoint_type = NULL) {
   user <- if(is.null(monoids)) list() else monoids
   if(length(user) > 0L) {
-    bad <- intersect(names(user), c(".size", ".named_count", ".ivx_max_start", ".oms_max_key"))
+    bad <- intersect(names(user), c(".size", ".named_count", ".ivx_max_start", ".ivx_max_end", ".ivx_min_end", ".oms_max_key"))
     if(length(bad) > 0L) {
       stop(paste0("Reserved monoid names cannot be supplied for interval_index: ", paste(bad, collapse = ", ")))
     }
   }
 
-  req <- list(.ivx_max_start = .ivx_max_start_monoid())
+  req <- list(
+    .ivx_max_start = .ivx_max_start_monoid(),
+    .ivx_max_end = .ivx_max_end_monoid(),
+    .ivx_min_end = .ivx_min_end_monoid()
+  )
   if(.ivx_supports_oms_key_type(endpoint_type)) {
     req <- c(req, .oms_required_monoids())
   }

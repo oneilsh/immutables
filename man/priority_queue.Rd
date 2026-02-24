@@ -9,7 +9,7 @@ priority_queue(..., priorities)
 \arguments{
 \item{...}{Elements to enqueue.}
 
-\item{priorities}{Numeric priorities matching `...`.}
+\item{priorities}{Scalar non-missing orderable priorities matching `...`.}
 }
 \value{
 A `priority_queue`.

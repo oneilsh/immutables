@@ -242,3 +242,82 @@ testthat::test_that("ordered_sequence casts down to flexseq explicitly", {
   testthat::expect_false(".oms_max_key" %in% ms)
   testthat::expect_identical(node_measure(fx, "sum_key"), 3)
 })
+
+testthat::test_that("ordered_sequence supports Date keys with stable tie handling", {
+  keys <- as.Date(c("2024-01-03", "2024-01-01", "2024-01-01", "2024-01-02"))
+  xs <- as_ordered_sequence(list("c", "a1", "a2", "b"), keys = keys)
+
+  testthat::expect_equal(as.list(xs), list("a1", "a2", "b", "c"))
+  testthat::expect_equal(peek_key(xs, as.Date("2024-01-01")), "a1")
+
+  lb <- lower_bound(xs, as.Date("2024-01-01"))
+  ub <- upper_bound(xs, as.Date("2024-01-01"))
+  testthat::expect_true(lb$found)
+  testthat::expect_identical(lb$index, 1L)
+  testthat::expect_equal(lb$element, "a1")
+  testthat::expect_s3_class(lb$key, "Date")
+  testthat::expect_true(ub$found)
+  testthat::expect_identical(ub$index, 3L)
+  testthat::expect_equal(ub$element, "b")
+
+  out <- pop_key(xs, as.Date("2024-01-01"))
+  testthat::expect_equal(out$element, "a1")
+  testthat::expect_s3_class(out$key, "Date")
+  testthat::expect_equal(as.list(out$remaining), list("a2", "b", "c"))
+
+  ys <- insert(xs, "a3", key = as.Date("2024-01-01"))
+  testthat::expect_equal(as.list(ys), list("a1", "a2", "a3", "b", "c"))
+})
+
+testthat::test_that("ordered_sequence supports POSIXct keys with stable tie handling", {
+  keys <- as.POSIXct(
+    c("2024-01-01 12:00:00", "2024-01-01 10:00:00", "2024-01-01 10:00:00"),
+    tz = "UTC"
+  )
+  xs <- as_ordered_sequence(list("late", "early1", "early2"), keys = keys)
+
+  testthat::expect_equal(as.list(xs), list("early1", "early2", "late"))
+  testthat::expect_equal(peek_key(xs, as.POSIXct("2024-01-01 10:00:00", tz = "UTC")), "early1")
+
+  out1 <- pop_key(xs, as.POSIXct("2024-01-01 10:00:00", tz = "UTC"))
+  out2 <- pop_key(out1$remaining, as.POSIXct("2024-01-01 10:00:00", tz = "UTC"))
+  testthat::expect_equal(out1$element, "early1")
+  testthat::expect_equal(out2$element, "early2")
+  testthat::expect_s3_class(out1$key, "POSIXct")
+})
+
+testthat::test_that("ordered_sequence rejects mixed key domains and missing keys", {
+  testthat::expect_error(
+    as_ordered_sequence(list("a", "b"), keys = list(1, "1")),
+    "Incompatible key type"
+  )
+  testthat::expect_error(
+    as_ordered_sequence(list("a", "b"), keys = list(1, as.Date("2024-01-01"))),
+    "Incompatible key type"
+  )
+  testthat::expect_error(
+    as_ordered_sequence(
+      list("a", "b"),
+      keys = list(as.Date("2024-01-01"), as.POSIXct("2024-01-01 00:00:00", tz = "UTC"))
+    ),
+    "Incompatible key type"
+  )
+
+  xs_num <- as_ordered_sequence(list("a"), keys = 1)
+  xs_date <- as_ordered_sequence(list("a"), keys = as.Date("2024-01-01"))
+  testthat::expect_error(insert(xs_num, "b", key = "1"), "Incompatible key type")
+  testthat::expect_error(insert(xs_num, "b", key = as.Date("2024-01-01")), "Incompatible key type")
+  testthat::expect_error(
+    insert(xs_date, "b", key = as.POSIXct("2024-01-01 00:00:00", tz = "UTC")),
+    "Incompatible key type"
+  )
+
+  testthat::expect_error(
+    as_ordered_sequence(list("a"), keys = as.Date(NA)),
+    "`key` must be non-missing"
+  )
+  testthat::expect_error(
+    insert(xs_date, "b", key = as.Date(NA)),
+    "`key` must be non-missing"
+  )
+})

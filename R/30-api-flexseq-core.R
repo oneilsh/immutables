@@ -22,7 +22,7 @@
     return(.as_ordered_sequence(out, key_type = key_type))
   }
   if(inherits(source, "priority_queue")) {
-    return(.pq_restore_tree(out, context = context))
+    return(.pq_restore_tree(out, template = source, context = context))
   }
   .as_flexseq(out)
 }

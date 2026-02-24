@@ -1,15 +1,3 @@
-# Consistency Notes (TODO)
-
-Last updated: 2026-02-24
-
-Purpose: active TODO list only. Keep this file focused on unfinished work.
-
-## Monoid API Exposure
-
-### TODO
-
-1. Run/update benchmark notes comparing constructor-time internal monoid build paths vs user-level two-step `add_monoids()` workflow so expected performance tradeoffs stay visible.
-
 ## Scalar Comparable Keys/Priorities
 
 ### TODO

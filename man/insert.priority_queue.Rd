@@ -11,7 +11,7 @@
 
 \item{element}{Element to insert.}
 
-\item{priority}{Numeric scalar priority.}
+\item{priority}{Scalar non-missing orderable priority.}
 
 \item{name}{Optional element name.}
 

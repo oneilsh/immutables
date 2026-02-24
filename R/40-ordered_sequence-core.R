@@ -24,18 +24,67 @@
   list(item = item, key = key_value)
 }
 
-# Runtime: O(n log n) from ordering by key then stable position.
+# Runtime: O(n log n) for stable merge sort by key.
+.oms_merge_sort_indices <- function(idx, entries, key_type) {
+  n <- length(idx)
+  if(n <= 1L) {
+    return(idx)
+  }
+
+  mid <- as.integer(n %/% 2L)
+  left <- .oms_merge_sort_indices(idx[seq_len(mid)], entries, key_type)
+  right <- .oms_merge_sort_indices(idx[(mid + 1L):n], entries, key_type)
+
+  out <- integer(n)
+  i <- 1L
+  j <- 1L
+  k <- 1L
+  while(i <= length(left) && j <= length(right)) {
+    cmp <- .oms_compare_key(entries[[left[[i]]]]$key, entries[[right[[j]]]]$key, key_type)
+    if(cmp <= 0L) {
+      out[[k]] <- left[[i]]
+      i <- i + 1L
+    } else {
+      out[[k]] <- right[[j]]
+      j <- j + 1L
+    }
+    k <- k + 1L
+  }
+
+  while(i <= length(left)) {
+    out[[k]] <- left[[i]]
+    i <- i + 1L
+    k <- k + 1L
+  }
+  while(j <= length(right)) {
+    out[[k]] <- right[[j]]
+    j <- j + 1L
+    k <- k + 1L
+  }
+  out
+}
+
+# Runtime: O(n log n) stable by key and FIFO on ties.
 .oms_order_entries <- function(entries, key_type) {
-  if(length(entries) == 0L) {
+  if(length(entries) <= 1L) {
     return(entries)
   }
+
   idx <- seq_along(entries)
-  ord <- if(key_type == "numeric") {
+  ord <- if(identical(key_type, "numeric")) {
     order(vapply(entries, function(e) e$key, numeric(1)), idx)
-  } else if(key_type == "character") {
+  } else if(identical(key_type, "character")) {
     order(vapply(entries, function(e) e$key, character(1)), idx)
+  } else if(identical(key_type, "logical")) {
+    order(vapply(entries, function(e) e$key, logical(1)), idx)
   } else {
-    order(vapply(entries, function(e) as.integer(isTRUE(e$key)), integer(1)), idx)
+    keys <- lapply(entries, function(e) e$key)
+    ord_try <- tryCatch(order(do.call(c, keys), idx), error = function(e) NULL)
+    if(is.null(ord_try) || length(ord_try) != length(entries)) {
+      .oms_merge_sort_indices(idx, entries, key_type)
+    } else {
+      ord_try
+    }
   }
   entries[ord]
 }
@@ -75,11 +124,6 @@
 .ord_wrap_like <- function(template, tree, key_type = NULL) {
   resolved_key_type <- if(is.null(key_type)) .oms_key_type_state(template) else key_type
   .as_ordered_sequence(tree, key_type = resolved_key_type)
-}
-
-# Runtime: O(1).
-.oms_wrap_tree <- function(template, tree, key_type = NULL) {
-  .ord_wrap_like(template, tree, key_type = key_type)
 }
 
 # Runtime: O(1).
@@ -285,7 +329,7 @@ ordered_sequence <- function(..., keys) {
   entry <- .oms_make_entry(element, norm$key)
   ms <- attr(x, "monoids", exact = TRUE)
 
-  out <- if(.ft_cpp_can_use(ms)) {
+  out <- if(.ft_cpp_can_use_oms_insert(ms, key_type)) {
     .as_flexseq(.ft_cpp_oms_insert(x, entry, ms, key_type))
   } else {
     s <- split_by_predicate(

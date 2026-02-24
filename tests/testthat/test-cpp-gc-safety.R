@@ -36,6 +36,16 @@
     ms_oms <- attr(x_oms, "monoids", exact = TRUE)
     key_type_oms <- attr(x_oms, "oms_key_type", exact = TRUE)
     x_ivx <- as_interval_index(list("a", "b", "c"), start = c(1, 2, 2), end = c(3, 2, 4), bounds = "[]")
+    q_num <- priority_queue("a", "b", "c", priorities = c(2, 1, 3))
+    q_date <- priority_queue(
+      "d1", "d2", "d3",
+      priorities = as.Date(c("2020-01-03", "2020-01-01", "2020-01-02"))
+    )
+    x_ord_num <- as_ordered_sequence(list("aa", "bb", "cc"), keys = c(2, 1, 2))
+    x_ord_date <- as_ordered_sequence(
+      list("aa", "bb", "cc"),
+      keys = as.Date(c("2020-01-02", "2020-01-01", "2020-01-02"))
+    )
 
     options(immutables.use_cpp = TRUE)
 
@@ -79,6 +89,34 @@
     step("peek_overlaps_interval_index", peek_overlaps(x_ivx, 2, 3, which = "all"))
     step("peek_containing_interval_index", peek_containing(x_ivx, 2, 3, which = "all"))
     step("peek_within_interval_index", peek_within(x_ivx, 2, 3, which = "all"))
+
+    step("pq_numeric_peek_min_max", {
+      invisible(peek_min(q_num))
+      invisible(peek_max(q_num))
+    })
+    step("pq_numeric_pop_min_insert", {
+      p1 <- pop_min(q_num)
+      q2 <- insert(p1$remaining, "x", priority = 1)
+      invisible(peek_min(q2))
+      invisible(peek_max(q2))
+    })
+    step("pq_date_peek_pop_insert", {
+      invisible(peek_min(q_date))
+      invisible(peek_max(q_date))
+      p1 <- pop_min(q_date)
+      q2 <- insert(p1$remaining, "d4", priority = as.Date("2020-01-05"))
+      invisible(peek_min(q2))
+      invisible(peek_max(q2))
+    })
+    step("ordered_bounds_numeric", {
+      invisible(lower_bound(x_ord_num, 2))
+      invisible(upper_bound(x_ord_num, 2))
+    })
+    step("ordered_bounds_date", {
+      k <- as.Date("2020-01-02")
+      invisible(lower_bound(x_ord_date, k))
+      invisible(upper_bound(x_ord_date, k))
+    })
   }, error = function(e) {
     setup_error <<- conditionMessage(e)
   })
@@ -132,4 +170,15 @@ testthat::test_that("interval_index public APIs survive GC torture", {
   .expect_step_ok("peek_overlaps_interval_index")
   .expect_step_ok("peek_containing_interval_index")
   .expect_step_ok("peek_within_interval_index")
+})
+
+testthat::test_that("priority_queue public APIs survive GC torture", {
+  .expect_step_ok("pq_numeric_peek_min_max")
+  .expect_step_ok("pq_numeric_pop_min_insert")
+  .expect_step_ok("pq_date_peek_pop_insert")
+})
+
+testthat::test_that("ordered bounds survive GC torture", {
+  .expect_step_ok("ordered_bounds_numeric")
+  .expect_step_ok("ordered_bounds_date")
 })

@@ -16,6 +16,11 @@
   .ft_cpp_enabled() && .ft_cpp_eligible_monoids(monoids)
 }
 
+# Runtime: O(1).
+.ft_cpp_can_use_oms_insert <- function(monoids, key_type) {
+  .ft_cpp_can_use(monoids) && .oms_is_cpp_key_type(key_type)
+}
+
 # Runtime: O(log n) near right edge.
 .ft_cpp_add_right <- function(t, el, monoids) {
   .Call("ft_cpp_append_right", t, el, monoids, PACKAGE = "immutables")

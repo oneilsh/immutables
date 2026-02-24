@@ -121,7 +121,10 @@ testthat::test_that("backend parity: coverage map includes all cpp wrappers", {
   ns <- asNamespace("immutables")
   wrappers <- ls(ns, all.names = TRUE)
   wrappers <- wrappers[startsWith(wrappers, ".ft_cpp_")]
-  wrappers <- setdiff(wrappers, c(".ft_cpp_enabled", ".ft_cpp_eligible_monoids", ".ft_cpp_can_use"))
+  wrappers <- setdiff(
+    wrappers,
+    c(".ft_cpp_enabled", ".ft_cpp_eligible_monoids", ".ft_cpp_can_use", ".ft_cpp_can_use_oms_insert")
+  )
 
   testthat::expect_setequal(names(cpp_wrapper_coverage), wrappers)
 
@@ -333,6 +336,21 @@ testthat::test_that("backend parity: ordered_sequence insert", {
     x <- as_ordered_sequence(list("aa", "bb", "c", "ddd"), keys = c(2, 2, 1, 3))
     out <- insert(x, "qq", key = 2)
     as.list(out)
+  })
+})
+
+testthat::test_that("backend parity: ordered_sequence Date keys use consistent fallback path", {
+  expect_backend_identical({
+    x <- as_ordered_sequence(
+      list("late", "early1", "early2"),
+      keys = as.Date(c("2024-01-03", "2024-01-01", "2024-01-01"))
+    )
+    y <- insert(x, "early3", key = as.Date("2024-01-01"))
+    list(
+      values = as.list(y),
+      lower = lower_bound(y, as.Date("2024-01-01")),
+      upper = upper_bound(y, as.Date("2024-01-01"))
+    )
   })
 })
 

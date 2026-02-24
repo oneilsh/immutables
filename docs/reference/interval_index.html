@@ -79,8 +79,19 @@
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">ix</span> <span class="op">&lt;-</span> <span class="fu">interval_index</span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"c"</span>, start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span>, end <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">2</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">ix</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;interval_index&gt; size=3 endpoint_type=numeric bounds=[)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   preview[3]: {start= num 1 end= num 3 item= chr "a"} | {start= num 2 end= num 2 item= chr "b"} | {start= num 2 end= num 4 item= chr "c"}</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Unnamed interval_index with 3 elements, default bounds [start, end).</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Elements (by interval start order):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]] (interval [1, 3))</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "a"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]] (interval [2, 2))</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "b"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]] (interval [2, 4))</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "c"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

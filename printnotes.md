@@ -6,7 +6,7 @@ Note: there may be typos or errors, please infer the intent from context.
 
 Basically a list view with a little metadata at the top, but showing the first and the last with a ... (skipping) for the middle part if any. We only show the names of the user-defined measures, since those are complex and likely to be a rare use case anyway, and that line only if there are any custom measurements.
 
-If it's not named, it should say "Unnamed flexseq with 91 elements" and use [[1]] etc.
+If it's not named, it should say "Unnamed flexseq with 91 elements." and use [[1]] etc.
 
 ```
 > flexseq(one = c(10, 20), 
@@ -14,8 +14,9 @@ If it's not named, it should say "Unnamed flexseq with 91 elements" and use [[1]
              three = c(8, 6), 
              #...
              ninety = c(5, 2),
-             ninetyone = c(8, 10))
+             ninetyone = c(8, 10)) |> add_monoids(list(product = ..., summation = ...))
 Named flexseq with 91 elements.
+Custom monoids: product, summation
 
 Elements:
 

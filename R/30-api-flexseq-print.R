@@ -119,12 +119,19 @@ print.FingerTree <- function(x, max_elements = 4L, show_internal_monoids = FALSE
 
 #' Print a flexseq
 #'
+#' @name print.flexseq
 #' @method print flexseq
 #' @param x A `flexseq`.
 #' @param max_elements Maximum number of elements shown in preview (`head + tail`).
 #' @param show_internal_monoids Logical; include internal monoids in the
 #'   "Custom monoids" line.
 #' @param ... Passed through to per-element `print()`.
+#' @examples
+#' x <- as_flexseq(setNames(as.list(1:6), letters[1:6]))
+#' print(x, max_elements = 4)
+#'
+#' y <- as_flexseq(as.list(1:6))
+#' print(y, max_elements = 3)
 #' @export
 # Runtime: Delegates to `print.FingerTree`.
 print.flexseq <- function(x, max_elements = 4L, show_internal_monoids = FALSE, ...) {

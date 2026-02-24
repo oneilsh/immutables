@@ -247,6 +247,106 @@
 <code>interval_index</code> point queries use <code>peek_point</code>/<code>pop_point</code> with <code>which = "first"|"all"</code> semantics.</li>
 <li>Ordered merge remains unavailable and there is currently no retained internal merge primitive.</li>
 </ol></div>
+<div class="section level2">
+<h2 id="monoid-api-exposure-notes-2026-02-23">Monoid API Exposure Notes (2026-02-23)<a class="anchor" aria-label="anchor" href="#monoid-api-exposure-notes-2026-02-23"></a></h2>
+<p>Context: we discussed whether to remove user-facing <code>monoids =</code> constructor parameters and push advanced monoid attachment to <code><a href="reference/add_monoids.html">add_monoids()</a></code>.</p>
+<div class="section level3">
+<h3 id="current-behavior">Current Behavior<a class="anchor" aria-label="anchor" href="#current-behavior"></a></h3>
+<ul><li>Constructors support <code>monoids =</code> and can build with monoids in one pass, including C++ fast paths.</li>
+<li>
+<code><a href="reference/add_monoids.html">add_monoids()</a></code> is available, but currently acts as a full rebind/recompute pass over the built tree.</li>
+<li>
+<code><a href="reference/measure_monoid.html">measure_monoid()</a></code> is a developer API; element shape differs by structure:
+<ul><li>
+<code>flexseq</code>: raw payload element.</li>
+<li>
+<code>priority_queue</code>: entry wrapper (<code>item</code>, <code>priority</code>).</li>
+<li>
+<code>ordered_sequence</code>: entry wrapper (<code>item</code>, <code>key</code>).</li>
+<li>
+<code>interval_index</code>: entry wrapper (<code>item</code>, <code>start</code>, <code>end</code>).</li>
+</ul></li>
+</ul></div>
+<div class="section level3">
+<h3 id="performance-finding-directional">Performance Finding (directional)<a class="anchor" aria-label="anchor" href="#performance-finding-directional"></a></h3>
+<p>Routing construction through <code>as_*()</code> then <code><a href="reference/add_monoids.html">add_monoids()</a></code> instead of constructor-time <code>monoids =</code> has significant cost:</p>
+<ul><li>R backend: roughly <code>~3.1x</code> to <code>~3.3x</code> slower in local checks.</li>
+<li>C++ backend batch builds: dramatically slower in local checks (orders of magnitude in small calibrated runs), because the one-pass C++ build advantage is lost and monoid recomputation is forced through the rebind pass.</li>
+</ul><p>Interpretation: replacing internal constructor-time monoid wiring with <code><a href="reference/add_monoids.html">add_monoids()</a></code> broadly would be a material regression, especially for C++ batch paths.</p>
+</div>
+<div class="section level3">
+<h3 id="preferred-direction">Preferred Direction<a class="anchor" aria-label="anchor" href="#preferred-direction"></a></h3>
+<ol style="list-style-type: decimal"><li>Keep internal monoid-aware builders (fast path) for implementation and batch operations.</li>
+<li>Simplify public constructors over time (hide/remove <code>monoids =</code> from user-facing entry points).</li>
+<li>Keep <code><a href="reference/add_monoids.html">add_monoids()</a></code> as the advanced user/developer API, with clearer documentation of per-structure <code>measure(el)</code> contracts.</li>
+<li>If constructor <code>monoids =</code> is removed publicly, do it as a surface/API change only; do not replace internal fast-path plumbing with two-step <code><a href="reference/add_monoids.html">add_monoids()</a></code> calls.</li>
+</ol></div>
+</div>
+<div class="section level2">
+<h2 id="scalar-comparable-keyspriorities-2026-02-23">Scalar Comparable Keys/Priorities (2026-02-23)<a class="anchor" aria-label="anchor" href="#scalar-comparable-keyspriorities-2026-02-23"></a></h2>
+<p>Context: we discussed expanding <code>ordered_sequence</code> keys and <code>priority_queue</code> priorities beyond current primitive constraints, to allow any scalar type with valid ordering.</p>
+<div class="section level3">
+<h3 id="current-constraints">Current Constraints<a class="anchor" aria-label="anchor" href="#current-constraints"></a></h3>
+<ul><li>
+<code>ordered_sequence</code> keys currently accept only scalar <code>numeric</code> / <code>character</code> / <code>logical</code>.</li>
+<li>
+<code>priority_queue</code> priorities currently accept only scalar non-missing <code>numeric</code>.</li>
+<li>
+<code>interval_index</code> already supports broader scalar endpoint types so long as <code>&lt;</code> and <code>&gt;</code> are valid (for example <code>Date</code>/<code>POSIXct</code>), with mixed-type objects rejected.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="feasibility-assessment">Feasibility Assessment<a class="anchor" aria-label="anchor" href="#feasibility-assessment"></a></h3>
+<ul><li>Expanding support is feasible.</li>
+<li>The practical model is:
+<ul><li>keep C++ fast paths for primitive key/priority types;</li>
+<li>use R comparator fallback for other scalar orderable types.</li>
+</ul></li>
+<li>This matches existing interval-index behavior and preserves performance where the backend can optimize.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="suggested-contract-if-implemented">Suggested Contract (if implemented)<a class="anchor" aria-label="anchor" href="#suggested-contract-if-implemented"></a></h3>
+<ol style="list-style-type: decimal"><li>Values must be scalar and non-missing.</li>
+<li>Values must support deterministic scalar <code>&lt;</code> and <code>&gt;</code> comparisons.</li>
+<li>Types must be homogeneous within an object (no mixed key/priority domains).</li>
+<li>Equality semantics should be derived from comparator outcomes (<code>a &lt; b</code>, <code>a &gt; b</code>, otherwise equal), not from class-specific ad hoc checks.</li>
+</ol></div>
+<div class="section level3">
+<h3 id="implementation-notes">Implementation Notes<a class="anchor" aria-label="anchor" href="#implementation-notes"></a></h3>
+<ul><li>
+<code>ordered_sequence</code>:
+<ul><li>Generalize key normalization/type tagging to permit non-primitive scalar orderable types.</li>
+<li>Keep existing C++ OMS insert path only for primitive key types; fallback to R split/compare path otherwise.</li>
+</ul></li>
+<li>
+<code>priority_queue</code>:
+<ul><li>Replace numeric-only priority validator with scalar orderability validator.</li>
+<li>Generalize <code>.pq_min</code> / <code>.pq_max</code> monoid compare logic away from numeric-only assumptions.</li>
+<li>Maintain tie stability (FIFO within equal-priority runs).</li>
+</ul></li>
+</ul></div>
+<div class="section level3">
+<h3 id="risk-notes">Risk Notes<a class="anchor" aria-label="anchor" href="#risk-notes"></a></h3>
+<ul><li>Comparator edge cases (<code>NA</code>, class-specific Ops behavior, mixed classes) need explicit validation and tests.</li>
+<li>Performance for non-primitive types will be R-fallback and should be documented as such.</li>
+</ul></div>
+</div>
+<div class="section level2">
+<h2 id="orderedinterval-error-ux-replacement-indexing-2026-02-23">Ordered/Interval Error UX: Replacement Indexing (2026-02-23)<a class="anchor" aria-label="anchor" href="#orderedinterval-error-ux-replacement-indexing-2026-02-23"></a></h2>
+<p>Observed issue:</p>
+<ul><li>For ordered-like structures, replacement indexing is correctly blocked, but the current error target can leak internal structural classes.</li>
+<li>Example observed:
+<ul><li><code>`[[&lt;-()` is not supported for Deep. Replacement indexing is not supported.</code></li>
+</ul></li>
+</ul><p>Expected user-facing behavior:</p>
+<ul><li>Error should reference the concrete public class (<code>ordered_sequence</code> or <code>interval_index</code>), never internal tree node classes (<code>Deep</code>, <code>Single</code>, <code>Empty</code>).</li>
+<li>Message should remain action-oriented (for ordered-like types, replacements are blocked to preserve order invariants).</li>
+</ul><p>Likely root cause:</p>
+<ul><li>Ordered-like blocker helper derives target class from <code>class(x)</code> and currently permits structural classes through in some paths.</li>
+<li>The class selection logic should explicitly filter finger-tree implementation classes before choosing a displayed owner class.</li>
+</ul><p>Follow-up:</p>
+<ol style="list-style-type: decimal"><li>Tighten ordered-like owner-class resolution so blocker messages are stable and public-API oriented.</li>
+<li>Add tests asserting blocker messages mention only the expected public class names for <code>ordered_sequence</code> and <code>interval_index</code>.</li>
+</ol></div>
 </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

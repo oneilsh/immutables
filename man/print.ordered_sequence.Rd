@@ -4,18 +4,25 @@
 \alias{print.ordered_sequence}
 \title{Print an ordered sequence summary}
 \usage{
-\method{print}{ordered_sequence}(x, max_elements = 8L, ...)
+\method{print}{ordered_sequence}(x, max_elements = 4L, ...)
 }
 \arguments{
 \item{x}{An `ordered_sequence`.}
 
-\item{max_elements}{Maximum number of elements shown in preview.}
+\item{max_elements}{Maximum number of elements shown in preview (`head + tail`).}
 
-\item{...}{Unused.}
+\item{...}{Passed through to per-element `print()`.}
 }
 \value{
 Invisibly returns `x`.
 }
 \description{
 Print an ordered sequence summary
+}
+\examples{
+xs <- ordered_sequence(one = 1, two = 2, three = 3, keys = c(20, 30, 10))
+print(xs, max_elements = 4)
+
+ys <- ordered_sequence(1, 2, 3, keys = c(2, 1, 3))
+print(ys, max_elements = 3)
 }

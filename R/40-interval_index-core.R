@@ -702,6 +702,8 @@
       return(invisible(NULL))
     }
 
+    # Prune only at Deep nodes where subtree measures summarize meaningful
+    # spans; pruning tiny Digit/Node fragments often costs more than it saves.
     can_prune <- inherits(node, "Deep")
     if(isTRUE(can_prune) && isTRUE(no_match_subtree(node))) {
       sz <- .ivx_subtree_size(node)
@@ -764,8 +766,8 @@
     return(.ivx_query_pop_miss(x, which = which))
   }
 
-  # Fast path for read-heavy queries and single-pop operations:
-  # scan only start-range candidates and avoid split/concat overhead.
+  # When C++ backend is active, candidate-window scanning has lower constants
+  # for read-heavy/first-hit queries than split+rebuild traversal.
   if(isTRUE(use_window_fast_path) && (identical(mode, "peek") || identical(which, "first"))) {
     entries <- .ft_get_elems_at(x, seq.int(span$start, span$end_excl - 1L))
     n <- length(entries)
@@ -873,6 +875,8 @@
     return(.ivx_query_pop_miss(x, which = which))
   }
 
+  # `which = "all"` pop keeps deterministic order by rebuilding matched and
+  # unmatched candidate partitions from collected entries.
   matched <- .ivx_slice_entries(x, hit$matched_entries)
   unmatched <- .ivx_slice_entries(x, hit$unmatched_entries)
   remaining <- .ivx_concat3_like(x, parts$left, unmatched, parts$right)

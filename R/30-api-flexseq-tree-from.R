@@ -41,7 +41,8 @@ tree_from <- function(x, monoids = NULL) {
     }
   } else if(n > 0L) {
     if(can_cpp) {
-      # Common fast path: unnamed plain elements cannot carry inline ft names.
+      # Common constructor path: if elements have no attrs there are no inline
+      # names to preserve, so we can bulk-build directly in C++.
       if(!any(vapply(x_list, function(el) !is.null(attributes(el)), logical(1)))) {
         return(.as_flexseq(.ft_cpp_tree_from(x_list, ms)))
       }
@@ -152,7 +153,8 @@ tree_from <- function(x, monoids = NULL) {
     ))
   }
 
-  # Avoid a 1-element middle segment (which cannot be packed into Node2/Node3).
+  # Reference shape rule: avoid a 1-element middle segment since middle trees
+  # are built from Node2/Node3 blocks only.
   prefix_len <- if(n == 5L) 1L else 2L
   suffix_len <- 2L
 

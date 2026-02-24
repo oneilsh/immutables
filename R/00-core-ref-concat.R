@@ -1,10 +1,5 @@
-##
-## app3 is what the original paper called this generalized concatenation function used by concat()
-##
-
-## concatenation, depending on what kinds of finger trees we want to concatenate we do different things
-# each concat function also takes a list of elements to smush between the two trees, useful for later functionality
-# generalized concatenation helper; inserts list ts between two trees
+# Reference concat primitive from Hinze/Paterson finger trees:
+# concatenate two trees with an explicit bridge list `ts`.
 # Runtime: O(log n + k) in balanced usage, where k = length(ts), with recursion
 # depth proportional to concatenation spine depth.
 app3(e, ts, xs, monoids) %::% Empty : list : FingerTree : list : FingerTree
@@ -51,7 +46,8 @@ concat(xs, ys, monoids) %as% {
   app3(xs, list(), ys, monoids)
 }
 
-# convert a flat list into measured Node2/Node3 list for concatenation.
+# Convert bridge elements into Node2/Node3 only (never Node1), matching the
+# reference finger-tree middle-layer shape invariant.
 # Runtime: O(k), where k = length(l).
 measured_nodes(l, monoids) %::% list : list : list
 measured_nodes(l, monoids) %as% {

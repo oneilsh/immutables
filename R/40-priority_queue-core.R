@@ -135,7 +135,6 @@
 #'
 #' @param x Elements to enqueue.
 #' @param priorities Numeric priorities (same length as `x`).
-#' @param names Optional element names for name-based indexing.
 #' @return A `priority_queue`.
 #' @examples
 #' x <- as_priority_queue(letters[1:4], priorities = c(3, 1, 2, 1))
@@ -143,12 +142,12 @@
 #' peek_min(x)
 #' peek_max(x)
 #' @export
-as_priority_queue <- function(x, priorities, names = NULL) {
-  .as_priority_queue_build(x, priorities = priorities, names = names, monoids = NULL)
+as_priority_queue <- function(x, priorities) {
+  .as_priority_queue_build(x, priorities = priorities, monoids = NULL)
 }
 
 # Runtime: O(n log n) from underlying sequence construction.
-.as_priority_queue_build <- function(x, priorities, names = NULL, monoids = NULL) {
+.as_priority_queue_build <- function(x, priorities, monoids = NULL) {
   x_list <- as.list(x)
   n <- length(x_list)
 
@@ -162,10 +161,7 @@ as_priority_queue <- function(x, priorities, names = NULL) {
     entries[[i]] <- .pq_make_entry(x_list[[i]], p_list[[i]])
   }
 
-  nm <- names
-  if(is.null(nm)) {
-    nm <- names(x)
-  }
+  nm <- names(x)
   if(!is.null(nm) && length(nm) > 0L) {
     if(length(nm) != n) {
       stop("`names` length must match elements length.")
@@ -186,22 +182,21 @@ as_priority_queue <- function(x, priorities, names = NULL) {
 #'
 #' @param ... Elements to enqueue.
 #' @param priorities Numeric priorities matching `...`.
-#' @param names Optional element names.
 #' @return A `priority_queue`.
 #' @examples
 #' x <- priority_queue("a", "b", "c", priorities = c(2, 1, 2))
 #' x
 #' peek_min(x)
 #' @export
-priority_queue <- function(..., priorities, names = NULL) {
+priority_queue <- function(..., priorities) {
   if(missing(priorities)) {
     priorities <- NULL
   }
-  .priority_queue_build(..., priorities = priorities, names = names, monoids = NULL)
+  .priority_queue_build(..., priorities = priorities, monoids = NULL)
 }
 
 # Runtime: O(n log n) from underlying sequence construction.
-.priority_queue_build <- function(..., priorities = NULL, names = NULL, monoids = NULL) {
+.priority_queue_build <- function(..., priorities = NULL, monoids = NULL) {
   xs <- list(...)
   n <- length(xs)
 
@@ -214,13 +209,6 @@ priority_queue <- function(..., priorities, names = NULL) {
 
   if(is.null(priorities)) {
     stop("`priorities` is required when elements are supplied.")
-  }
-
-  if(!is.null(names)) {
-    if(length(names) != n) {
-      stop("`names` length must match number of elements.")
-    }
-    names(xs) <- names
   }
 
   .as_priority_queue_build(xs, priorities = priorities, monoids = monoids)

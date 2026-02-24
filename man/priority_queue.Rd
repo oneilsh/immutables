@@ -4,14 +4,12 @@
 \alias{priority_queue}
 \title{Construct a Priority Queue}
 \usage{
-priority_queue(..., priorities, names = NULL)
+priority_queue(..., priorities)
 }
 \arguments{
 \item{...}{Elements to enqueue.}
 
 \item{priorities}{Numeric priorities matching `...`.}
-
-\item{names}{Optional element names.}
 }
 \value{
 A `priority_queue`.

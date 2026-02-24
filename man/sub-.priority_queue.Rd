@@ -47,7 +47,7 @@ Numeric/logical indexing and replacement indexing are unsupported for
 `priority_queue`. Cast with [as_flexseq()] for full sequence-style indexing.
 }
 \examples{
-q <- as_priority_queue(c("A", "B"), priorities = c(2, 1), names = c("a", "b"))
+q <- as_priority_queue(setNames(c("A", "B"), c("a", "b")), priorities = c(2, 1))
 q["a"]
 q[["b"]]
 try(q[[1]])

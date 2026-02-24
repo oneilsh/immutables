@@ -8,14 +8,7 @@ Purpose: active TODO list only. Keep this file focused on unfinished work.
 
 ### TODO
 
-1. Clarify and centralize documentation for `add_monoids()` as the advanced monoid attachment API.
-2. Add a short "measure(el) contract by structure" reference table to user-facing docs:
-   - `flexseq`: payload element
-   - `priority_queue`: entry (`item`, `priority`)
-   - `ordered_sequence`: entry (`item`, `key`)
-   - `interval_index`: entry (`item`, `start`, `end`)
-3. Add explicit migration examples showing constructor usage plus `add_monoids(...)` as the preferred pattern.
-4. Run/update benchmark notes comparing constructor-time internal monoid build paths vs user-level two-step `add_monoids()` workflow so expected performance tradeoffs stay visible.
+1. Run/update benchmark notes comparing constructor-time internal monoid build paths vs user-level two-step `add_monoids()` workflow so expected performance tradeoffs stay visible.
 
 ## Scalar Comparable Keys/Priorities
 

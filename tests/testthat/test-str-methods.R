@@ -8,8 +8,18 @@ testthat::test_that("str() works for flexseq-like classes with restricted indexi
     end = c(3, 7, 12)
   )
 
-  testthat::expect_no_error(utils::capture.output(utils::str(x)))
-  testthat::expect_no_error(utils::capture.output(utils::str(q)))
-  testthat::expect_no_error(utils::capture.output(utils::str(os)))
-  testthat::expect_no_error(utils::capture.output(utils::str(ix)))
+  out_x <- testthat::expect_no_error(utils::capture.output(utils::str(x)))
+  out_q <- testthat::expect_no_error(utils::capture.output(utils::str(q)))
+  out_os <- testthat::expect_no_error(utils::capture.output(utils::str(os)))
+  out_ix <- testthat::expect_no_error(utils::capture.output(utils::str(ix)))
+
+  testthat::expect_true(any(grepl("^List of ", out_x)))
+  testthat::expect_true(any(grepl("^List of ", out_q)))
+  testthat::expect_true(any(grepl("^List of ", out_os)))
+  testthat::expect_true(any(grepl("^List of ", out_ix)))
+
+  blocked_msg <- "supports scalar character names only"
+  testthat::expect_false(any(grepl(blocked_msg, out_q, fixed = TRUE)))
+  testthat::expect_false(any(grepl(blocked_msg, out_os, fixed = TRUE)))
+  testthat::expect_false(any(grepl(blocked_msg, out_ix, fixed = TRUE)))
 })

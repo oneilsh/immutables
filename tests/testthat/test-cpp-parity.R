@@ -33,6 +33,25 @@ expect_backend_identical <- function(expr, transform = identity, env = parent.fr
   testthat::succeed()
 }
 
+expect_wrapper_dispatch <- function(wrapper_name, expr, should_dispatch = TRUE, env = parent.frame()) {
+  ns <- asNamespace("immutables")
+  flag <- new.env(parent = emptyenv())
+  flag$called <- FALSE
+  suppressMessages(base::trace(
+    what = wrapper_name,
+    tracer = bquote(assign("called", TRUE, envir = .(flag))),
+    where = ns,
+    print = FALSE
+  ))
+  on.exit(suppressMessages(base::untrace(what = wrapper_name, where = ns)), add = TRUE)
+  eval(substitute(expr), envir = env)
+  if(should_dispatch) {
+    testthat::expect_true(isTRUE(flag$called), info = paste("Expected wrapper dispatch:", wrapper_name))
+  } else {
+    testthat::expect_false(isTRUE(flag$called), info = paste("Expected no wrapper dispatch:", wrapper_name))
+  }
+}
+
 snapshot_tree <- function(t) {
   els <- immutables:::.ft_to_list(t)
   vals <- lapply(els, immutables:::.ft_strip_name)
@@ -134,6 +153,30 @@ testthat::test_that("backend parity: coverage map includes all cpp wrappers", {
       testthat::expect_true(tag %in% parity_scenarios, info = paste("Missing parity scenario tag:", tag))
     }
   }
+})
+
+testthat::test_that("backend parity: forced backend option gates C++ eligibility", {
+  ms <- ensure_size_monoids(list(.size = size_measure_monoid()))
+  testthat::expect_true(backend_eval(quote(.ft_cpp_can_use(ms)), TRUE))
+  testthat::expect_false(backend_eval(quote(.ft_cpp_can_use(ms)), FALSE))
+})
+
+testthat::test_that("backend parity: append dispatch respects forced backend mode", {
+  backend_eval(
+    quote(expect_wrapper_dispatch(".ft_cpp_add_right", {
+      t <- as_flexseq(1:6)
+      push_back(t, 7)
+    }, should_dispatch = TRUE)),
+    TRUE
+  )
+
+  backend_eval(
+    quote(expect_wrapper_dispatch(".ft_cpp_add_right", {
+      t <- as_flexseq(1:6)
+      push_back(t, 7)
+    }, should_dispatch = FALSE)),
+    FALSE
+  )
 })
 
 testthat::test_that("backend parity: MeasureMonoid constructor/use", {

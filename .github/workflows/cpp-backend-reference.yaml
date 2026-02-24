@@ -1,24 +1,19 @@
-name: gc-stress-cpp
+name: cpp-backend-reference
 
 on:
-  pull_request:
-    branches: [main, master]
-    paths:
-      - "src/**"
   push:
     branches: [main, master]
-    paths:
-      - "src/**"
+  pull_request:
+    branches: [main, master]
   workflow_dispatch:
 
 concurrency:
-  group: gc-stress-cpp-${{ github.ref }}
+  group: cpp-backend-reference-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  gc-stress-cpp:
+  cpp-backend-reference:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
     container: rocker/r2u:latest
     steps:
       - uses: actions/checkout@v4
@@ -32,8 +27,6 @@ jobs:
         run: |
           Rscript -e 'install.packages(c("Rcpp","lambda.r","knitr","rmarkdown","testthat","devtools"), repos = "https://cloud.r-project.org")'
 
-      - name: Run GC stress tests
-        env:
-          IMMUTABLES_GC_STRESS: "1"
+      - name: Run tests with C++ backend forced on
         run: |
-          Rscript -e 'devtools::test(filter = "cpp-gc-safety")'
+          Rscript -e 'options(immutables.use_cpp = TRUE); devtools::test()'

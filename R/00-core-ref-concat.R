@@ -5,36 +5,59 @@
 ## concatenation, depending on what kinds of finger trees we want to concatenate we do different things
 # each concat function also takes a list of elements to smush between the two trees, useful for later functionality
 # generalized concatenation helper; inserts list ts between two trees
-# Runtime: see `.app3_fast`.
+# Runtime: O(log n + k) in balanced usage, where k = length(ts), with recursion
+# depth proportional to concatenation spine depth.
 app3(e, ts, xs, monoids) %::% Empty : list : FingerTree : list : FingerTree
-app3(e, ts, xs, monoids) %as% .app3_fast(e, ts, xs, monoids)
+app3(e, ts, xs, monoids) %as% add_all_left(xs, ts, monoids)
 
-# Runtime: see `.app3_fast`.
+# Runtime: O(log n + k) in balanced usage, where k = length(ts), with recursion
+# depth proportional to concatenation spine depth.
 app3(xs, ts, e, monoids) %::% FingerTree : list : Empty : list : FingerTree
-app3(xs, ts, e, monoids) %as% .app3_fast(xs, ts, e, monoids)
+app3(xs, ts, e, monoids) %as% add_all_right(xs, ts, monoids)
 
-# Runtime: see `.app3_fast`.
+# Runtime: O(log n + k) in balanced usage, where k = length(ts), with recursion
+# depth proportional to concatenation spine depth.
 app3(x, ts, xs, monoids) %::% Single : list : FingerTree : list : FingerTree
-app3(x, ts, xs, monoids) %as% .app3_fast(x, ts, xs, monoids)
+app3(x, ts, xs, monoids) %as% {
+  add_left(add_all_left(xs, ts, monoids), .subset2(x, 1), monoids)
+}
 
-# Runtime: see `.app3_fast`.
+# Runtime: O(log n + k) in balanced usage, where k = length(ts), with recursion
+# depth proportional to concatenation spine depth.
 app3(xs, ts, x, monoids) %::% FingerTree : list : Single : list : FingerTree
-app3(xs, ts, x, monoids) %as% .app3_fast(xs, ts, x, monoids)
+app3(xs, ts, x, monoids) %as% {
+  add_right(add_all_right(xs, ts, monoids), .subset2(x, 1), monoids)
+}
 
-# Runtime: see `.app3_fast`.
+# Runtime: O(log n + k) in balanced usage, where k = length(ts), with recursion
+# depth proportional to concatenation spine depth.
 app3(xs, ts, ys, monoids) %::% Deep : list : Deep : list : FingerTree
-app3(xs, ts, ys, monoids) %as% .app3_fast(xs, ts, ys, monoids)
+app3(xs, ts, ys, monoids) %as% {
+  mid_ts <- measured_nodes(
+    c(as.list(.subset2(xs, "suffix")), ts, as.list(.subset2(ys, "prefix"))),
+    monoids
+  )
+  measured_deep(
+    .subset2(xs, "prefix"),
+    app3(.subset2(xs, "middle"), mid_ts, .subset2(ys, "middle"), monoids),
+    .subset2(ys, "suffix"),
+    monoids
+  )
+}
 
 # Runtime: O(log(min(nx, ny))) for balanced trees, where nx/ny are input sizes.
 concat(xs, ys, monoids) %::% FingerTree : FingerTree : list : FingerTree
 concat(xs, ys, monoids) %as% {
-  .app3_fast(xs, list(), ys, monoids)
+  app3(xs, list(), ys, monoids)
 }
 
 # convert a flat list into measured Node2/Node3 list for concatenation.
 # Runtime: O(k), where k = length(l).
 measured_nodes(l, monoids) %::% list : list : list
 measured_nodes(l, monoids) %as% {
+  if(length(l) < 2L) {
+    stop("measured_nodes requires at least two elements.")
+  }
   if(length(l) == 2) { return(list(
     measured_node2( l[[1]], l[[2]], monoids )
   ))}

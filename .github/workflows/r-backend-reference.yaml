@@ -1,0 +1,32 @@
+name: r-backend-reference
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: r-backend-reference-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  r-backend-reference:
+    runs-on: ubuntu-latest
+    container: rocker/r2u:latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends pandoc
+
+      - name: Install R dependencies
+        run: |
+          Rscript -e 'install.packages(c("Rcpp","lambda.r","knitr","rmarkdown","testthat","devtools"), repos = "https://cloud.r-project.org")'
+
+      - name: Run tests with pure-R backend
+        run: |
+          Rscript -e 'options(immutables.use_cpp = FALSE); devtools::test()'

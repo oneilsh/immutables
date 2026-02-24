@@ -145,7 +145,7 @@
       return(.pq_wrap_like(q, out))
     }
     entry2 <- if(is.null(nm)) entry else .ft_set_name(entry, nm)
-    return(.pq_wrap_like(q, .add_right_fast(q, entry2, ms)))
+    return(.pq_wrap_like(q, add_right(q, entry2, ms)))
   }
 
   if(is.null(nm)) {
@@ -154,7 +154,7 @@
   if(.ft_cpp_can_use(ms)) {
     return(.pq_wrap_like(q, .ft_cpp_add_right_named(q, entry, nm, ms)))
   }
-  .pq_wrap_like(q, .add_right_fast(q, .ft_set_name(entry, nm), ms))
+  .pq_wrap_like(q, add_right(q, .ft_set_name(entry, nm), ms))
 }
 
 # Runtime: O(n log n) from underlying sequence construction.

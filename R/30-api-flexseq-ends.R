@@ -24,7 +24,7 @@
       if(.ft_cpp_can_use(ms)) {
         return(.ft_restore_subclass(.ft_cpp_add_right(x, value2, ms), x, context = context))
       }
-      return(.ft_restore_subclass(.add_right_fast(x, value2, ms), x, context = context))
+      return(.ft_restore_subclass(add_right(x, value2, ms), x, context = context))
     }
     if(n > 0L) {
       stop("Cannot mix named and unnamed elements (push_back would create mixed named and unnamed tree).")
@@ -47,7 +47,7 @@
   if(.ft_cpp_can_use(ms)) {
     return(.ft_restore_subclass(.ft_cpp_add_right(x, value2, ms), x, context = context))
   }
-  .ft_restore_subclass(.add_right_fast(x, value2, ms), x, context = context)
+  .ft_restore_subclass(add_right(x, value2, ms), x, context = context)
 }
 
 #' Push an element to the back
@@ -126,7 +126,7 @@ push_front <- function(x, value) {
       if(.ft_cpp_can_use(ms)) {
         return(.ft_restore_subclass(.ft_cpp_add_left(x, value2, ms), x, context = "push_front()"))
       }
-      return(.ft_restore_subclass(.add_left_fast(x, value2, ms), x, context = "push_front()"))
+      return(.ft_restore_subclass(add_left(x, value2, ms), x, context = "push_front()"))
     }
     if(n > 0L) {
       stop("Cannot mix named and unnamed elements (push_front would create mixed named and unnamed tree).")
@@ -149,7 +149,7 @@ push_front <- function(x, value) {
   if(.ft_cpp_can_use(ms)) {
     return(.ft_restore_subclass(.ft_cpp_add_left(x, value2, ms), x, context = "push_front()"))
   }
-  .ft_restore_subclass(.add_left_fast(x, value2, ms), x, context = "push_front()")
+  .ft_restore_subclass(add_left(x, value2, ms), x, context = "push_front()")
 }
 
 # Runtime: O(1) for empty rebuild metadata, class restoration depends on type.

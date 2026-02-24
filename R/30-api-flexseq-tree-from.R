@@ -119,35 +119,35 @@ tree_from <- function(x, monoids = NULL) {
 }
 
 # Runtime: O(n) in total elements across recursive levels.
-.ft_tree_from_ordered_fast <- function(xs, monoids) {
+.ft_tree_from_ordered_ref <- function(xs, monoids) {
   n <- length(xs)
   if(n == 0L) {
-    return(.measured_empty_fast(monoids))
+    return(measured_empty(monoids))
   }
   if(n == 1L) {
-    return(.measured_single_fast(xs[[1L]], monoids))
+    return(measured_single(xs[[1L]], monoids))
   }
   if(n == 2L) {
-    return(.measured_deep_fast(
-      .measured_digit_fast(list(xs[[1L]]), monoids),
-      .measured_empty_fast(monoids),
-      .measured_digit_fast(list(xs[[2L]]), monoids),
+    return(measured_deep(
+      build_digit(list(xs[[1L]]), monoids),
+      measured_empty(monoids),
+      build_digit(list(xs[[2L]]), monoids),
       monoids
     ))
   }
   if(n == 3L) {
-    return(.measured_deep_fast(
-      .measured_digit_fast(xs[1:2], monoids),
-      .measured_empty_fast(monoids),
-      .measured_digit_fast(list(xs[[3L]]), monoids),
+    return(measured_deep(
+      build_digit(xs[1:2], monoids),
+      measured_empty(monoids),
+      build_digit(list(xs[[3L]]), monoids),
       monoids
     ))
   }
   if(n == 4L) {
-    return(.measured_deep_fast(
-      .measured_digit_fast(xs[1:2], monoids),
-      .measured_empty_fast(monoids),
-      .measured_digit_fast(xs[3:4], monoids),
+    return(measured_deep(
+      build_digit(xs[1:2], monoids),
+      measured_empty(monoids),
+      build_digit(xs[3:4], monoids),
       monoids
     ))
   }
@@ -156,16 +156,16 @@ tree_from <- function(x, monoids = NULL) {
   prefix_len <- if(n == 5L) 1L else 2L
   suffix_len <- 2L
 
-  prefix <- .measured_digit_fast(xs[seq_len(prefix_len)], monoids)
-  suffix <- .measured_digit_fast(xs[(n - suffix_len + 1L):n], monoids)
+  prefix <- build_digit(xs[seq_len(prefix_len)], monoids)
+  suffix <- build_digit(xs[(n - suffix_len + 1L):n], monoids)
   middle_elems <- xs[(prefix_len + 1L):(n - suffix_len)]
-  middle_nodes <- .measured_nodes_fast(middle_elems, monoids)
-  middle <- .ft_tree_from_ordered_fast(middle_nodes, monoids)
+  middle_nodes <- measured_nodes(middle_elems, monoids)
+  middle <- .ft_tree_from_ordered_ref(middle_nodes, monoids)
 
-  .measured_deep_fast(prefix, middle, suffix, monoids)
+  measured_deep(prefix, middle, suffix, monoids)
 }
 
 # Runtime: O(n).
 .ft_tree_from_list_linear <- function(x_list, monoids) {
-  .as_flexseq(.ft_tree_from_ordered_fast(x_list, monoids))
+  .as_flexseq(.ft_tree_from_ordered_ref(x_list, monoids))
 }

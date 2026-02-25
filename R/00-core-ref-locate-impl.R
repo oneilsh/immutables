@@ -65,6 +65,8 @@ locate_digit(p, i, digit, monoids, monoid_name, i_size = 0L) %as% {
 
 # Runtime: O(k), where k = digit length (<= 4 in normal tree structure).
 locate_digit_impl <- function(p, i, digit, ms, mr, monoid_name, i_size = 0L) {
+  # `acc` tracks measure strictly before current candidate; `size_before`
+  # tracks positional offset for index metadata.
   acc <- i
   size_before <- as.integer(i_size)
 
@@ -76,6 +78,8 @@ locate_digit_impl <- function(p, i, digit, ms, mr, monoid_name, i_size = 0L) {
 
     if(p(acc_after)) {
       if(is_structural_node(el)) {
+        # If the hit is a structural child, recurse into it so `elem` is a leaf
+        # value and metadata stays consistent with leaf-level locate semantics.
         return(locate_tree_impl_fast(p, acc, el, ms, mr, monoid_name, size_before))
       }
 
@@ -125,17 +129,23 @@ locate_tree_impl_fast <- function(p, i, t, ms, mr, monoid_name, i_size = 0L) {
   }
 
   if(t %isa% Deep) {
+    # Deep(prefix, middle, suffix): use cached subtree measures to determine
+    # which branch contains the first predicate flip without scanning all leaves.
     mpr <- node_measure(.subset2(t,"prefix"), monoid_name)
     mm <- node_measure(.subset2(t,"middle"), monoid_name)
     msf <- node_measure(.subset2(t,"suffix"), monoid_name)
 
+    # `vpr` = i <> measure(prefix), `vm` = i <> measure(prefix) <> measure(middle).
     vpr <- mr$f(i, mpr)
     vm <- mr$f(vpr, mm)
 
+    # Positional offsets for index metadata when descending middle/suffix.
     npr <- as.integer(node_measure(.subset2(t,"prefix"), ".size"))
     nm <- as.integer(node_measure(.subset2(t,"middle"), ".size"))
 
     if(p(vpr)) {
+      # Hit is in prefix. Any right-side measure returned by recursion must be
+      # extended by full middle and suffix measures from this Deep node.
       res <- locate_tree_impl_fast(p, i, .subset2(t,"prefix"), ms, mr, monoid_name, as.integer(i_size))
       if(res$found) {
         res$right_measure <- mr$f(mr$f(res$right_measure, mm), msf)
@@ -144,13 +154,17 @@ locate_tree_impl_fast <- function(p, i, t, ms, mr, monoid_name, i_size = 0L) {
     }
 
     if(p(vm)) {
+      # Hit is in middle. Start accumulator at `vpr` and offset index by prefix size.
       res <- locate_tree_impl_fast(p, vpr, .subset2(t,"middle"), ms, mr, monoid_name, as.integer(i_size + npr))
       if(res$found) {
+        # Suffix remains entirely to the right of the located element.
         res$right_measure <- mr$f(res$right_measure, msf)
       }
       return(res)
     }
 
+    # Otherwise hit is in suffix: carry full prefix+middle accumulators and
+    # positional offset into the suffix recursion.
     return(locate_tree_impl_fast(p, vm, .subset2(t,"suffix"), ms, mr, monoid_name, as.integer(i_size + npr + nm)))
   }
 

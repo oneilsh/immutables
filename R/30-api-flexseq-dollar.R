@@ -46,13 +46,6 @@
   `[[.ordered_sequence`(x, nm)
 }
 
-#' @export
-#' @noRd
-`$.priority_queue` <- function(x, name) {
-  nm <- .ft_dollar_name(substitute(name))
-  `[[.priority_queue`(x, nm)
-}
-
 #' @rdname sub-.interval_index
 #' @method $ interval_index
 #' @param name Element name (for `$` and `$<-`).
@@ -83,12 +76,6 @@
 #' @noRd
 `$<-.ordered_sequence` <- function(x, name, value) {
   .ft_stop_ordered_like(x, "$<-", "Replacement indexing is not supported.")
-}
-
-#' @export
-#' @noRd
-`$<-.priority_queue` <- function(x, name, value) {
-  stop("`$<-` is not supported for priority_queue. Cast first with `as_flexseq()`.")
 }
 
 #' @rdname sub-.interval_index

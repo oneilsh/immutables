@@ -35,12 +35,13 @@ Interpretation:
 ## First Files to Read
 1. `NAMESPACE` (what is exported and dispatched right now).
 2. `R/40-ordered_sequence-core.R`
-3. `R/40-priority_queue-core.R`
-4. `tests/testthat/test-ordered-sequence.R`
-5. `tests/testthat/test-priority-queue.R`
-6. `tests/testthat/test-cpp-parity.R`
-7. `tests/testthat/test-cpp-gc-safety.R`
-8. `meta/bench_runner.R`
+3. `R/40-priority_queue-constructors.R`
+4. `R/40-priority_queue-queue-ops.R`
+5. `tests/testthat/test-ordered-sequence.R`
+6. `tests/testthat/test-priority-queue.R`
+7. `tests/testthat/test-cpp-parity.R`
+8. `tests/testthat/test-cpp-gc-safety.R`
+9. `meta/bench_runner.R`
 
 ## Ground Rules
 - Preserve persistence semantics (never mutate user-visible structures in place).
@@ -98,7 +99,8 @@ Interpretation:
 - When changing C++ wrappers or behavior, update both parity and GC safety coverage.
 - High-churn areas (re-check tests after edits):
   - `R/30-api-flexseq-indexing.R`
-  - `R/40-priority_queue-core.R`
+  - `R/40-priority_queue-indexing.R`
+  - `R/40-priority_queue-queue-ops.R`
   - `R/40-ordered_sequence-core.R`
   - `_pkgdown.yml` + generated man/NAMESPACE surface
 

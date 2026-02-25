@@ -1,29 +1,5 @@
 #SO
 
-#' Split Around First Predicate Flip
-#'
-#' Splits a sequence into left context, matched element, and right context at
-#' the first point where `predicate` becomes `TRUE` on accumulated monoid
-#' measures.
-#'
-#' @param t A `flexseq`.
-#' @param predicate Function on accumulated measure values.
-#' @param monoid_name Name of monoid from `attr(t, "monoids")`.
-#' @param accumulator Optional starting measure (defaults to monoid identity).
-#' @return A list with `left`, `elem`, and `right`.
-#' @examples
-#' x <- as_flexseq(letters[1:6])
-#' x
-#'
-#' s <- split_around_by_predicate(x, function(v) v >= 4, ".size")
-#' s$elem
-#' s$left
-#' s$right
-#' @export
-split_around_by_predicate <- function(t, predicate, monoid_name, accumulator = NULL) {
-  UseMethod("split_around_by_predicate")
-}
-
 #' @method split_around_by_predicate flexseq
 #' @export
 # Runtime: O(log n) near split point depth.
@@ -45,27 +21,6 @@ split_around_by_predicate.flexseq <- function(t, predicate, monoid_name, accumul
   out$left <- .as_flexseq(out$left)
   out$right <- .as_flexseq(out$right)
   out
-}
-
-#' Split a flexseq into Left and Right Parts by Predicate
-#'
-#' Splits a sequence at the point where the predicate first becomes TRUE on
-#' accumulated monoid measures.
-#'
-#' @param x A `flexseq`.
-#' @param predicate Predicate function on accumulated measure values.
-#' @param monoid_name Character scalar naming the monoid to scan.
-#' @return A list with `left` and `right` flexseq objects.
-#' @examples
-#' x <- as_flexseq(letters[1:6])
-#' x
-#'
-#' s <- split_by_predicate(x, function(v) v >= 4, ".size")
-#' s$left
-#' s$right
-#' @export
-split_by_predicate <- function(x, predicate, monoid_name) {
-  UseMethod("split_by_predicate")
 }
 
 #' @method split_by_predicate flexseq
@@ -91,27 +46,6 @@ split_by_predicate.flexseq <- function(x, predicate, monoid_name) {
   }
 
   list(left = .as_flexseq(x), right = .as_flexseq(measured_empty(ms)))
-}
-
-#' Split by Scalar Index or Name
-#'
-#' Splits by element position (`.size` measure) after resolving `at` to a single
-#' index. `at` can be a positive scalar integer index or a scalar character name.
-#'
-#' @param x A `flexseq`.
-#' @param at Positive scalar integer index or scalar character name.
-#' @param pull_index Logical switch between two-way and three-way split shape.
-#'   If `TRUE`, uses [split_by_predicate()] and returns `list(left, right)`.
-#'   If `FALSE`, uses [split_around_by_predicate()] and returns
-#'   `list(left, elem, right)`.
-#' @return A split list, shape controlled by `pull_index`.
-#' @examples
-#' x <- as_flexseq(setNames(as.list(letters[1:6]), LETTERS[1:6]))
-#' split_at(x, 3)
-#' split_at(x, "C", pull_index = TRUE)
-#' @export
-split_at <- function(x, at, pull_index = FALSE) {
-  UseMethod("split_at")
 }
 
 #' @method split_at flexseq

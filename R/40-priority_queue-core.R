@@ -341,28 +341,6 @@ priority_queue <- function(..., priorities) {
   .as_priority_queue_build(xs, priorities = priorities, monoids = monoids)
 }
 
-# Runtime: O(1).
-#' Insert an element
-#'
-#' Generic `insert()` dispatches by class.
-#'
-#' @param x Object to insert into.
-#' @param ... Method-specific arguments.
-#' @return Updated object.
-#' @seealso [insert.priority_queue()], [insert.ordered_sequence()], [insert.interval_index()]
-#' @export
-insert <- function(x, ...) {
-  UseMethod("insert")
-}
-
-#' @export
-#' @noRd
-insert.default <- function(x, ...) {
-  cls <- class(x)
-  cls_txt <- if(length(cls) == 0L) "unknown" else paste(cls, collapse = "/")
-  stop(sprintf("No `insert()` method for class '%s'.", cls_txt))
-}
-
 # Runtime: O(log n) near right edge.
 #' Insert an element into a priority queue
 #'

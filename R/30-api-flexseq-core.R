@@ -93,23 +93,6 @@ flexseq <- function(...) {
 #' For `ordered_sequence` and `interval_index` inputs, this explicitly drops
 #' ordered/interval behavior and returns a plain `flexseq` of stored entries.
 #'
-#' @param x Input vector/list-like object.
-#' @return A `flexseq` object.
-#' @examples
-#' x <- as_flexseq(1:5)
-#' x
-#'
-#' x2 <- as_flexseq(list(one = 1, two = 2, three = 3))
-#' x2
-#'
-#' q <- priority_queue("a", "b", priorities = c(2, 1))
-#' as_flexseq(q)
-#' @export
-# Runtime: O(1) generic dispatch.
-as_flexseq <- function(x) {
-  UseMethod("as_flexseq")
-}
-
 # Runtime: O(1) generic dispatch.
 #' @noRd
 .as_flexseq_build <- function(x, monoids = NULL) {

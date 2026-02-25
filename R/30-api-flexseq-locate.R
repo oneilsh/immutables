@@ -1,41 +1,5 @@
 #SO
 
-#' Locate First Predicate Flip Without Reconstructing Context Trees
-#'
-#' Read-only analogue of [split_around_by_predicate()]: finds the distinguished
-#' element where the scan predicate flips, but does not rebuild left/right
-#' trees.
-#'
-#' @param t A `flexseq`.
-#' @param predicate Function on accumulated measure values.
-#' @param monoid_name Name of monoid from `attr(t, "monoids")`.
-#' @param accumulator Optional starting measure (defaults to monoid identity).
-#' @param include_metadata Logical; include left/hit/right measures and index.
-#' @details
-#' For `priority_queue` objects, `metadata$index` (when requested) is the
-#' internal structural position in the underlying sequence representation. It is
-#' not related to priority rank and is not stable across queue updates, so it
-#' should be treated as diagnostic metadata only.
-#' @return If `include_metadata = FALSE`: `list(found, elem)`.
-#'   If `TRUE`: `list(found, elem, metadata = list(left_measure, hit_measure,
-#'   right_measure, index))`.
-#' @examples
-#' x <- as_flexseq(letters[1:6])
-#' x
-#'
-#' loc <- locate_by_predicate(x, function(v) v >= 4, ".size")
-#' loc
-#' 
-#' # include metadata with a custom monoid
-#' sum_m <- measure_monoid(`+`, 0, as.numeric)
-#' x2 <- add_monoids(as_flexseq(1:6), list(sum = sum_m))
-#' loc2 <- locate_by_predicate(x2, function(v) v >= 10, "sum", include_metadata = TRUE)
-#' loc2
-#' @export
-locate_by_predicate <- function(t, predicate, monoid_name, accumulator = NULL, include_metadata = FALSE) {
-  UseMethod("locate_by_predicate")
-}
-
 #' @method locate_by_predicate flexseq
 #' @export
 # Runtime: O(log n) near locate point depth.

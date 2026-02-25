@@ -326,12 +326,7 @@ ordered_sequence <- function(..., keys) {
   if(missing(keys)) {
     keys <- NULL
   }
-  .ordered_sequence_build(..., keys = keys, monoids = NULL)
-}
-
-# Runtime: O(n log n) from build and ordering.
-.ordered_sequence_build <- function(..., keys = NULL, monoids = NULL) {
-  .as_ordered_sequence_build(list(...), keys = keys, monoids = monoids)
+  .as_ordered_sequence_build(list(...), keys = keys, monoids = NULL)
 }
 
 # Runtime: O(log n) near insertion/split point depth.

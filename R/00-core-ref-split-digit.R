@@ -1,3 +1,5 @@
+#SO
+
 # split a digit at the first point where predicate flips from FALSE to TRUE
 # Runtime: O(k), where k = digit length (<= 4 in normal tree structure).
 if(FALSE) split_digit <- function(p, i, digit, monoids, monoid_name) NULL

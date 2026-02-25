@@ -54,3 +54,7 @@ cut_ix$left        # intervals before width budget is exceeded
 cut_ix$elem        # first interval that crosses width budget (value at cut_ix$elem$item)
 cut_ix$right       # remaining interval
 }
+\seealso{
+[add_monoids.flexseq()], [add_monoids.priority_queue()],
+  [add_monoids.ordered_sequence()], [add_monoids.interval_index()]
+}

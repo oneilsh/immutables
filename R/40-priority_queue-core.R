@@ -171,7 +171,7 @@ add_monoids.priority_queue <- function(t, monoids, overwrite = FALSE) {
   .pq_wrap_like(q, add_right(q, .ft_set_name(entry, nm), ms))
 }
 
-# Runtime: O(n log n) from underlying sequence construction.
+# Runtime: O(n) overall (entry normalization + linear sequence construction).
 #' Build a Priority Queue from elements and priorities
 #'
 #' @param x Elements to enqueue.
@@ -187,7 +187,7 @@ as_priority_queue <- function(x, priorities) {
   .as_priority_queue_build(x, priorities = priorities, monoids = NULL)
 }
 
-# Runtime: O(n log n) from underlying sequence construction.
+# Runtime: O(n) overall (entry normalization + linear sequence construction).
 .as_priority_queue_build <- function(x, priorities, monoids = NULL) {
   x_list <- as.list(x)
   n <- length(x_list)
@@ -217,7 +217,7 @@ as_priority_queue <- function(x, priorities) {
   .as_priority_queue(q, priority_type = priority_type)
 }
 
-# Runtime: O(n log n) from underlying sequence construction.
+# Runtime: O(n) overall (entry normalization + linear sequence construction).
 #' Construct a Priority Queue
 #'
 #' Priority queues expose queue-oriented operations (`insert`, `peek_*`,
@@ -239,7 +239,7 @@ priority_queue <- function(..., priorities) {
   .priority_queue_build(..., priorities = priorities, monoids = NULL)
 }
 
-# Runtime: O(n log n) from underlying sequence construction.
+# Runtime: O(n) overall (entry normalization + linear sequence construction).
 .priority_queue_build <- function(..., priorities = NULL, monoids = NULL) {
   xs <- list(...)
   n <- length(xs)
@@ -428,7 +428,7 @@ length.priority_queue <- function(x) {
   as.integer(node_measure(x, ".size"))
 }
 
-# Runtime: O(n log n) total from entry traversal + queue rebuild.
+# Runtime: O(n) total from entry traversal + linear queue rebuild.
 .pq_apply_impl <- function(q, f, ...) {
   .pq_assert_queue(q)
   if(!is.function(f)) {

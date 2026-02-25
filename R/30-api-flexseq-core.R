@@ -1,3 +1,5 @@
+#SO
+
 # mark a structural tree as a user-facing flexseq object.
 # Runtime: O(1).
 .as_flexseq <- function(x) {
@@ -65,12 +67,6 @@
   as.list(x)
 }
 
-# Runtime: O(n log n) over element count.
-.flexseq_build <- function(..., monoids = NULL) {
-  args <- list(...)
-  .as_flexseq_build(args, monoids = monoids)
-}
-
 #' Construct a Persistent Flexible Sequence
 #'
 #' Works like `list(...)`, but returns an immutable sequence backed by
@@ -86,7 +82,7 @@
 #' x2
 #' @export
 flexseq <- function(...) {
-  .flexseq_build(..., monoids = NULL)
+  .as_flexseq_build(list(...), monoids = NULL)
 }
 
 #' Coerce to a Persistent Flexible Sequence
@@ -120,7 +116,7 @@ as_flexseq <- function(x) {
   UseMethod(".as_flexseq_build")
 }
 
-# Runtime: O(n log n) over element count.
+# Runtime: O(n) over element count via linear bulk tree construction.
 .as_flexseq_build.default <- function(x, monoids = NULL) {
   t <- tree_from(x, monoids = monoids)
   .as_flexseq(t)
@@ -128,12 +124,12 @@ as_flexseq <- function(x) {
 
 #' @method as_flexseq default
 #' @export
-# Runtime: O(n log n) over element count.
+# Runtime: O(n) over element count via linear bulk tree construction.
 as_flexseq.default <- function(x) {
   .as_flexseq_build.default(x, monoids = NULL)
 }
 
-# Runtime: O(n log n) from list materialization + rebuild.
+# Runtime: O(n) from list materialization + linear rebuild.
 .as_flexseq_build.priority_queue <- function(x, monoids = NULL) {
   entries <- as.list(x)
   out_monoids <- monoids
@@ -146,12 +142,12 @@ as_flexseq.default <- function(x) {
 
 #' @method as_flexseq priority_queue
 #' @export
-# Runtime: O(n log n) from list materialization + rebuild.
+# Runtime: O(n) from list materialization + linear rebuild.
 as_flexseq.priority_queue <- function(x) {
   .as_flexseq_build.priority_queue(x, monoids = NULL)
 }
 
-# Runtime: O(n log n) from list materialization + rebuild.
+# Runtime: O(n) from list materialization + linear rebuild.
 .as_flexseq_build.ordered_sequence <- function(x, monoids = NULL) {
   entries <- as.list.flexseq(x)
   out_monoids <- monoids
@@ -164,12 +160,12 @@ as_flexseq.priority_queue <- function(x) {
 
 #' @method as_flexseq ordered_sequence
 #' @export
-# Runtime: O(n log n) from list materialization + rebuild.
+# Runtime: O(n) from list materialization + linear rebuild.
 as_flexseq.ordered_sequence <- function(x) {
   .as_flexseq_build.ordered_sequence(x, monoids = NULL)
 }
 
-# Runtime: O(n log n) from list materialization + rebuild.
+# Runtime: O(n) from list materialization + linear rebuild.
 .as_flexseq_build.interval_index <- function(x, monoids = NULL) {
   entries <- as.list.flexseq(x)
   out_monoids <- monoids
@@ -182,7 +178,7 @@ as_flexseq.ordered_sequence <- function(x) {
 
 #' @method as_flexseq interval_index
 #' @export
-# Runtime: O(n log n) from list materialization + rebuild.
+# Runtime: O(n) from list materialization + linear rebuild.
 as_flexseq.interval_index <- function(x) {
   .as_flexseq_build.interval_index(x, monoids = NULL)
 }

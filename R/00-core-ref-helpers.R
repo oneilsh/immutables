@@ -1,3 +1,5 @@
+#SO
+
 # identify internal structural nodes (vs user elements)
 # Runtime: O(1).
 if(FALSE) is_structural_node <- function(x) NULL

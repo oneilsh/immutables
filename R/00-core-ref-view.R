@@ -1,3 +1,5 @@
+#SO
+
 # helpers for converting between digits/nodes/trees and for deconstructing trees
 
 # attach canonical monoid set to a constructed subtree

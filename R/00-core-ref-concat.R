@@ -1,25 +1,35 @@
+#SO
+
 # Reference concat primitive from Hinze/Paterson finger trees:
 # concatenate two trees with an explicit bridge list `ts`.
-# Runtime: O(log n + k) in balanced usage, where k = length(ts), with recursion
-# depth proportional to concatenation spine depth.
+# Runtime: O(k log n) in the general internal-helper sense where k = length(ts)
+# and n is receiving-tree size in repeated edge-insert paths. In package use,
+# k is effectively bounded by small digit/node bridge sizes, so this is
+# effectively O(log n).
 if(FALSE) app3 <- function(e, ts, xs, monoids) NULL
 app3(e, ts, xs, monoids) %::% Empty : list : FingerTree : list : FingerTree
 app3(e, ts, xs, monoids) %as% add_all_left(xs, ts, monoids)
 
-# Runtime: O(log n + k) in balanced usage, where k = length(ts), with recursion
-# depth proportional to concatenation spine depth.
+# Runtime: O(k log n) in the general internal-helper sense where k = length(ts)
+# and n is receiving-tree size in repeated edge-insert paths. In package use,
+# k is effectively bounded by small digit/node bridge sizes, so this is
+# effectively O(log n).
 app3(xs, ts, e, monoids) %::% FingerTree : list : Empty : list : FingerTree
 app3(xs, ts, e, monoids) %as% add_all_right(xs, ts, monoids)
 
-# Runtime: O(log n + k) in balanced usage, where k = length(ts), with recursion
-# depth proportional to concatenation spine depth.
+# Runtime: O(k log n) in the general internal-helper sense where k = length(ts)
+# and n is receiving-tree size in repeated edge-insert paths. In package use,
+# k is effectively bounded by small digit/node bridge sizes, so this is
+# effectively O(log n).
 app3(x, ts, xs, monoids) %::% Single : list : FingerTree : list : FingerTree
 app3(x, ts, xs, monoids) %as% {
   add_left(add_all_left(xs, ts, monoids), .subset2(x, 1), monoids)
 }
 
-# Runtime: O(log n + k) in balanced usage, where k = length(ts), with recursion
-# depth proportional to concatenation spine depth.
+# Runtime: O(k log n) in the general internal-helper sense where k = length(ts)
+# and n is receiving-tree size in repeated edge-insert paths. In package use,
+# k is effectively bounded by small digit/node bridge sizes, so this is
+# effectively O(log n).
 app3(xs, ts, x, monoids) %::% FingerTree : list : Single : list : FingerTree
 app3(xs, ts, x, monoids) %as% {
   add_right(add_all_right(xs, ts, monoids), .subset2(x, 1), monoids)
@@ -41,7 +51,8 @@ app3(xs, ts, ys, monoids) %as% {
   )
 }
 
-# Runtime: O(log(min(nx, ny))) for balanced trees, where nx/ny are input sizes.
+# Runtime: O(log(min(nx, ny))) for balanced trees in normal package use
+# (bounded bridge width); more generally follows app3's k-sensitive behavior.
 if(FALSE) concat <- function(xs, ys, monoids) NULL
 concat(xs, ys, monoids) %::% FingerTree : FingerTree : list : FingerTree
 concat(xs, ys, monoids) %as% {

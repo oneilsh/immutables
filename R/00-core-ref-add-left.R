@@ -1,3 +1,5 @@
+#SO
+
 # Runtime: O(1).
 if(FALSE) add_left <- function(e, el, monoids) NULL
 add_left(e, el, monoids) %::% Empty : . : list : Single
@@ -19,7 +21,9 @@ add_left(s, el, monoids) %as% {
 # this is actually a pain, because we implement digits as lists with various attributes
 # we can't just c() the element to the list, as we'd get a list(el, old_list), rather than list(el, old_list[[1]], old_list[[2]]), etc.
 # We prepend via c(list(el), d) and then restore class attributes.
-# Runtime: O(k), where k is digit length (bounded by 4 in-tree).
+# Runtime: O(k), where k is digit length (bounded by 4 in-tree),
+# so O(1), *assuming* cached measures are available (which should be the case
+# by invariant)
 add_left(d, el, monoids) %::% Digit : . : list : Digit
 add_left(d, el, monoids) %as% {
   oldclasses <- class(d)

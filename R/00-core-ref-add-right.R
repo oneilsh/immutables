@@ -1,3 +1,5 @@
+#SO
+
 # Runtime: O(1).
 if(FALSE) add_right <- function(e, el, monoids) NULL
 add_right(e, el, monoids) %::% Empty : . : list : Single

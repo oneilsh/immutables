@@ -1197,12 +1197,7 @@ interval_index <- function(..., start, end, bounds = "[)") {
   if(missing(end)) {
     end <- NULL
   }
-  .interval_index_build(..., start = start, end = end, bounds = bounds, monoids = NULL)
-}
-
-# Runtime: O(n log n) from sort + bulk build.
-.interval_index_build <- function(..., start = NULL, end = NULL, bounds = "[)", monoids = NULL) {
-  .as_interval_index_build(list(...), start = start, end = end, bounds = bounds, monoids = monoids)
+  .as_interval_index_build(list(...), start = start, end = end, bounds = bounds, monoids = NULL)
 }
 
 # Runtime: O(log n) near split point depth.

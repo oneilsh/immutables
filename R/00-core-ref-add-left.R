@@ -1,13 +1,12 @@
 # Runtime: O(1).
-add_left(e, el, monoids) %::% Empty : . : list : Single
 if(FALSE) add_left <- function(e, el, monoids) NULL
+add_left(e, el, monoids) %::% Empty : . : list : Single
 add_left(e, el, monoids) %as% {
   measured_single(el, monoids)
 }
 
 # Runtime: O(1).
 add_left(s, el, monoids) %::% Single : . : list : Deep
-if(FALSE) add_left <- function(s, el, monoids) NULL
 add_left(s, el, monoids) %as% {
   measured_deep(
     measured_digit(el, monoids = monoids),
@@ -22,7 +21,6 @@ add_left(s, el, monoids) %as% {
 # We prepend via c(list(el), d) and then restore class attributes.
 # Runtime: O(k), where k is digit length (bounded by 4 in-tree).
 add_left(d, el, monoids) %::% Digit : . : list : Digit
-if(FALSE) add_left <- function(d, el, monoids) NULL
 add_left(d, el, monoids) %as% {
   oldclasses <- class(d)
   newd <- c(list(el), d)
@@ -36,7 +34,6 @@ add_left(d, el, monoids) %as% {
 # otherwise: simple add to the prefix digit.
 # Runtime: O(log n) worst-case.
 add_left(d, el, monoids) %::% Deep : . : list : Deep
-if(FALSE) add_left <- function(d, el, monoids) NULL
 add_left(d, el, monoids) %as% {
   if(length(.subset2(d, "prefix")) == 4) {
     new_prefix <- measured_digit(el, .subset2(d, "prefix")[[1]], monoids = monoids)
@@ -50,8 +47,8 @@ add_left(d, el, monoids) %as% {
 }
 
 # Runtime: O(k log n), where k = length(els).
-add_all_left(t, els, monoids) %::% FingerTree : . : list : FingerTree
 if(FALSE) add_all_left <- function(t, els, monoids) NULL
+add_all_left(t, els, monoids) %::% FingerTree : . : list : FingerTree
 add_all_left(t, els, monoids) %as% {
   for(el in rev(els)) {
     t <- add_left(t, el, monoids)

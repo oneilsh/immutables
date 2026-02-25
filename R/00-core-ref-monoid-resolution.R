@@ -1,6 +1,6 @@
 # Runtime: O(1) fast-path.
-resolve_tree_monoids(t, required) %::% . : logical : .
 if(FALSE) resolve_tree_monoids <- function(t, required = FALSE) NULL
+resolve_tree_monoids(t, required) %::% . : logical : .
 resolve_tree_monoids(t, required = FALSE) %as% {
   ms <- attr(t, "monoids", exact = TRUE)
   if(required && is.null(ms)) {
@@ -13,8 +13,8 @@ resolve_tree_monoids(t, required = FALSE) %as% {
 }
 
 # Runtime: O(1) expected (attribute read + list lookup).
-resolve_named_monoid(t, monoid_name) %::% . : character : list
 if(FALSE) resolve_named_monoid <- function(t, monoid_name) NULL
+resolve_named_monoid(t, monoid_name) %::% . : character : list
 resolve_named_monoid(t, monoid_name) %as% {
   if(!is.character(monoid_name) || length(monoid_name) != 1L || is.na(monoid_name) || monoid_name == "") {
     stop("`monoid_name` must be a single non-empty string.")
@@ -28,8 +28,8 @@ resolve_named_monoid(t, monoid_name) %as% {
 }
 
 # Runtime: O(1) under fixed monoid set.
-merge_monoid_sets(base, add, overwrite) %::% list : list : logical : list
 if(FALSE) merge_monoid_sets <- function(base, add, overwrite = FALSE) NULL
+merge_monoid_sets(base, add, overwrite) %::% list : list : logical : list
 merge_monoid_sets(base, add, overwrite = FALSE) %as% {
   b <- base
   a <- add

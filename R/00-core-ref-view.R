@@ -2,8 +2,8 @@
 
 # attach canonical monoid set to a constructed subtree
 # Runtime: O(1).
-with_tree_monoids(t, monoids) %::% FingerTree : list : FingerTree
 if(FALSE) with_tree_monoids <- function(t, monoids) NULL
+with_tree_monoids(t, monoids) %::% FingerTree : list : FingerTree
 with_tree_monoids(t, monoids) %as% {
   attr(t, "monoids") <- monoids
   t
@@ -14,8 +14,8 @@ with_tree_monoids(t, monoids) %as% {
 # output: measured Digit(xs...) with preserved order.
 # note: empty input returns an empty list() sentinel, used by deepL/deepR rebuild logic.
 # Runtime: O(k), where k = length(xs) and k <= 4 for in-tree digits.
-build_digit(xs, monoids) %::% list : list : .
 if(FALSE) build_digit <- function(xs, monoids) NULL
+build_digit(xs, monoids) %::% list : list : .
 build_digit(xs, monoids) %as% {
   if(length(xs) == 0) {
     return(list())
@@ -27,14 +27,14 @@ build_digit(xs, monoids) %as% {
 # input: pr (Digit), m (FingerTree), sf (Digit), measure monoid r.
 # output: measured Deep(pr, m, sf).
 # Runtime: O(1) with measured children.
-build_deep(pr, m, sf, monoids) %::% Digit : FingerTree : Digit : list : Deep
 if(FALSE) build_deep <- function(pr, m, sf, monoids) NULL
+build_deep(pr, m, sf, monoids) %::% Digit : FingerTree : Digit : list : Deep
 build_deep(pr, m, sf, monoids) %as% with_tree_monoids(measured_deep(pr, m, sf, monoids), monoids)
 
 # convert a small list/digit (size 0..4) into a valid measured FingerTree shape.
 # Runtime: O(1), since digit size is bounded (0..4).
-digit_to_tree(d, monoids) %::% list : list : FingerTree
 if(FALSE) digit_to_tree <- function(d, monoids) NULL
+digit_to_tree(d, monoids) %::% list : list : FingerTree
 digit_to_tree(d, monoids) %as% {
   n <- length(d)
   if(n == 0) { return(with_tree_monoids(measured_empty(monoids), monoids)) }
@@ -59,16 +59,16 @@ digit_to_tree(d, monoids) %as% {
 
 # convert a Node2/Node3 into a measured Digit of its children.
 # Runtime: O(1), since Node arity is bounded (2..3).
-node_to_digit(node, monoids) %::% Node : list : Digit
 if(FALSE) node_to_digit <- function(node, monoids) NULL
+node_to_digit(node, monoids) %::% Node : list : Digit
 node_to_digit(node, monoids) %as% build_digit(as.list(node), monoids)
 
 # viewL: return leftmost element and the remaining tree
 # input: t non-empty FingerTree, measure monoid r.
 # output: list(elem = leftmost element of t, rest = t without that element).
 # Runtime: O(log n) worst-case.
-viewL(t, monoids) %::% FingerTree : list : list
 if(FALSE) viewL <- function(t, monoids) NULL
+viewL(t, monoids) %::% FingerTree : list : list
 viewL(t, monoids) %as% {
   if(t %isa% Empty) {
     stop("viewL on Empty")
@@ -99,8 +99,8 @@ viewL(t, monoids) %as% {
 # input: t non-empty FingerTree, measure monoid r.
 # output: list(elem = rightmost element of t, rest = t without that element).
 # Runtime: O(log n) worst-case.
-viewR(t, monoids) %::% FingerTree : list : list
 if(FALSE) viewR <- function(t, monoids) NULL
+viewR(t, monoids) %::% FingerTree : list : list
 viewR(t, monoids) %as% {
   if(t %isa% Empty) {
     stop("viewR on Empty")
@@ -132,8 +132,8 @@ viewR(t, monoids) %as% {
 # output: a valid FingerTree preserving order; if pr is empty it borrows from m or
 # collapses to a tree built from sf.
 # Runtime: O(log n) worst-case.
-deepL(pr, m, sf, monoids) %::% . : FingerTree : . : list : FingerTree
 if(FALSE) deepL <- function(pr, m, sf, monoids) NULL
+deepL(pr, m, sf, monoids) %::% . : FingerTree : . : list : FingerTree
 deepL(pr, m, sf, monoids) %as% {
   if(length(pr) > 0) {
     return(.as_flexseq(build_deep(pr, m, sf, monoids)))
@@ -153,8 +153,8 @@ deepL(pr, m, sf, monoids) %as% {
 # output: a valid FingerTree preserving order; if sf is empty it borrows from m or
 # collapses to a tree built from pr.
 # Runtime: O(log n) worst-case.
-deepR(pr, m, sf, monoids) %::% . : FingerTree : . : list : FingerTree
 if(FALSE) deepR <- function(pr, m, sf, monoids) NULL
+deepR(pr, m, sf, monoids) %::% . : FingerTree : . : list : FingerTree
 deepR(pr, m, sf, monoids) %as% {
   if(length(sf) > 0) {
     return(.as_flexseq(build_deep(pr, m, sf, monoids)))

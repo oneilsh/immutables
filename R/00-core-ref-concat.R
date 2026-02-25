@@ -2,20 +2,18 @@
 # concatenate two trees with an explicit bridge list `ts`.
 # Runtime: O(log n + k) in balanced usage, where k = length(ts), with recursion
 # depth proportional to concatenation spine depth.
-app3(e, ts, xs, monoids) %::% Empty : list : FingerTree : list : FingerTree
 if(FALSE) app3 <- function(e, ts, xs, monoids) NULL
+app3(e, ts, xs, monoids) %::% Empty : list : FingerTree : list : FingerTree
 app3(e, ts, xs, monoids) %as% add_all_left(xs, ts, monoids)
 
 # Runtime: O(log n + k) in balanced usage, where k = length(ts), with recursion
 # depth proportional to concatenation spine depth.
 app3(xs, ts, e, monoids) %::% FingerTree : list : Empty : list : FingerTree
-if(FALSE) app3 <- function(xs, ts, e, monoids) NULL
 app3(xs, ts, e, monoids) %as% add_all_right(xs, ts, monoids)
 
 # Runtime: O(log n + k) in balanced usage, where k = length(ts), with recursion
 # depth proportional to concatenation spine depth.
 app3(x, ts, xs, monoids) %::% Single : list : FingerTree : list : FingerTree
-if(FALSE) app3 <- function(x, ts, xs, monoids) NULL
 app3(x, ts, xs, monoids) %as% {
   add_left(add_all_left(xs, ts, monoids), .subset2(x, 1), monoids)
 }
@@ -23,7 +21,6 @@ app3(x, ts, xs, monoids) %as% {
 # Runtime: O(log n + k) in balanced usage, where k = length(ts), with recursion
 # depth proportional to concatenation spine depth.
 app3(xs, ts, x, monoids) %::% FingerTree : list : Single : list : FingerTree
-if(FALSE) app3 <- function(xs, ts, x, monoids) NULL
 app3(xs, ts, x, monoids) %as% {
   add_right(add_all_right(xs, ts, monoids), .subset2(x, 1), monoids)
 }
@@ -31,7 +28,6 @@ app3(xs, ts, x, monoids) %as% {
 # Runtime: O(log n + k) in balanced usage, where k = length(ts), with recursion
 # depth proportional to concatenation spine depth.
 app3(xs, ts, ys, monoids) %::% Deep : list : Deep : list : FingerTree
-if(FALSE) app3 <- function(xs, ts, ys, monoids) NULL
 app3(xs, ts, ys, monoids) %as% {
   mid_ts <- measured_nodes(
     c(as.list(.subset2(xs, "suffix")), ts, as.list(.subset2(ys, "prefix"))),
@@ -46,8 +42,8 @@ app3(xs, ts, ys, monoids) %as% {
 }
 
 # Runtime: O(log(min(nx, ny))) for balanced trees, where nx/ny are input sizes.
-concat(xs, ys, monoids) %::% FingerTree : FingerTree : list : FingerTree
 if(FALSE) concat <- function(xs, ys, monoids) NULL
+concat(xs, ys, monoids) %::% FingerTree : FingerTree : list : FingerTree
 concat(xs, ys, monoids) %as% {
   app3(xs, list(), ys, monoids)
 }
@@ -55,8 +51,8 @@ concat(xs, ys, monoids) %as% {
 # Convert bridge elements into Node2/Node3 only (never Node1), matching the
 # reference finger-tree middle-layer shape invariant.
 # Runtime: O(k), where k = length(l).
-measured_nodes(l, monoids) %::% list : list : list
 if(FALSE) measured_nodes <- function(l, monoids) NULL
+measured_nodes(l, monoids) %::% list : list : list
 measured_nodes(l, monoids) %as% {
   if(length(l) < 2L) {
     stop("measured_nodes requires at least two elements.")

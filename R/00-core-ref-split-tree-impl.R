@@ -7,8 +7,8 @@
 # - p(i) is FALSE and p(i <> measure(t)) is TRUE for strict split semantics
 # The public wrappers relax these preconditions (matching the paper's split).
 # Runtime: O(log n) near split point depth.
-split_tree_impl(p, i, t, monoids, monoid_name) %::% Function : . : FingerTree : list : character : list
 if(FALSE) split_tree_impl <- function(p, i, t, monoids, monoid_name) NULL
+split_tree_impl(p, i, t, monoids, monoid_name) %::% Function : . : FingerTree : list : character : list
 split_tree_impl(p, i, t, monoids, monoid_name) %as% {
   ms <- monoids
   mr <- ms[[monoid_name]]

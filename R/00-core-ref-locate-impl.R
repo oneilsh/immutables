@@ -1,8 +1,8 @@
 # read-only locate helpers: no reconstruction, only traversal + metadata.
 
 # Runtime: O(1) with cached measures; may recurse for unannotated structural children.
-locate_child_measure(x, ms, monoid_name, mr) %::% . : list : character : MeasureMonoid : .
 if(FALSE) locate_child_measure <- function(x, ms, monoid_name, mr) NULL
+locate_child_measure(x, ms, monoid_name, mr) %::% . : list : character : MeasureMonoid : .
 locate_child_measure(x, ms, monoid_name, mr) %as% {
   if(is_structural_node(x)) {
     cached <- attr(x, "measures", exact = TRUE)
@@ -15,8 +15,8 @@ locate_child_measure(x, ms, monoid_name, mr) %as% {
 }
 
 # Runtime: O(1).
-locate_child_size(x, ms) %::% . : list : integer
 if(FALSE) locate_child_size <- function(x, ms) NULL
+locate_child_size(x, ms) %::% . : list : integer
 locate_child_size(x, ms) %as% {
   sr <- ms[[".size"]]
   if(is.null(sr)) {
@@ -34,8 +34,8 @@ locate_child_size(x, ms) %as% {
 }
 
 # Runtime: O(k), where k = length(xs).
-locate_sequence_measure(xs, ms, monoid_name, mr) %::% list : list : character : MeasureMonoid : .
 if(FALSE) locate_sequence_measure <- function(xs, ms, monoid_name, mr) NULL
+locate_sequence_measure(xs, ms, monoid_name, mr) %::% list : list : character : MeasureMonoid : .
 locate_sequence_measure(xs, ms, monoid_name, mr) %as% {
   if(length(xs) == 0L) {
     return(mr$i)
@@ -48,8 +48,8 @@ locate_sequence_measure(xs, ms, monoid_name, mr) %as% {
 }
 
 # Runtime: O(k), where k = digit length (<= 4 in normal tree structure).
-locate_digit(p, i, digit, monoids, monoid_name, i_size) %::% Function : . : list : list : character : integer : list
 if(FALSE) locate_digit <- function(p, i, digit, monoids, monoid_name, i_size = 0L) NULL
+locate_digit(p, i, digit, monoids, monoid_name, i_size) %::% Function : . : list : list : character : integer : list
 locate_digit(p, i, digit, monoids, monoid_name, i_size = 0L) %as% {
   if(length(digit) == 0) {
     stop("locate_digit called with empty digit")
@@ -99,8 +99,8 @@ locate_digit_impl <- function(p, i, digit, ms, mr, monoid_name, i_size = 0L) {
 }
 
 # Runtime: O(log n) near locate point depth.
-locate_tree_impl(p, i, t, monoids, monoid_name, i_size) %::% Function : . : . : list : character : integer : list
 if(FALSE) locate_tree_impl <- function(p, i, t, monoids, monoid_name, i_size = 0L) NULL
+locate_tree_impl(p, i, t, monoids, monoid_name, i_size) %::% Function : . : . : list : character : integer : list
 locate_tree_impl(p, i, t, monoids, monoid_name, i_size = 0L) %as% {
   ms <- monoids
   mr <- ms[[monoid_name]]

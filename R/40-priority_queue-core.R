@@ -42,6 +42,20 @@ add_monoids.priority_queue <- function(t, monoids, overwrite = FALSE) {
   add_monoids.flexseq(t, monoids, overwrite = overwrite)
 }
 
+#' Indexing for Priority Queues
+#'
+#' Name-based indexing is supported for reads only. Positional indexing and all
+#' replacement indexing are intentionally blocked to preserve queue-first UX.
+#'
+#' @name sub-.priority_queue
+#' @param x A `priority_queue`.
+#' @param i Index input. For reads, must be a character name (scalar for `[[`).
+#' @param value Replacement value (unsupported).
+#' @param ... Unused.
+#' @return For `$`/`[[`/`[`: queue payload values or queue subsets by name.
+#'   Replacement forms always error.
+NULL
+
 # Runtime: O(k * n_lookup) for short name queries; O(n + k) in map-backed paths.
 #' @rdname sub-.priority_queue
 #' @method [ priority_queue
@@ -85,6 +99,30 @@ add_monoids.priority_queue <- function(t, monoids, overwrite = FALSE) {
 #' @export
 `[[<-.priority_queue` <- function(x, i, value) {
   stop("`[[<-` is not supported for priority_queue. Cast first with `as_flexseq()`.")
+}
+
+# Runtime: O(1).
+#' @method split_by_predicate priority_queue
+#' @export
+#' @noRd
+split_by_predicate.priority_queue <- function(x, predicate, monoid_name) {
+  stop("`split_by_predicate()` is not supported for priority_queue. Cast first with `as_flexseq()`.")
+}
+
+# Runtime: O(1).
+#' @method split_around_by_predicate priority_queue
+#' @export
+#' @noRd
+split_around_by_predicate.priority_queue <- function(t, predicate, monoid_name, accumulator = NULL) {
+  stop("`split_around_by_predicate()` is not supported for priority_queue. Cast first with `as_flexseq()`.")
+}
+
+# Runtime: O(1).
+#' @method split_at priority_queue
+#' @export
+#' @noRd
+split_at.priority_queue <- function(x, at, pull_index = FALSE) {
+  stop("`split_at()` is not supported for priority_queue. Cast first with `as_flexseq()`.")
 }
 
 # Runtime: O(1).

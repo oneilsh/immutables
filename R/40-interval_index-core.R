@@ -20,6 +20,20 @@ add_monoids.interval_index <- function(t, monoids, overwrite = FALSE) {
   add_monoids.flexseq(t, monoids, overwrite = overwrite)
 }
 
+#' Indexing for Interval Indexes
+#'
+#' Read indexing returns `interval_index` subsets while preserving interval/key
+#' order. Replacement indexing is blocked.
+#'
+#' @name sub-.interval_index
+#' @param x An `interval_index`.
+#' @param i Index input.
+#' @param value Replacement value (unsupported).
+#' @param ... Unused.
+#' @return Read methods return interval payload values/subsets; replacement forms
+#'   always error.
+NULL
+
 # Runtime: O(k log n) for reads + O(k) strict-order validation.
 #' @rdname sub-.interval_index
 #' @method [ interval_index

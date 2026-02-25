@@ -34,6 +34,20 @@ add_monoids.ordered_sequence <- function(t, monoids, overwrite = FALSE) {
   add_monoids.flexseq(t, monoids, overwrite = overwrite)
 }
 
+#' Indexing for Ordered Sequences
+#'
+#' Read indexing returns `ordered_sequence` subsets while preserving key order.
+#' Replacement indexing is blocked to prevent order-breaking writes.
+#'
+#' @name sub-.ordered_sequence
+#' @param x An `ordered_sequence`.
+#' @param i Index input.
+#' @param value Replacement value (unsupported).
+#' @param ... Unused.
+#' @return Read methods return ordered payload values/subsets; replacement forms
+#'   always error.
+NULL
+
 # Runtime: O(k log n) for reads + O(k) strict-order validation.
 #' @rdname sub-.ordered_sequence
 #' @method [ ordered_sequence

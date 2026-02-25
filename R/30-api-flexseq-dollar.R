@@ -1,3 +1,5 @@
+#SO
+
 # parse `$` name argument into a scalar character key.
 # Runtime: O(1).
 .ft_dollar_name <- function(name_expr) {
@@ -27,6 +29,9 @@
   ms <- attr(x, "measures", exact = TRUE)
   nn <- if(!is.null(ms) && !is.null(ms[[".named_count"]])) as.integer(ms[[".named_count"]]) else NA_integer_
   if(!is.na(nn) && nn == 0L) {
+    # if a name is requested but the tree is unnamed, 
+    # we treat the tree as an R list (allowing e.g. x$prefix even if x is a 
+    # flexseq, for internal use)
     if(nm %in% names(unclass(x))) {
       return(.subset2(x, nm))
     }

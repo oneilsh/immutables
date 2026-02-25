@@ -1,4 +1,6 @@
-# Runtime: O(n log n) total (O(n) traversal + O(n log n) rebuild).
+#SO
+
+# Runtime: O(n) total (O(n) traversal + O(n) linear rebuild).
 .seq_apply_impl <- function(x, f, ...) {
   if(!inherits(x, "flexseq")) {
     stop("`x` must be a flexseq.")

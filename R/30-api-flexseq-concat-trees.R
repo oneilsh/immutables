@@ -17,7 +17,8 @@
 #' }
 #' @keywords internal
 # Runtime: O(nx + ny) when monoid harmonization requires add_monoids passes;
-# otherwise concat spine work is near-logarithmic in boundary distance.
+# otherwise concat spine work is near-logarithmic in boundary distance for the
+# smaller, O(log(min(nx, ny)))
 concat_trees <- function(x, y) {
   mx <- resolve_tree_monoids(x, required = TRUE)
   my <- resolve_tree_monoids(y, required = TRUE)

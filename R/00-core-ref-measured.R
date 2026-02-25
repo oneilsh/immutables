@@ -185,7 +185,7 @@ measure_child_named_impl(x, ms, name, rr) %as% {
 # Runtime: O(k), where k is immediate child count of `x` (bounded for in-tree nodes).
 measure_children(x, monoids) %::% . : list : list
 measure_children(x, monoids) %as% {
-  ms <- ensure_size_monoids(monoids)
+  ms <- monoids
   out <- lapply(names(ms), function(nm) measure_child_named_impl(x, ms, nm, ms[[nm]]))
   names(out) <- names(ms)
   out
@@ -212,7 +212,7 @@ set_measure(x, monoids) %as% {
   if(!is_structural_node(x)) {
     return(x)
   }
-  ms <- ensure_size_monoids(monoids)
+  ms <- monoids
   attr(x, "monoids") <- ms
   attr(x, "measures") <- measure_children(x, ms)
   x
@@ -227,7 +227,7 @@ set_measure_with_reuse(x, previous, monoids, recompute_names) %as% {
     return(x)
   }
 
-  ms <- ensure_size_monoids(monoids)
+  ms <- monoids
   rec <- unique(intersect(recompute_names, names(ms)))
   old <- if(is_structural_node(previous)) attr(previous, "measures", exact = TRUE) else NULL
 
@@ -289,7 +289,12 @@ assert_has_monoids(node) %as% {
   if(is.null(ms)) {
     stop("Structural node missing `monoids` attribute.")
   }
-  ensure_size_monoids(ms)
+  if(!is.list(ms) || is.null(names(ms))) {
+    stop("Structural node `monoids` must be a named list.")
+  }
+  if(!all(c(".size", ".named_count") %in% names(ms))) {
+    stop("Structural node `monoids` must include reserved monoids `.size` and `.named_count`.")
+  }
   invisible(TRUE)
 }
 
@@ -300,7 +305,10 @@ assert_measures_match_monoids(node) %as% {
   if(!is_structural_node(node)) {
     return(invisible(TRUE))
   }
-  ms <- ensure_size_monoids(attr(node, "monoids", exact = TRUE))
+  ms <- attr(node, "monoids", exact = TRUE)
+  if(is.null(ms)) {
+    stop("Structural node missing `monoids` attribute.")
+  }
   cached <- attr(node, "measures", exact = TRUE)
   if(is.null(cached)) {
     stop("Structural node missing `measures` attribute.")

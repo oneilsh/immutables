@@ -1,5 +1,4 @@
-# Runtime: O(1) fast-path; optional O(1) validation under fixed monoid set when
-# `options(immutables.validate_monoids = TRUE)`.
+# Runtime: O(1) fast-path.
 resolve_tree_monoids(t, required) %::% . : logical : .
 resolve_tree_monoids(t, required = FALSE) %as% {
   ms <- attr(t, "monoids", exact = TRUE)
@@ -8,9 +7,6 @@ resolve_tree_monoids(t, required = FALSE) %as% {
   }
   if(is.null(ms)) {
     return(NULL)
-  }
-  if(isTRUE(getOption("immutables.validate_monoids", FALSE))) {
-    return(ensure_size_monoids(ms))
   }
   ms
 }
@@ -32,8 +28,8 @@ resolve_named_monoid(t, monoid_name) %as% {
 # Runtime: O(1) under fixed monoid set.
 merge_monoid_sets(base, add, overwrite) %::% list : list : logical : list
 merge_monoid_sets(base, add, overwrite = FALSE) %as% {
-  b <- ensure_size_monoids(base)
-  a <- ensure_size_monoids(add)
+  b <- base
+  a <- add
 
   overlap <- intersect(names(b), names(a))
   overlap <- setdiff(overlap, c(".size", ".named_count"))
@@ -51,5 +47,5 @@ merge_monoid_sets(base, add, overwrite = FALSE) %as% {
   if(length(add_only) > 0) {
     b <- c(b, a[add_only])
   }
-  ensure_size_monoids(b)
+  b
 }

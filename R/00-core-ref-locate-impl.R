@@ -51,7 +51,7 @@ locate_digit(p, i, digit, monoids, monoid_name, i_size = 0L) %as% {
     stop("locate_digit called with empty digit")
   }
 
-  ms <- ensure_size_monoids(monoids)
+  ms <- monoids
   mr <- ms[[monoid_name]]
   if(is.null(mr)) {
     stop(paste0("Unknown measure monoid '", monoid_name, "'."))
@@ -97,7 +97,7 @@ locate_digit_impl <- function(p, i, digit, ms, mr, monoid_name, i_size = 0L) {
 # Runtime: O(log n) near locate point depth.
 locate_tree_impl(p, i, t, monoids, monoid_name, i_size) %::% Function : . : . : list : character : integer : list
 locate_tree_impl(p, i, t, monoids, monoid_name, i_size = 0L) %as% {
-  ms <- ensure_size_monoids(monoids)
+  ms <- monoids
   mr <- ms[[monoid_name]]
   if(is.null(mr)) {
     stop(paste0("Unknown measure monoid '", monoid_name, "'."))

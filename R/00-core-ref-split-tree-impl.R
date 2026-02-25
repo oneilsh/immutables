@@ -9,7 +9,7 @@
 # Runtime: O(log n) near split point depth.
 split_tree_impl(p, i, t, monoids, monoid_name) %::% Function : . : FingerTree : list : character : list
 split_tree_impl(p, i, t, monoids, monoid_name) %as% {
-  ms <- ensure_size_monoids(monoids)
+  ms <- monoids
   mr <- ms[[monoid_name]]
   if(is.null(mr)) {
     stop(paste0("Unknown measure monoid '", monoid_name, "'."))

@@ -4,7 +4,7 @@
 # Runtime: O(1).
 with_tree_monoids(t, monoids) %::% FingerTree : list : FingerTree
 with_tree_monoids(t, monoids) %as% {
-  attr(t, "monoids") <- ensure_size_monoids(monoids)
+  attr(t, "monoids") <- monoids
   t
 }
 

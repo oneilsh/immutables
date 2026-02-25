@@ -2,7 +2,7 @@
 # Runtime: O(k), where k = digit length (<= 4 in normal tree structure).
 split_digit(p, i, digit, monoids, monoid_name) %::% Function : . : list : list : character : list
 split_digit(p, i, digit, monoids, monoid_name) %as% {
-  ms <- ensure_size_monoids(monoids)
+  ms <- monoids
   mr <- ms[[monoid_name]]
   if(is.null(mr)) {
     stop(paste0("Unknown measure monoid '", monoid_name, "'."))

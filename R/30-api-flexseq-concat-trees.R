@@ -32,7 +32,6 @@ concat_trees <- function(x, y) {
   y2 <- if(length(left_only) > 0) add_monoids(y, mx[left_only], overwrite = FALSE) else y
 
   merged <- c(mx, my[setdiff(names(my), names(mx))])
-  merged <- ensure_size_monoids(merged)
 
   if(.ft_cpp_can_use(merged)) {
     return(.as_flexseq(.ft_cpp_concat(x2, y2, merged)))

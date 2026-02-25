@@ -1,3 +1,5 @@
+#SO
+
 # core split implementation following Hinze/Paterson 4.4
 #
 # split_tree_impl returns a distinguished element with left/right context:
@@ -39,16 +41,28 @@ split_tree_impl_fast <- function(p, i, t, ms, mr, monoid_name) {
   if(p(vpr)) {
     # split occurs in prefix digit
     s <- split_digit_impl(p, i, .subset2(t,"prefix"), ms, mr, monoid_name)
+    # Left context is only the prefix fragment strictly before the hit.
+    # `digit_to_tree` handles 0..4 elements and returns the smallest valid tree.
     left_tree <- digit_to_tree(s$left, ms)
+    # Right context starts with the suffix of the prefix digit, followed by the
+    # original middle and suffix. `deepL` preserves Deep invariants when that
+    # rebuilt prefix fragment is empty (borrowing from middle or collapsing).
     right_tree <- deepL(build_digit(s$right, ms), .subset2(t,"middle"), .subset2(t,"suffix"), ms)
     return(list(left = left_tree, elem = s$elem, right = right_tree))
   }
 
   if(p(vm)) {
     # split occurs in middle tree, then inside the selected Node2/Node3
+    # Stage 1: split middle at node granularity. In a valid Deep shape, middle
+    # stores Node2/Node3 blocks (not leaf elements), so `sm$elem` is that block.
     sm <- split_tree_impl_fast(p, vpr, .subset2(t,"middle"), ms, mr, monoid_name)
+    # Accumulator value immediately before the selected middle node.
     inode <- mr$f(vpr, node_measure(sm$left, monoid_name))
+    # Stage 2: split inside the selected node to isolate the leaf element.
+    # `as.list(sm$elem)` exposes node children as a tiny digit (arity 2 or 3).
     sx <- split_digit_impl(p, inode, as.list(sm$elem), ms, mr, monoid_name)
+    # Rebuild left and right contexts around the isolated hit. deepR/deepL handle
+    # empty-edge cases by borrowing from middle when needed.
     left_tree <- deepR(.subset2(t,"prefix"), sm$left, build_digit(sx$left, ms), ms)
     right_tree <- deepL(build_digit(sx$right, ms), sm$right, .subset2(t,"suffix"), ms)
     return(list(left = left_tree, elem = sx$elem, right = right_tree))

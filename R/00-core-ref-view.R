@@ -78,6 +78,8 @@ viewL(t, monoids) %as% {
   }
   pr <- .subset2(t,"prefix")
   if(length(pr) > 1) {
+    # Fast path: prefix still has elements after popping its head, so no middle
+    # rebalancing is needed.
     head <- pr[[1]]
     tail <- pr[2:length(pr)]
     new_pr <- build_digit(tail, monoids)
@@ -86,8 +88,12 @@ viewL(t, monoids) %as% {
   head <- pr[[1]]
   m <- .subset2(t,"middle")
   if(m %isa% Empty) {
+    # Prefix had exactly one element and middle is empty: remaining content is
+    # entirely in suffix, so collapse to a minimal tree from that digit.
     return(list(elem = head, rest = .as_flexseq(digit_to_tree(.subset2(t,"suffix"), monoids))))
   }
+  # Prefix had one element but middle is non-empty: pull the leftmost node from
+  # middle, expand it to a digit, and use that as the new prefix.
   res <- viewL(m, monoids)
   node <- res$elem
   m_rest <- res$rest
@@ -136,11 +142,14 @@ if(FALSE) deepL <- function(pr, m, sf, monoids) NULL
 deepL(pr, m, sf, monoids) %::% . : FingerTree : . : list : FingerTree
 deepL(pr, m, sf, monoids) %as% {
   if(length(pr) > 0) {
+    # Normal Deep reconstruction when prefix is non-empty.
     return(.as_flexseq(build_deep(pr, m, sf, monoids)))
   }
   if(m %isa% Empty) {
+    # Cannot build Deep with empty prefix and empty middle; collapse to suffix.
     return(.as_flexseq(digit_to_tree(sf, monoids)))
   }
+  # Restore a non-empty prefix by borrowing the leftmost node from middle.
   res <- viewL(m, monoids)
   node <- res$elem
   m_rest <- res$rest

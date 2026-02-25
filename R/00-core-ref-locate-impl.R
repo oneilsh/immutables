@@ -1,3 +1,5 @@
+#SO
+
 # read-only locate helpers: no reconstruction, only traversal + metadata.
 
 # Runtime: O(1) with cached measures; may recurse for unannotated structural children.

@@ -1,3 +1,5 @@
+#SO
+
 #' Concatenate Two Structural Trees
 #'
 #' Same-name monoids are assumed equivalent; left-tree definitions win.

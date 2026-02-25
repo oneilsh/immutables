@@ -12,6 +12,15 @@ Use this skill to run a durable, session-safe implementation review program for 
 - The user asks to continue a prior review thread and recover state from repo artifacts.
 - The user asks for structured detour handling during review work.
 
+## Default interaction mode (required)
+- Treat "review" requests as **learning walkthroughs by default**, not silent audit/code-review summaries.
+- In the first substantive response of each review session:
+  - name the exact next topic,
+  - include 2-5 concrete file+line anchors,
+  - explain what each anchor does and why it matters.
+- Keep this pattern for each step unless the user explicitly asks for a different mode (e.g., "just findings", "silent review", "quick scan").
+- Do not respond with only "looks good" / "no issues" style summaries during review mode.
+
 ## Required startup checks
 Run these checks before starting or resuming review:
 1. Read `AGENTS.md`.
@@ -43,6 +52,7 @@ If any review file is missing, create it using the templates in `references/`.
    - next step.
 6. Add or update issues in `.review/issue-queue.md` with severity, status, and test obligations.
 7. Update module status in `.review/curriculum.md`.
+8. If the user says "continue", resume with the next walkthrough anchor block (not a generic audit summary).
 
 ## Detour policy
 - Fix immediately only when all are true:

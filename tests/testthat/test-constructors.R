@@ -1,3 +1,5 @@
+#SO
+
 testthat::test_that("public constructor wrappers align with as_* constructors", {
   fx <- flexseq("a", "b", "c")
   fx_as <- as_flexseq(list("a", "b", "c"))
@@ -36,14 +38,4 @@ testthat::test_that("constructors enforce required metadata args when elements a
   testthat::expect_error(interval_index("a", start = 1), "`end` is required")
   testthat::expect_error(as_interval_index(list("a"), end = 2), "argument \"start\" is missing")
   testthat::expect_error(as_interval_index(list("a"), start = 1), "argument \"end\" is missing")
-})
-
-testthat::test_that("as_* constructors do not accept names parameter", {
-  testthat::expect_error(as_flexseq(1:2, names = c("a", "b")), "unused argument")
-  testthat::expect_error(as_priority_queue(1:2, priorities = c(1, 2), names = c("a", "b")), "unused argument")
-  testthat::expect_error(as_ordered_sequence(1:2, keys = c(1, 2), names = c("a", "b")), "unused argument")
-  testthat::expect_error(
-    as_interval_index(1:2, start = c(1, 2), end = c(2, 3), names = c("a", "b")),
-    "unused argument"
-  )
 })

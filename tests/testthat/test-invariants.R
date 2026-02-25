@@ -1,3 +1,5 @@
+#SO
+
 validate_fingertree_invariants <- function(t) {
   is_homogeneous <- function(xs) {
     if(length(xs) <= 1) {

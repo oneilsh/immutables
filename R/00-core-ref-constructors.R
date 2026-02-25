@@ -1,3 +1,4 @@
+#SO
 
 ##############################
 ## Node type definitions

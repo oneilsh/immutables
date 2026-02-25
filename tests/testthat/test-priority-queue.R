@@ -157,12 +157,16 @@ testthat::test_that("fapply validates priority queue inputs", {
   testthat::expect_error(fapply(q, 1), "`FUN` must be a function")
 })
 
-testthat::test_that("priority_queue blocks split/locate helpers", {
+testthat::test_that("priority_queue blocks split helpers and allows locate helper", {
   q <- priority_queue("a", "b", priorities = c(2, 1))
   testthat::expect_error(split_by_predicate(q, function(v) v >= 1, ".size"), "Cast first")
   testthat::expect_error(split_around_by_predicate(q, function(v) v >= 1, ".size"), "Cast first")
   testthat::expect_error(split_at(q, 1), "Cast first")
-  testthat::expect_error(locate_by_predicate(q, function(v) v >= 1, ".size"), "Cast first")
+
+  loc <- locate_by_predicate(q, function(v) v >= 1, ".size", include_metadata = TRUE)
+  testthat::expect_true(loc$found)
+  testthat::expect_identical(loc$elem$item, "a")
+  testthat::expect_identical(loc$metadata$index, 1L)
 })
 
 testthat::test_that("priority_queue supports Date priorities with FIFO ties", {

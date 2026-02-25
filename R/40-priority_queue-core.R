@@ -126,14 +126,6 @@ split_at.priority_queue <- function(x, at, pull_index = FALSE) {
 }
 
 # Runtime: O(1).
-#' @method locate_by_predicate priority_queue
-#' @export
-#' @noRd
-locate_by_predicate.priority_queue <- function(t, predicate, monoid_name, accumulator = NULL, include_metadata = FALSE) {
-  stop("`locate_by_predicate()` is not supported for priority_queue. Cast first with `as_flexseq()`.")
-}
-
-# Runtime: O(1).
 .pq_parse_entry <- function(entry, context = "priority_queue", priority_type = NULL) {
   if(!is.list(entry)) {
     stop(context, " entries must be named lists with fields: item, priority (optional: name).")

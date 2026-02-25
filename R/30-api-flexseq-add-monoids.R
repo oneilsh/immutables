@@ -1,3 +1,5 @@
+#SO
+
 #' Add/merge monoids on an existing tree
 #'
 #' @param t FingerTree.

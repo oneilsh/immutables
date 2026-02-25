@@ -1,3 +1,5 @@
+#SO
+
 #' Locate First Predicate Flip Without Reconstructing Context Trees
 #'
 #' Read-only analogue of [split_around_by_predicate()]: finds the distinguished
@@ -9,6 +11,11 @@
 #' @param monoid_name Name of monoid from `attr(t, "monoids")`.
 #' @param accumulator Optional starting measure (defaults to monoid identity).
 #' @param include_metadata Logical; include left/hit/right measures and index.
+#' @details
+#' For `priority_queue` objects, `metadata$index` (when requested) is the
+#' internal structural position in the underlying sequence representation. It is
+#' not related to priority rank and is not stable across queue updates, so it
+#' should be treated as diagnostic metadata only.
 #' @return If `include_metadata = FALSE`: `list(found, elem)`.
 #'   If `TRUE`: `list(found, elem, metadata = list(left_measure, hit_measure,
 #'   right_measure, index))`.

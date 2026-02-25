@@ -1,3 +1,5 @@
+#SO
+
 #' Build a Structural Tree from a Vector or List
 #'
 #' @param x Elements to insert.
@@ -13,9 +15,11 @@
 #' @keywords internal
 # Runtime: O(n) for validation + linear bulk build.
 tree_from <- function(x, monoids = NULL) {
+  # Phase 1: normalize monoid set and decide whether C++ build path is available.
   ms <- if(is.null(monoids)) ensure_size_monoids(list(.size = size_measure_monoid())) else ensure_size_monoids(monoids)
   can_cpp <- .ft_cpp_can_use(ms)
 
+  # Phase 2: normalize container shape and detect caller-supplied outer names.
   x_list <- as.list(x)
   n <- length(x_list)
 
@@ -26,6 +30,7 @@ tree_from <- function(x, monoids = NULL) {
     stop("Input names length must match input length.")
   }
 
+  # Phase 3a: explicit outer names path. Enforce complete/unique naming.
   if(use_names) {
     norm_names <- as.character(in_names)
     missing_name <- is.na(norm_names) | norm_names == ""
@@ -40,6 +45,7 @@ tree_from <- function(x, monoids = NULL) {
       resolved_names <- norm_names
     }
   } else if(n > 0L) {
+    # Phase 3b: no outer names. Optionally derive names from element payload attrs.
     if(can_cpp) {
       # Common constructor path: if elements have no attrs there are no inline
       # names to preserve, so we can bulk-build directly in C++.
@@ -96,6 +102,7 @@ tree_from <- function(x, monoids = NULL) {
     }
   }
 
+  # Phase 4: dispatch to backend constructor (C++ fast path vs R reference path).
   if(can_cpp) {
     if(is.null(resolved_names)) {
       return(.as_flexseq(.ft_cpp_tree_from(x_list, ms)))
@@ -107,6 +114,7 @@ tree_from <- function(x, monoids = NULL) {
     )))
   }
 
+  # R path needs names materialized on each element before structural build.
   if(!is.null(resolved_names)) {
     for(i in seq_along(x_list)) {
       el <- x_list[[i]]
@@ -122,6 +130,8 @@ tree_from <- function(x, monoids = NULL) {
 # Runtime: O(n) in total elements across recursive levels.
 .ft_tree_from_ordered_ref <- function(xs, monoids) {
   n <- length(xs)
+
+  # Small-n base shapes mirror fingertree constructors directly.
   if(n == 0L) {
     return(measured_empty(monoids))
   }

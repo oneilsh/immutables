@@ -1,3 +1,5 @@
+#SO
+
 #' Construct a Predicate Function
 #'
 #' @param f Predicate function over accumulated measure values.

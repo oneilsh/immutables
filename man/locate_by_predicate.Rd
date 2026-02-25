@@ -33,6 +33,12 @@ Read-only analogue of [split_around_by_predicate()]: finds the distinguished
 element where the scan predicate flips, but does not rebuild left/right
 trees.
 }
+\details{
+For `priority_queue` objects, `metadata$index` (when requested) is the
+internal structural position in the underlying sequence representation. It is
+not related to priority rank and is not stable across queue updates, so it
+should be treated as diagnostic metadata only.
+}
 \examples{
 x <- as_flexseq(letters[1:6])
 x

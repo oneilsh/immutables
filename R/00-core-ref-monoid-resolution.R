@@ -1,3 +1,6 @@
+#SO
+# note: .size and .count are priveledged and ensured for all trees
+
 # Runtime: O(1) fast-path.
 if(FALSE) resolve_tree_monoids <- function(t, required = FALSE) NULL
 resolve_tree_monoids(t, required) %::% . : logical : .

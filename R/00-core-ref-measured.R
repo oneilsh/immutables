@@ -1,3 +1,7 @@
+#SO
+# checks for ensuring measures and monoids are present, consistent, and cached
+# also constructors for building fingertree components with measures and monoids attached
+
 # check for MeasureMonoid type
 # Runtime: O(1).
 if(FALSE) is_measure_monoid <- function(r) NULL
@@ -161,7 +165,8 @@ combine_measures(measures, r) %as% {
 }
 
 # recursive helper assuming `ms` has already been validated
-# Runtime: O(1) with cached structural measures; may recurse on unannotated subtrees.
+# Runtime: best-case O(1) when cached measure is present on structural children;
+# worst-case O(n_subtree) when recursive fallback is required.
 if(FALSE) measure_child_named_impl <- function(x, ms, name, rr) NULL
 measure_child_named_impl(x, ms, name, rr) %::% . : list : character : MeasureMonoid : .
 measure_child_named_impl(x, ms, name, rr) %as% {
@@ -194,7 +199,9 @@ measure_child_named_impl(x, ms, name, rr) %as% {
 }
 
 # compute all cached measures for a structural node across all monoids
-# Runtime: O(k), where k is immediate child count of `x` (bounded for in-tree nodes).
+# Runtime: typical O(m * k), where m = number of monoids and k = immediate child
+# count of `x` (bounded for in-tree nodes); worst-case O(m * n_subtree) when
+# recursive fallback is required.
 if(FALSE) measure_children <- function(x, monoids) NULL
 measure_children(x, monoids) %::% . : list : list
 measure_children(x, monoids) %as% {
@@ -220,7 +227,8 @@ node_measure(x, monoid_name) %as% {
 }
 
 # attach canonical monoids + cached measures to a structural node
-# Runtime: O(k), where k is immediate child count of `x` (bounded for in-tree nodes).
+# Runtime: same as `measure_children()`; typical O(m * k), worst-case
+# O(m * n_subtree) under recursive fallback.
 if(FALSE) set_measure <- function(x, monoids) NULL
 set_measure(x, monoids) %::% . : list : .
 set_measure(x, monoids) %as% {
@@ -235,7 +243,9 @@ set_measure(x, monoids) %as% {
 
 # attach monoids + measures, reusing unchanged cached entries from `previous`.
 # only `recompute_names` are recomputed from children.
-# Runtime: O(k), where k is immediate child count of `x` (bounded for in-tree nodes).
+# Runtime: O(m) to iterate monoid names plus recompute cost for monoids in
+# `recompute_names`; recompute is typical O(k) per monoid on measured children
+# and worst-case O(n_subtree) per monoid under recursive fallback.
 if(FALSE) set_measure_with_reuse <- function(x, previous, monoids, recompute_names) NULL
 set_measure_with_reuse(x, previous, monoids, recompute_names) %::% . : . : list : character : .
 set_measure_with_reuse(x, previous, monoids, recompute_names) %as% {
@@ -263,6 +273,7 @@ set_measure_with_reuse(x, previous, monoids, recompute_names) %as% {
   x
 }
 
+# only used by add_monoids() to add new monoids to the full tree
 # persistent structural copy that updates monoid attrs.
 # tree shape is preserved; only requested monoid caches are recomputed.
 # Runtime: O(n) in subtree size.
@@ -295,7 +306,6 @@ rebind_tree_monoids(x, monoids, recompute_names) %as% {
   set_measure_with_reuse(out, x, monoids, recompute_names)
 }
 
-# Runtime: O(1).
 assert_has_monoids(node) %::% . : .
 # Runtime: O(1).
 if(FALSE) assert_has_monoids <- function(node) NULL
@@ -316,7 +326,6 @@ assert_has_monoids(node) %as% {
   invisible(TRUE)
 }
 
-# Runtime: O(1) under fixed monoid set.
 assert_measures_match_monoids(node) %::% . : .
 # Runtime: O(1) under fixed monoid set.
 if(FALSE) assert_measures_match_monoids <- function(node) NULL
@@ -338,7 +347,6 @@ assert_measures_match_monoids(node) %as% {
   invisible(TRUE)
 }
 
-# Runtime: O(n) in subtree size (recursive full walk).
 assert_structural_attrs(node) %::% . : .
 # Runtime: O(n) in subtree size (recursive full walk).
 # Intended use: correctness auditing in tests/debugging, not hot paths.

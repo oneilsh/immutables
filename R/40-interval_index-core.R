@@ -6,6 +6,20 @@
   invisible(TRUE)
 }
 
+# Runtime: O(n) over tree size for any non-trivial update (rebind/recompute pass).
+#' @method add_monoids interval_index
+#' @export
+#' @noRd
+add_monoids.interval_index <- function(t, monoids, overwrite = FALSE) {
+  if(length(monoids) > 0L) {
+    bad <- intersect(names(monoids), c(".size", ".named_count", ".ivx_max_start", ".ivx_max_end", ".ivx_min_end", ".oms_max_key"))
+    if(length(bad) > 0L) {
+      stop("Reserved monoid names cannot be supplied for interval_index: ", paste(bad, collapse = ", "))
+    }
+  }
+  add_monoids.flexseq(t, monoids, overwrite = overwrite)
+}
+
 # Runtime: O(1).
 .ivx_endpoint_type_state <- function(x) {
   attr(x, "ivx_endpoint_type", exact = TRUE)

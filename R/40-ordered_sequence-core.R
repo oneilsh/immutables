@@ -19,6 +19,21 @@
   attr(x, "oms_key_type", exact = TRUE)
 }
 
+# Runtime: O(n) over tree size for any non-trivial update (rebind/recompute pass).
+#' @method add_monoids ordered_sequence
+#' @export
+#' @noRd
+add_monoids.ordered_sequence <- function(t, monoids, overwrite = FALSE) {
+  if(length(monoids) > 0L) {
+    bad <- intersect(names(monoids), c(".size", ".named_count", ".oms_max_key"))
+    if(length(bad) > 0L) {
+      target <- .ft_ordered_owner_class(t)
+      stop("Reserved monoid names cannot be supplied for ", target, ": ", paste(bad, collapse = ", "))
+    }
+  }
+  add_monoids.flexseq(t, monoids, overwrite = overwrite)
+}
+
 # Runtime: O(1).
 .oms_make_entry <- function(item, key_value) {
   list(item = item, key = key_value)

@@ -40,8 +40,32 @@
 #' cut_ix$elem        # first interval that crosses width budget (value at cut_ix$elem$item)
 #' cut_ix$right       # remaining interval
 #' @export
-# Runtime: O(n) over tree size for any non-trivial update (rebind/recompute pass).
+#' @seealso [add_monoids.flexseq()], [add_monoids.priority_queue()],
+#'   [add_monoids.ordered_sequence()], [add_monoids.interval_index()]
+# Runtime: O(1) dispatch.
 add_monoids <- function(t, monoids, overwrite = FALSE) {
+  UseMethod("add_monoids")
+}
+
+# Runtime: O(1).
+#' @export
+#' @noRd
+add_monoids.default <- function(t, monoids, overwrite = FALSE) {
+  cls <- class(t)
+  cls_txt <- if(length(cls) == 0L) "unknown" else paste(cls, collapse = "/")
+  stop(sprintf("No `add_monoids()` method for class '%s'.", cls_txt))
+}
+
+# Runtime: O(n) over tree size for any non-trivial update (rebind/recompute pass).
+#' @method add_monoids flexseq
+#' @export
+add_monoids.flexseq <- function(t, monoids, overwrite = FALSE) {
+  if(length(monoids) > 0L) {
+    bad <- intersect(names(monoids), c(".size", ".named_count"))
+    if(length(bad) > 0L) {
+      stop("Reserved monoid names cannot be supplied for flexseq: ", paste(bad, collapse = ", "))
+    }
+  }
   add <- ensure_size_monoids(monoids)
   cur <- resolve_tree_monoids(t, required = TRUE)
   merged <- merge_monoid_sets(cur, add, overwrite = overwrite)

@@ -52,6 +52,34 @@ testthat::test_that("monoid specs are normalized to canonical named layout", {
   testthat::expect_identical(sum_m$measure(7L), 7L)
 })
 
+testthat::test_that("add_monoids blocks reserved monoid names by type", {
+  sum_m <- measure_monoid(function(a, b) a + b, 0, function(el) 1L)
+
+  fx <- as_flexseq(1:3)
+  testthat::expect_error(
+    add_monoids(fx, list(.size = sum_m), overwrite = TRUE),
+    "Reserved monoid names cannot be supplied for flexseq"
+  )
+
+  pq <- priority_queue("a", "b", priorities = c(2, 1))
+  testthat::expect_error(
+    add_monoids(pq, list(.pq_min = sum_m), overwrite = TRUE),
+    "Reserved monoid names cannot be supplied for priority_queue"
+  )
+
+  os <- as_ordered_sequence(list("a", "b"), keys = c(1, 2))
+  testthat::expect_error(
+    add_monoids(os, list(.oms_max_key = sum_m), overwrite = TRUE),
+    "Reserved monoid names cannot be supplied for ordered_sequence"
+  )
+
+  ix <- interval_index("a", start = 1, end = 2)
+  testthat::expect_error(
+    add_monoids(ix, list(.ivx_max_end = sum_m), overwrite = TRUE),
+    "Reserved monoid names cannot be supplied for interval_index"
+  )
+})
+
 testthat::test_that("concat_trees unions monoids on shared names", {
   a <- measure_monoid(function(x, y) x + y, 0, function(el) el)
   b <- measure_monoid(function(x, y) x + y, 0, function(el) 1)

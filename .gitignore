@@ -9,3 +9,4 @@ meta/bench-results/
 .vscode/
 docs/
 .review
+.Rprofile

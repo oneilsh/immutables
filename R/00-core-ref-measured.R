@@ -1,11 +1,13 @@
 # check for MeasureMonoid type
 # Runtime: O(1).
 is_measure_monoid(r) %::% . : logical
+if(FALSE) is_measure_monoid <- function(r) NULL
 is_measure_monoid(r) %as% inherits(r, "MeasureMonoid")
 
 # a non-empty named list of MeasureMonoid specs
 # Runtime: O(k), where k = length(x).
 is_measure_monoid_list(x) %::% . : logical
+if(FALSE) is_measure_monoid_list <- function(x) NULL
 is_measure_monoid_list(x) %as% {
   is.list(x) && length(x) > 0 && all(vapply(x, is_measure_monoid, logical(1)))
 }
@@ -13,6 +15,7 @@ is_measure_monoid_list(x) %as% {
 # normalize monoid fields to canonical named layout (f, i, measure).
 # Runtime: O(1).
 .normalize_measure_monoid_spec(r, monoid_name = NULL) %::% MeasureMonoid : . : MeasureMonoid
+if(FALSE) .normalize_measure_monoid_spec <- function(r, monoid_name = NULL) NULL
 .normalize_measure_monoid_spec(r, monoid_name = NULL) %as% {
   lbl <- if(is.null(monoid_name) || is.na(monoid_name) || monoid_name == "") {
     "measure monoid"
@@ -50,6 +53,7 @@ is_measure_monoid_list(x) %as% {
 # default size measure used for indexing and structural operations
 # Runtime: O(1).
 size_measure_monoid() %::% MeasureMonoid
+if(FALSE) size_measure_monoid <- function() NULL
 size_measure_monoid() %as% {
   measure_monoid(function(a, b) a + b, 0, function(el) 1)
 }
@@ -57,6 +61,7 @@ size_measure_monoid() %as% {
 # default name-count measure used to enforce named/unnamed tree invariants
 # Runtime: O(1).
 named_count_measure_monoid() %::% MeasureMonoid
+if(FALSE) named_count_measure_monoid <- function() NULL
 named_count_measure_monoid() %as% {
   measure_monoid(function(a, b) a + b, 0L, function(el) {
     if(isTRUE(.ft_has_name(el))) 1L else 0L
@@ -66,6 +71,7 @@ named_count_measure_monoid() %as% {
 # normalize a candidate element name; NULL/NA/"" are treated as missing
 # Runtime: O(1).
 .ft_normalize_name(x) %::% . : .
+if(FALSE) .ft_normalize_name <- function(x) NULL
 .ft_normalize_name(x) %as% {
   if(is.null(x) || length(x) == 0L) {
     return(NULL)
@@ -83,6 +89,7 @@ named_count_measure_monoid() %as% {
 # read the internal element name payload
 # Runtime: O(1).
 .ft_get_name(el) %::% . : .
+if(FALSE) .ft_get_name <- function(el) NULL
 .ft_get_name(el) %as% {
   .ft_normalize_name(attr(el, "ft_name", exact = TRUE))
 }
@@ -90,6 +97,7 @@ named_count_measure_monoid() %as% {
 # check whether an element carries an internal name
 # Runtime: O(1).
 .ft_has_name(el) %::% . : logical
+if(FALSE) .ft_has_name <- function(el) NULL
 .ft_has_name(el) %as% {
   !is.null(.ft_get_name(el))
 }
@@ -97,6 +105,7 @@ named_count_measure_monoid() %as% {
 # attach/remove internal element name payload
 # Runtime: O(1).
 .ft_set_name(el, name) %::% . : . : .
+if(FALSE) .ft_set_name <- function(el, name) NULL
 .ft_set_name(el, name) %as% {
   nm <- .ft_normalize_name(name)
   if(is.null(nm)) {
@@ -113,6 +122,7 @@ named_count_measure_monoid() %as% {
 # validate and normalize monoid set; `.size` and `.named_count` are always present.
 # Runtime: O(1) under fixed monoid set.
 ensure_size_monoids(monoids) %::% list : list
+if(FALSE) ensure_size_monoids <- function(monoids) NULL
 ensure_size_monoids(monoids) %as% {
   out <- monoids
   if(!is_measure_monoid_list(out)) {
@@ -141,6 +151,7 @@ ensure_size_monoids(monoids) %as% {
 # combine a list of measure values with the monoid's associative function
 # Runtime: O(k), where k = length(measures).
 combine_measures(measures, r) %::% list : MeasureMonoid : .
+if(FALSE) combine_measures <- function(measures, r) NULL
 combine_measures(measures, r) %as% {
   acc <- r$i
   for(m in measures) {
@@ -152,6 +163,7 @@ combine_measures(measures, r) %as% {
 # recursive helper assuming `ms` has already been validated
 # Runtime: O(1) with cached structural measures; may recurse on unannotated subtrees.
 measure_child_named_impl(x, ms, name, rr) %::% . : list : character : MeasureMonoid : .
+if(FALSE) measure_child_named_impl <- function(x, ms, name, rr) NULL
 measure_child_named_impl(x, ms, name, rr) %as% {
   if(is_structural_node(x)) {
     cached <- attr(x, "measures", exact = TRUE)
@@ -184,6 +196,7 @@ measure_child_named_impl(x, ms, name, rr) %as% {
 # compute all cached measures for a structural node across all monoids
 # Runtime: O(k), where k is immediate child count of `x` (bounded for in-tree nodes).
 measure_children(x, monoids) %::% . : list : list
+if(FALSE) measure_children <- function(x, monoids) NULL
 measure_children(x, monoids) %as% {
   ms <- monoids
   out <- lapply(names(ms), function(nm) measure_child_named_impl(x, ms, nm, ms[[nm]]))
@@ -194,6 +207,7 @@ measure_children(x, monoids) %as% {
 # read a structural-node measure by monoid name
 # Runtime: O(1).
 node_measure(x, monoid_name) %::% . : character : .
+if(FALSE) node_measure <- function(x, monoid_name) NULL
 node_measure(x, monoid_name) %as% {
   if(!is_structural_node(x)) {
     stop("node_measure expects a structural node.")
@@ -208,6 +222,7 @@ node_measure(x, monoid_name) %as% {
 # attach canonical monoids + cached measures to a structural node
 # Runtime: O(k), where k is immediate child count of `x` (bounded for in-tree nodes).
 set_measure(x, monoids) %::% . : list : .
+if(FALSE) set_measure <- function(x, monoids) NULL
 set_measure(x, monoids) %as% {
   if(!is_structural_node(x)) {
     return(x)
@@ -222,6 +237,7 @@ set_measure(x, monoids) %as% {
 # only `recompute_names` are recomputed from children.
 # Runtime: O(k), where k is immediate child count of `x` (bounded for in-tree nodes).
 set_measure_with_reuse(x, previous, monoids, recompute_names) %::% . : . : list : character : .
+if(FALSE) set_measure_with_reuse <- function(x, previous, monoids, recompute_names) NULL
 set_measure_with_reuse(x, previous, monoids, recompute_names) %as% {
   if(!is_structural_node(x)) {
     return(x)
@@ -251,6 +267,7 @@ set_measure_with_reuse(x, previous, monoids, recompute_names) %as% {
 # tree shape is preserved; only requested monoid caches are recomputed.
 # Runtime: O(n) in subtree size.
 rebind_tree_monoids(x, monoids, recompute_names) %::% . : list : character : .
+if(FALSE) rebind_tree_monoids <- function(x, monoids, recompute_names) NULL
 rebind_tree_monoids(x, monoids, recompute_names) %as% {
   if(!is_structural_node(x)) {
     return(x)
@@ -281,6 +298,7 @@ rebind_tree_monoids(x, monoids, recompute_names) %as% {
 # Runtime: O(1).
 assert_has_monoids(node) %::% . : .
 # Runtime: O(1).
+if(FALSE) assert_has_monoids <- function(node) NULL
 assert_has_monoids(node) %as% {
   if(!is_structural_node(node)) {
     return(invisible(TRUE))
@@ -301,6 +319,7 @@ assert_has_monoids(node) %as% {
 # Runtime: O(1) under fixed monoid set.
 assert_measures_match_monoids(node) %::% . : .
 # Runtime: O(1) under fixed monoid set.
+if(FALSE) assert_measures_match_monoids <- function(node) NULL
 assert_measures_match_monoids(node) %as% {
   if(!is_structural_node(node)) {
     return(invisible(TRUE))
@@ -323,6 +342,7 @@ assert_measures_match_monoids(node) %as% {
 assert_structural_attrs(node) %::% . : .
 # Runtime: O(n) in subtree size (recursive full walk).
 # Intended use: correctness auditing in tests/debugging, not hot paths.
+if(FALSE) assert_structural_attrs <- function(node) NULL
 assert_structural_attrs(node) %as% {
   if(!is_structural_node(node)) {
     return(invisible(TRUE))
@@ -349,6 +369,7 @@ assert_structural_attrs(node) %as% {
 # construct an Empty with cached measures
 # Runtime: O(1).
 measured_empty(monoids) %::% list : Empty
+if(FALSE) measured_empty <- function(monoids) NULL
 measured_empty(monoids) %as% {
   e <- Empty()
   set_measure(e, monoids)
@@ -357,6 +378,7 @@ measured_empty(monoids) %as% {
 # construct a Single with cached measures
 # Runtime: O(1).
 measured_single(el, monoids) %::% . : list : Single
+if(FALSE) measured_single <- function(el, monoids) NULL
 measured_single(el, monoids) %as% {
   s <- Single(el)
   set_measure(s, monoids)
@@ -365,6 +387,7 @@ measured_single(el, monoids) %as% {
 # construct a Digit with cached measures (size 1..4)
 # Runtime: O(1).
 measured_digit(a, monoids) %::% . : list : Digit
+if(FALSE) measured_digit <- function(a, monoids) NULL
 measured_digit(a, monoids) %as% {
   d <- Digit(a)
   set_measure(d, monoids)
@@ -372,6 +395,7 @@ measured_digit(a, monoids) %as% {
 
 # Runtime: O(1).
 measured_digit(a, b, monoids) %::% . : . : list : Digit
+if(FALSE) measured_digit <- function(a, b, monoids) NULL
 measured_digit(a, b, monoids) %as% {
   d <- Digit(a, b)
   set_measure(d, monoids)
@@ -379,6 +403,7 @@ measured_digit(a, b, monoids) %as% {
 
 # Runtime: O(1).
 measured_digit(a, b, c, monoids) %::% . : . : . : list : Digit
+if(FALSE) measured_digit <- function(a, b, c, monoids) NULL
 measured_digit(a, b, c, monoids) %as% {
   d <- Digit(a, b, c)
   set_measure(d, monoids)
@@ -386,6 +411,7 @@ measured_digit(a, b, c, monoids) %as% {
 
 # Runtime: O(1).
 measured_digit(a, b, c, d1, monoids) %::% . : . : . : . : list : Digit
+if(FALSE) measured_digit <- function(a, b, c, d1, monoids) NULL
 measured_digit(a, b, c, d1, monoids) %as% {
   d <- Digit(a, b, c, d1)
   set_measure(d, monoids)
@@ -394,6 +420,7 @@ measured_digit(a, b, c, d1, monoids) %as% {
 # construct a Node2 with cached measures
 # Runtime: O(1).
 measured_node2(x, y, monoids) %::% . : . : list : Node
+if(FALSE) measured_node2 <- function(x, y, monoids) NULL
 measured_node2(x, y, monoids) %as% {
   n <- Node2(x, y)
   set_measure(n, monoids)
@@ -402,6 +429,7 @@ measured_node2(x, y, monoids) %as% {
 # construct a Node3 with cached measures
 # Runtime: O(1).
 measured_node3(x, y, z, monoids) %::% . : . : . : list : Node
+if(FALSE) measured_node3 <- function(x, y, z, monoids) NULL
 measured_node3(x, y, z, monoids) %as% {
   n <- Node3(x, y, z)
   set_measure(n, monoids)
@@ -410,6 +438,7 @@ measured_node3(x, y, z, monoids) %as% {
 # construct a Deep with cached measures
 # Runtime: O(1) with measured children.
 measured_deep(prefix, middle, suffix, monoids) %::% Digit : FingerTree : Digit : list : Deep
+if(FALSE) measured_deep <- function(prefix, middle, suffix, monoids) NULL
 measured_deep(prefix, middle, suffix, monoids) %as% {
   t <- Deep(prefix, middle, suffix)
   set_measure(t, monoids)

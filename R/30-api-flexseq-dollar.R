@@ -1,7 +1,6 @@
 # parse `$` name argument into a scalar character key.
 # Runtime: O(1).
-.ft_dollar_name(name_expr) %::% . : character
-.ft_dollar_name(name_expr) %as% {
+.ft_dollar_name <- function(name_expr) {
   nm <- as.character(name_expr)
   if(length(nm) != 1L || is.na(nm) || nm == "") {
     stop("`$` expects a single valid name.")

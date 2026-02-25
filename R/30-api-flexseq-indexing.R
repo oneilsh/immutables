@@ -1,7 +1,6 @@
 # recursive fill helper for `.ft_to_list` to avoid repeated list concatenation.
 # Runtime: O(n) in number of elements visited.
-.ft_to_list_fill(x, st) %::% . : environment : .
-.ft_to_list_fill(x, st) %as% {
+.ft_to_list_fill <- function(x, st) {
   if(!is_structural_node(x)) {
     st$out[[st$pos]] <- x
     st$pos <- st$pos + 1L
@@ -28,8 +27,7 @@
 
 # flatten a fingertree into its element sequence (left-to-right)
 # Runtime: O(n) in number of elements.
-.ft_to_list(x) %::% . : list
-.ft_to_list(x) %as% {
+.ft_to_list <- function(x) {
   if(!is_structural_node(x)) {
     return(list(x))
   }
@@ -45,8 +43,7 @@
 }
 
 # Runtime: O(k), where k = length(idx).
-.ft_assert_int_indices(idx, n) %::% . : numeric : integer
-.ft_assert_int_indices(idx, n) %as% {
+.ft_assert_int_indices <- function(idx, n) {
   if(is.null(idx)) {
     stop("Index is required.")
   }
@@ -67,8 +64,7 @@
 }
 
 # Runtime: O(k), where k = length(idx).
-.ft_assert_chr_indices(idx) %::% . : character
-.ft_assert_chr_indices(idx) %as% {
+.ft_assert_chr_indices <- function(idx) {
   if(is.null(idx)) {
     stop("Index is required.")
   }
@@ -79,8 +75,7 @@
 }
 
 # Runtime: O(n) due `rep_len(..., n)`.
-.ft_assert_lgl_indices(idx, n) %::% . : integer : logical
-.ft_assert_lgl_indices(idx, n) %as% {
+.ft_assert_lgl_indices <- function(idx, n) {
   if(is.null(idx)) {
     stop("Index is required.")
   }
@@ -97,23 +92,20 @@
 }
 
 # Runtime: O(n) worst-case in relevant input/subtree size.
-.ft_true_positions(mask) %::% logical : integer
-.ft_true_positions(mask) %as% {
+.ft_true_positions <- function(mask) {
   as.integer(which(mask))
 }
 
 # minimum character-query width at which full name->position map lookup is used.
 # Runtime: O(1).
-.ft_name_map_threshold() %::% integer
-.ft_name_map_threshold() %as% {
+.ft_name_map_threshold <- function() {
   # Tuned internal constant: switch to one-pass name->position map lookup for
   # medium/large character queries; keep scalar find loop for short vectors.
   8L
 }
 
 # Runtime: O(target_len) in recycled output size.
-.ft_recycle_values(values, target_len) %::% list : integer : list
-.ft_recycle_values(values, target_len) %as% {
+.ft_recycle_values <- function(values, target_len) {
   if(target_len == 0L) {
     return(list())
   }
@@ -129,8 +121,7 @@
 # check whether replacement payloads provide any explicit name hints
 # (outer list names, ft_name attrs, or inline scalar names()).
 # Runtime: O(k), where k = number of replacement values.
-.ft_values_have_name_hints(values) %::% list : logical
-.ft_values_have_name_hints(values) %as% {
+.ft_values_have_name_hints <- function(values) {
   vn <- names(values)
   if(!is.null(vn) && any(!is.na(vn) & vn != "")) {
     return(TRUE)
@@ -148,16 +139,14 @@
 
 # remove internal naming metadata from user-visible element returns.
 # Runtime: O(1).
-.ft_strip_name(el) %::% . : .
-.ft_strip_name(el) %as% {
+.ft_strip_name <- function(el) {
   attr(el, "ft_name") <- NULL
   el
 }
 
 # collect internal element names in left-to-right order.
 # Runtime: O(n).
-.ft_collect_names(t) %::% . : character
-.ft_collect_names(t) %as% {
+.ft_collect_names <- function(t) {
   els <- .ft_to_list(t)
   if(length(els) == 0L) {
     return(character(0))
@@ -173,8 +162,7 @@
 # - fully named tree: .named_count == .size and names are unique/non-empty
 # Runtime: O(n) in the fully-named case (collect/scan all names).
 # Intended use: correctness auditing in tests/debugging and explicit validators.
-.ft_assert_name_state(t) %::% . : .
-.ft_assert_name_state(t) %as% {
+.ft_assert_name_state <- function(t) {
   if(!is_structural_node(t)) {
     return(invisible(TRUE))
   }
@@ -204,8 +192,7 @@
 
 # build a deterministic name -> position map for fully named trees.
 # Runtime: O(n).
-.ft_name_positions(t) %::% . : integer
-.ft_name_positions(t) %as% {
+.ft_name_positions <- function(t) {
   n <- as.integer(node_measure(t, ".size"))
   nn <- as.integer(node_measure(t, ".named_count"))
   if(n == 0L || nn == 0L) {
@@ -222,8 +209,7 @@
 
 # build name->position map, using C++ when available.
 # Runtime: O(n).
-.ft_name_positions_fast(t) %::% . : integer
-.ft_name_positions_fast(t) %as% {
+.ft_name_positions_fast <- function(t) {
   if(.ft_cpp_enabled()) {
     return(.ft_cpp_name_positions(t))
   }
@@ -232,8 +218,7 @@
 
 # measure contribution of one child in terms of leaf-element count.
 # Runtime: O(1) using cached `.size` for structural children.
-.ft_child_size(el) %::% . : integer
-.ft_child_size(el) %as% {
+.ft_child_size <- function(el) {
   if(is_structural_node(el)) {
     return(as.integer(node_measure(el, ".size")))
   }
@@ -242,8 +227,7 @@
 
 # recursive linear search for one name with early exit.
 # Runtime: O(n) worst-case, O(k) until first match.
-.ft_find_name_position_impl(x, target, offset) %::% . : character : integer : integer
-.ft_find_name_position_impl(x, target, offset = 0L) %as% {
+.ft_find_name_position_impl <- function(x, target, offset = 0L) {
   if(!is_structural_node(x)) {
     nm <- .ft_get_name(x)
     if(!is.null(nm) && identical(nm, target)) {
@@ -282,16 +266,14 @@
 
 # find one name position without constructing full name->position map.
 # Runtime: O(n) worst-case.
-.ft_find_name_position(t, target) %::% . : character : integer
-.ft_find_name_position(t, target) %as% {
+.ft_find_name_position <- function(t, target) {
   .ft_find_name_position_impl(t, target, 0L)
 }
 
 # match requested names to positions. If strict_missing is FALSE, missing names
 # are represented as NA integer placeholders.
 # Runtime: O(n + k), where n = tree size and k = length(idx).
-.ft_match_name_indices(t, idx, strict_missing) %::% . : character : logical : integer
-.ft_match_name_indices(t, idx, strict_missing = FALSE) %as% {
+.ft_match_name_indices <- function(t, idx, strict_missing = FALSE) {
   n <- as.integer(node_measure(t, ".size"))
   nn <- as.integer(node_measure(t, ".named_count"))
   if(n == 0L || nn == 0L) {
@@ -331,8 +313,7 @@
 
 # internal positional read that preserves ft_name metadata.
 # Runtime: O(log n) via indexed locate path (C++ or R fallback).
-.ft_get_elem_at(x, idx) %::% . : integer : .
-.ft_get_elem_at(x, idx) %as% {
+.ft_get_elem_at <- function(x, idx) {
   if(.ft_cpp_enabled()) {
     return(.ft_cpp_get_by_index(x, idx))
   }
@@ -354,8 +335,7 @@
 
 # bulk positional read helper preserving ft_name metadata.
 # Runtime: O(k log n) fallback, where k = length(idx); C++ path is typically faster.
-.ft_get_elems_at(x, idx) %::% . : integer : list
-.ft_get_elems_at(x, idx) %as% {
+.ft_get_elems_at <- function(x, idx) {
   if(length(idx) == 0L) {
     return(list())
   }
@@ -367,8 +347,7 @@
 
 # extract a name carried directly by a scalar replacement value.
 # Runtime: O(1).
-.ft_name_from_value(el) %::% . : .
-.ft_name_from_value(el) %as% {
+.ft_name_from_value <- function(el) {
   nms <- names(el)
   if(is.null(nms) || length(nms) != 1L) {
     return(NULL)
@@ -379,8 +358,7 @@
 # effective replacement name: explicit outer list name first, then existing
 # internal name, then name carried by the replacement value itself.
 # Runtime: O(1).
-.ft_effective_name(el, explicit_name) %::% . : . : .
-.ft_effective_name(el, explicit_name = NULL) %as% {
+.ft_effective_name <- function(el, explicit_name = NULL) {
   nm <- .ft_normalize_name(explicit_name)
   if(is.null(nm)) {
     nm <- .ft_get_name(el)
@@ -393,8 +371,7 @@
 
 # update name mapping for sequential replacement and enforce uniqueness.
 # Runtime: O(k), where k is current map size.
-.ft_update_name_map(name_to_pos, name_vec, pos, nm) %::% . : character : integer : character : list
-.ft_update_name_map(name_to_pos, name_vec, pos, nm) %as% {
+.ft_update_name_map <- function(name_to_pos, name_vec, pos, nm) {
   old_nm <- name_vec[[pos]]
   if(identical(nm, old_nm)) {
     return(list(name_to_pos = name_to_pos, name_vec = name_vec))

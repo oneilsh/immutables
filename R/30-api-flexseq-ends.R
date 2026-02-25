@@ -1,53 +1,88 @@
+# dispatch add-right through C++/R backend and restore class stack.
+# Runtime: O(log n) tree update + subclass restoration.
+.ft_push_back_dispatch <- function(x, element, monoids, context = "push_back()") {
+  out <- if(.ft_cpp_can_use(monoids)) {
+    .ft_cpp_add_right(x, element, monoids)
+  } else {
+    add_right(x, element, monoids)
+  }
+  .ft_restore_subclass(out, x, context = context)
+}
+
+# dispatch named add-right through C++/R backend and restore class stack.
+# Runtime: O(log n) tree update + subclass restoration.
+.ft_push_back_named_dispatch <- function(x, element, name, monoids, context = "push_back()") {
+  out <- if(.ft_cpp_can_use(monoids)) {
+    .ft_cpp_add_right_named(x, element, name, monoids)
+  } else {
+    add_right(x, .ft_set_name(element, name), monoids)
+  }
+  .ft_restore_subclass(out, x, context = context)
+}
+
+# dispatch add-left through C++/R backend and restore class stack.
+# Runtime: O(log n) tree update + subclass restoration.
+.ft_push_front_dispatch <- function(x, element, monoids, context = "push_front()") {
+  out <- if(.ft_cpp_can_use(monoids)) {
+    .ft_cpp_add_left(x, element, monoids)
+  } else {
+    add_left(x, element, monoids)
+  }
+  .ft_restore_subclass(out, x, context = context)
+}
+
+# dispatch named add-left through C++/R backend and restore class stack.
+# Runtime: O(log n) tree update + subclass restoration.
+.ft_push_front_named_dispatch <- function(x, element, name, monoids, context = "push_front()") {
+  out <- if(.ft_cpp_can_use(monoids)) {
+    .ft_cpp_add_left_named(x, element, name, monoids)
+  } else {
+    add_left(x, .ft_set_name(element, name), monoids)
+  }
+  .ft_restore_subclass(out, x, context = context)
+}
+
 # Runtime: O(log n) tree update, with O(1) local name-state checks.
 .ft_push_back_impl <- function(x, value, context = "push_back()") {
-  ms <- attr(x, "monoids", exact = TRUE)
-  if(is.null(ms)) {
+  monoids <- attr(x, "monoids", exact = TRUE)
+  if(is.null(monoids)) {
     stop("Tree has no monoids attribute.")
   }
-  m <- attr(x, "measures", exact = TRUE)
-  if(is.null(m)) {
+  measures <- attr(x, "measures", exact = TRUE)
+  if(is.null(measures)) {
     stop("Tree has no measures attribute.")
   }
-  n <- as.integer(m[[".size"]])
-  nn <- as.integer(m[[".named_count"]])
-  if(n > 0L && nn != 0L && nn != n) {
+  size <- as.integer(measures[[".size"]])
+  named_count <- as.integer(measures[[".named_count"]])
+  if(size > 0L && named_count != 0L && named_count != size) {
     stop("Invalid tree name state: mixed named/unnamed elements.")
   }
 
-  value2 <- value
-  if(nn == 0L) {
-    nm <- .ft_get_name(value2)
-    if(is.null(nm)) {
-      nm <- .ft_name_from_value(value2)
+  element <- value
+  if(named_count == 0L) {
+    element_name <- .ft_get_name(element)
+    if(is.null(element_name)) {
+      element_name <- .ft_name_from_value(element)
     }
-    if(is.null(nm)) {
-      if(.ft_cpp_can_use(ms)) {
-        return(.ft_restore_subclass(.ft_cpp_add_right(x, value2, ms), x, context = context))
-      }
-      return(.ft_restore_subclass(add_right(x, value2, ms), x, context = context))
+
+    # Unnamed tree mode: unnamed element is always fine.
+    if(is.null(element_name)) {
+      return(.ft_push_back_dispatch(x, element, monoids, context = context))
     }
-    if(n > 0L) {
+
+    # Named element may only seed an empty tree; otherwise it would mix states.
+    if(size > 0L) {
       stop("Cannot mix named and unnamed elements (push_back would create mixed named and unnamed tree).")
     }
-    if(.ft_cpp_can_use(ms)) {
-      return(.ft_restore_subclass(.ft_cpp_add_right_named(x, value2, nm, ms), x, context = context))
-    }
-    value2 <- .ft_set_name(value2, nm)
-  } else {
-    nm <- .ft_effective_name(value2)
-    if(is.null(nm)) {
-      stop("Cannot mix named and unnamed elements (push_back would create mixed named and unnamed tree).")
-    }
-    if(.ft_cpp_can_use(ms)) {
-      return(.ft_restore_subclass(.ft_cpp_add_right_named(x, value2, nm, ms), x, context = context))
-    }
-    value2 <- .ft_set_name(value2, nm)
+    return(.ft_push_back_named_dispatch(x, element, element_name, monoids, context = context))
   }
 
-  if(.ft_cpp_can_use(ms)) {
-    return(.ft_restore_subclass(.ft_cpp_add_right(x, value2, ms), x, context = context))
+  # Named tree mode: inserted element must carry a usable name.
+  element_name <- .ft_effective_name(element)
+  if(is.null(element_name)) {
+    stop("Cannot mix named and unnamed elements (push_back would create mixed named and unnamed tree).")
   }
-  .ft_restore_subclass(add_right(x, value2, ms), x, context = context)
+  .ft_push_back_named_dispatch(x, element, element_name, monoids, context = context)
 }
 
 #' Push an element to the back
@@ -102,54 +137,45 @@ push_front <- function(x, value) {
     stop("`push_front()` is not supported for priority_queue. Cast first with `as_flexseq()`.")
   }
 
-  ms <- attr(x, "monoids", exact = TRUE)
-  if(is.null(ms)) {
+  monoids <- attr(x, "monoids", exact = TRUE)
+  if(is.null(monoids)) {
     stop("Tree has no monoids attribute.")
   }
-  m <- attr(x, "measures", exact = TRUE)
-  if(is.null(m)) {
+  measures <- attr(x, "measures", exact = TRUE)
+  if(is.null(measures)) {
     stop("Tree has no measures attribute.")
   }
-  n <- as.integer(m[[".size"]])
-  nn <- as.integer(m[[".named_count"]])
-  if(n > 0L && nn != 0L && nn != n) {
+  size <- as.integer(measures[[".size"]])
+  named_count <- as.integer(measures[[".named_count"]])
+  if(size > 0L && named_count != 0L && named_count != size) {
     stop("Invalid tree name state: mixed named/unnamed elements.")
   }
 
-  value2 <- value
-  if(nn == 0L) {
-    nm <- .ft_get_name(value2)
-    if(is.null(nm)) {
-      nm <- .ft_name_from_value(value2)
+  element <- value
+  if(named_count == 0L) {
+    element_name <- .ft_get_name(element)
+    if(is.null(element_name)) {
+      element_name <- .ft_name_from_value(element)
     }
-    if(is.null(nm)) {
-      if(.ft_cpp_can_use(ms)) {
-        return(.ft_restore_subclass(.ft_cpp_add_left(x, value2, ms), x, context = "push_front()"))
-      }
-      return(.ft_restore_subclass(add_left(x, value2, ms), x, context = "push_front()"))
+
+    # Unnamed tree mode: unnamed element is always fine.
+    if(is.null(element_name)) {
+      return(.ft_push_front_dispatch(x, element, monoids, context = "push_front()"))
     }
-    if(n > 0L) {
+
+    # Named element may only seed an empty tree; otherwise it would mix states.
+    if(size > 0L) {
       stop("Cannot mix named and unnamed elements (push_front would create mixed named and unnamed tree).")
     }
-    if(.ft_cpp_can_use(ms)) {
-      return(.ft_restore_subclass(.ft_cpp_add_left_named(x, value2, nm, ms), x, context = "push_front()"))
-    }
-    value2 <- .ft_set_name(value2, nm)
-  } else {
-    nm <- .ft_effective_name(value2)
-    if(is.null(nm)) {
-      stop("Cannot mix named and unnamed elements (push_front would create mixed named and unnamed tree).")
-    }
-    if(.ft_cpp_can_use(ms)) {
-      return(.ft_restore_subclass(.ft_cpp_add_left_named(x, value2, nm, ms), x, context = "push_front()"))
-    }
-    value2 <- .ft_set_name(value2, nm)
+    return(.ft_push_front_named_dispatch(x, element, element_name, monoids, context = "push_front()"))
   }
 
-  if(.ft_cpp_can_use(ms)) {
-    return(.ft_restore_subclass(.ft_cpp_add_left(x, value2, ms), x, context = "push_front()"))
+  # Named tree mode: inserted element must carry a usable name.
+  element_name <- .ft_effective_name(element)
+  if(is.null(element_name)) {
+    stop("Cannot mix named and unnamed elements (push_front would create mixed named and unnamed tree).")
   }
-  .ft_restore_subclass(add_left(x, value2, ms), x, context = "push_front()")
+  .ft_push_front_named_dispatch(x, element, element_name, monoids, context = "push_front()")
 }
 
 # Runtime: O(1) for empty rebuild metadata, class restoration depends on type.

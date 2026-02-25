@@ -1,3 +1,5 @@
+#SO
+
 #' Display Internal Structure of a flexseq
 #'
 #' @method str flexseq

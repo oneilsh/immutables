@@ -1,3 +1,5 @@
+#SO
+
 #' Construct a Measure Monoid Specification
 #'
 #' @param f Associative binary function over measure values.

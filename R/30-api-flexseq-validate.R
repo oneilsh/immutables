@@ -1,3 +1,5 @@
+#SO
+
 #' Validate full tree invariants (debug/test utility)
 #'
 #' Performs expensive full-tree auditing of:

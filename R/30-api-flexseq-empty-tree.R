@@ -1,3 +1,5 @@
+#SO
+
 #' Create an Empty Structural Tree
 #'
 #' @param monoids Optional named list of `measure_monoid` objects.

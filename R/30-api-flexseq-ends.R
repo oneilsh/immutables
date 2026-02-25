@@ -179,58 +179,61 @@ push_front <- function(x, value) {
 }
 
 # Runtime: O(1) for empty rebuild metadata, class restoration depends on type.
-.ft_empty_like <- function(x, context = "pop") {
-  ms <- resolve_tree_monoids(x, required = TRUE)
-  e <- empty_tree(monoids = ms)
+# pop_* on size-1 should return an empty value of the same semantic type, not just raw flexseq.
+.ft_empty_same_type <- function(x, context = "pop") {
+  monoids <- resolve_tree_monoids(x, required = TRUE)
+  empty <- empty_tree(monoids = monoids)
   if(inherits(x, "interval_index")) {
-    return(.ivx_wrap_like(x, e))
+    return(.ivx_wrap_like(x, empty))
   }
   if(inherits(x, "ordered_sequence")) {
-    return(.ord_wrap_like(x, e))
+    return(.ord_wrap_like(x, empty))
   }
-  .ft_restore_subclass(e, x, context = context)
+  .ft_restore_subclass(empty, x, context = context)
 }
 
 # Runtime: O(1).
-.ft_public_value <- function(x, el) {
+.ft_unwrap_public_value <- function(x, element) {
+  # Ordered/interval subclasses store internal entry records; public end-ops
+  # return payload items to match user-facing sequence semantics.
   if(inherits(x, "interval_index")) {
-    if(is.list(el) && ("item" %in% names(el))) {
-      return(el$item)
+    if(is.list(element) && ("item" %in% names(element))) {
+      return(element$item)
     }
-    return(el)
+    return(element)
   }
   if(inherits(x, "ordered_sequence")) {
-    if(is.list(el) && ("item" %in% names(el))) {
-      return(el$item)
+    if(is.list(element) && ("item" %in% names(element))) {
+      return(element$item)
     }
-    return(el)
+    return(element)
   }
-  el
+  element
 }
 
 # validate one positional index for public peek/pop-at helpers.
 # Runtime: O(1).
-.ft_assert_one_positional_index <- function(index, n) {
-  idx <- .ft_assert_int_indices(index, n)
-  if(length(idx) != 1L) {
+.ft_validate_scalar_position <- function(index, n) {
+  resolved <- .ft_assert_int_indices(index, n)
+  if(length(resolved) != 1L) {
     stop("`index` must be a single positive integer.")
   }
-  idx
+  resolved
 }
 
 # validate one insertion index in [1, n + 1].
 # Runtime: O(1).
-.ft_assert_insert_index <- function(index, n) {
-  idx <- .ft_assert_int_indices(index, n + 1L)
-  if(length(idx) != 1L) {
+.ft_validate_scalar_insert_position <- function(index, n) {
+  resolved <- .ft_assert_int_indices(index, n + 1L)
+  if(length(resolved) != 1L) {
     stop("`index` must be a single positive integer.")
   }
-  idx
+  resolved
 }
 
 # normalize insert_at payload into a plain list of elements.
 # Runtime: O(k), where k = number of inserted elements.
-.ft_insert_values_list <- function(values) {
+.ft_coerce_insert_values <- function(values) {
   if(inherits(values, "priority_queue")) {
     stop("`values` cannot be a priority_queue. Cast first with `as_flexseq()`.")
   }
@@ -251,16 +254,16 @@ push_front <- function(x, value) {
 
 # enforce global named/unnamed consistency for insert_at.
 # Runtime: O(1) from cached size/name counts.
-.ft_assert_insert_name_state <- function(x, ins, context = "insert_at()") {
-  m_x <- attr(x, "measures", exact = TRUE)
-  m_i <- attr(ins, "measures", exact = TRUE)
-  if(is.null(m_x) || is.null(m_i)) {
+.ft_validate_insert_name_state <- function(x, insert_tree, context = "insert_at()") {
+  measures_x <- attr(x, "measures", exact = TRUE)
+  measures_insert <- attr(insert_tree, "measures", exact = TRUE)
+  if(is.null(measures_x) || is.null(measures_insert)) {
     stop("Tree has no measures attribute.")
   }
-  n_x <- as.integer(m_x[[".size"]])
-  nn_x <- as.integer(m_x[[".named_count"]])
-  n_i <- as.integer(m_i[[".size"]])
-  nn_i <- as.integer(m_i[[".named_count"]])
+  n_x <- as.integer(measures_x[[".size"]])
+  nn_x <- as.integer(measures_x[[".named_count"]])
+  n_i <- as.integer(measures_insert[[".size"]])
+  nn_i <- as.integer(measures_insert[[".named_count"]])
 
   if((n_x > 0L && nn_x != 0L && nn_x != n_x) || (n_i > 0L && nn_i != 0L && nn_i != n_i)) {
     stop("Invalid tree name state: mixed named/unnamed elements.")
@@ -295,7 +298,7 @@ peek_front <- function(x) {
   if(length(x) == 0L) {
     stop("Cannot `peek_front()` from an empty sequence.")
   }
-  .ft_public_value(x, x[[1L]])
+  .ft_unwrap_public_value(x, x[[1L]])
 }
 
 #' Peek at the back element
@@ -318,7 +321,7 @@ peek_back <- function(x) {
   if(n == 0L) {
     stop("Cannot `peek_back()` from an empty sequence.")
   }
-  .ft_public_value(x, x[[n]])
+  .ft_unwrap_public_value(x, x[[n]])
 }
 
 #' Peek at an element by position
@@ -342,9 +345,9 @@ peek_at <- function(x, index) {
   if(n == 0L) {
     stop("Cannot `peek_at()` from an empty sequence.")
   }
-  idx <- .ft_assert_one_positional_index(index, n)
-  el <- .ft_strip_name(.ft_get_elem_at(x, idx))
-  .ft_public_value(x, el)
+  idx <- .ft_validate_scalar_position(index, n)
+  element <- .ft_strip_name(.ft_get_elem_at(x, idx))
+  .ft_unwrap_public_value(x, element)
 }
 
 #' Pop the front element
@@ -374,8 +377,8 @@ pop_front <- function(x) {
   if(n == 0L) {
     stop("Cannot `pop_front()` from an empty sequence.")
   }
-  element <- .ft_public_value(x, x[[1L]])
-  remaining <- if(n == 1L) .ft_empty_like(x, context = "pop_front()") else x[seq.int(2L, n)]
+  element <- .ft_unwrap_public_value(x, x[[1L]])
+  remaining <- if(n == 1L) .ft_empty_same_type(x, context = "pop_front()") else x[seq.int(2L, n)]
   list(element = element, remaining = remaining)
 }
 
@@ -406,8 +409,8 @@ pop_back <- function(x) {
   if(n == 0L) {
     stop("Cannot `pop_back()` from an empty sequence.")
   }
-  element <- .ft_public_value(x, x[[n]])
-  remaining <- if(n == 1L) .ft_empty_like(x, context = "pop_back()") else x[seq_len(n - 1L)]
+  element <- .ft_unwrap_public_value(x, x[[n]])
+  remaining <- if(n == 1L) .ft_empty_same_type(x, context = "pop_back()") else x[seq_len(n - 1L)]
   list(element = element, remaining = remaining)
 }
 
@@ -439,12 +442,12 @@ pop_at <- function(x, index) {
   if(n == 0L) {
     stop("Cannot `pop_at()` from an empty sequence.")
   }
-  idx <- .ft_assert_one_positional_index(index, n)
-  el <- .ft_strip_name(.ft_get_elem_at(x, idx))
-  element <- .ft_public_value(x, el)
+  idx <- .ft_validate_scalar_position(index, n)
+  selected <- .ft_strip_name(.ft_get_elem_at(x, idx))
+  element <- .ft_unwrap_public_value(x, selected)
 
   remaining <- if(n == 1L) {
-    .ft_empty_like(x, context = "pop_at()")
+    .ft_empty_same_type(x, context = "pop_at()")
   } else if(idx == 1L) {
     x[seq.int(2L, n)]
   } else if(idx == n) {
@@ -480,25 +483,26 @@ insert_at <- function(x, index, values) {
   }
 
   n <- length(x)
-  idx <- .ft_assert_insert_index(index, n)
-  vals <- .ft_insert_values_list(values)
-  if(length(vals) == 0L) {
+  insert_index <- .ft_validate_scalar_insert_position(index, n)
+  insert_values <- .ft_coerce_insert_values(values)
+  if(length(insert_values) == 0L) {
     return(x)
   }
 
-  ms <- resolve_tree_monoids(x, required = TRUE)
-  ins <- tree_from(vals, monoids = ms)
-  .ft_assert_insert_name_state(x, ins, context = "insert_at()")
+  monoids <- resolve_tree_monoids(x, required = TRUE)
+  insert_tree <- tree_from(insert_values, monoids = monoids)
+  .ft_validate_insert_name_state(x, insert_tree, context = "insert_at()")
 
   out <- if(n == 0L) {
-    ins
-  } else if(idx == 1L) {
-    concat_trees(ins, x)
-  } else if(idx == (n + 1L)) {
-    concat_trees(x, ins)
+    insert_tree
+  } else if(insert_index == 1L) {
+    concat_trees(insert_tree, x)
+  } else if(insert_index == (n + 1L)) {
+    concat_trees(x, insert_tree)
   } else {
-    s <- split_by_predicate(x, function(v) v >= idx, ".size")
-    concat_trees(concat_trees(s$left, ins), s$right)
+    # Split once at insertion boundary, then stitch left + inserted + right.
+    split_ctx <- split_by_predicate(x, function(v) v >= insert_index, ".size")
+    concat_trees(concat_trees(split_ctx$left, insert_tree), split_ctx$right)
   }
   .ft_restore_subclass(out, x, context = "insert_at()")
 }

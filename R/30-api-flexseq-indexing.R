@@ -1,3 +1,5 @@
+#SO
+
 # recursive fill helper for `.ft_to_list` to avoid repeated list concatenation.
 # Runtime: O(n) in number of elements visited.
 .ft_to_list_fill <- function(x, st) {
@@ -272,9 +274,11 @@
 
 # match requested names to positions. If strict_missing is FALSE, missing names
 # are represented as NA integer placeholders.
-# Runtime: O(n + k), where n = tree size and k = length(idx).
-# (within subcalls builds a name->index map as an environment, via recursive
-#  tree travel)
+# Runtime: adaptive by query width:
+# - scalar query: O(n_lookup) (typically O(n) worst-case linear name scan),
+# - short vector queries: O(k * n_lookup),
+# - wide queries: O(n + k) via one-pass name->position map.
+# where n = tree size and k = length(idx).
 .ft_match_name_indices <- function(t, idx, strict_missing = FALSE) {
   n <- as.integer(node_measure(t, ".size"))
   nn <- as.integer(node_measure(t, ".named_count"))
@@ -414,11 +418,11 @@
 #' # logical indexing supports recycling
 #' x[c(TRUE, FALSE)]
 #' @export
-# Runtime: integer/logical reads O(k log n), where k = selected positions;
-# character reads are adaptive: O(k * n_lookup) for short queries (effectively
-# O(k * n) due to repeated [[]] which is worse-case O(n) but faster than 
-# full tree name mapping in practice), O(n + k)
-# with name-map path for wider queries. (see comments for ..ft_match_name_indices)
+# Runtime: integer/logical reads O(k log n) in fallback paths (C++ paths are
+# typically faster), where k = selected positions. Character reads are adaptive:
+# O(k * n_lookup) for short queries, O(n + k) for wider queries via name map.
+# In all branches, rebuilding the output tree from selected elements is linear
+# in output size.
 `[.flexseq` <- function(x, i, ...) {
   if(missing(i)) {
     return(x)
@@ -527,8 +531,9 @@
 #' x4[c(TRUE, FALSE, TRUE, FALSE, TRUE, FALSE)] <- list(1)
 #' x4
 #' @export
-# Runtime: sparse replacement path O(k log n); dense path O(n + k), where
-# n = tree size and k = number of replaced positions.
+# Runtime: sparse replacement path O(k * n) via repeated point updates; dense
+# path O(n + k) via flatten + single rebuild, where n = tree size and
+# k = number of replaced positions.
 `[<-.flexseq` <- function(x, i, value) {
   ms <- resolve_tree_monoids(x, required = TRUE)
   vals <- as.list(value)

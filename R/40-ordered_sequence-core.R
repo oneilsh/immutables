@@ -34,6 +34,75 @@ add_monoids.ordered_sequence <- function(t, monoids, overwrite = FALSE) {
   add_monoids.flexseq(t, monoids, overwrite = overwrite)
 }
 
+# Runtime: O(k log n) for reads + O(k) strict-order validation.
+#' @rdname sub-.ordered_sequence
+#' @method [ ordered_sequence
+#' @export
+`[.ordered_sequence` <- function(x, i, ...) {
+  if(missing(i)) {
+    return(x)
+  }
+  ms <- resolve_tree_monoids(x, required = TRUE)
+  n <- as.integer(node_measure(x, ".size"))
+
+  if(is.logical(i)) {
+    mask <- .ft_assert_lgl_indices(i, n)
+    idx <- .ft_true_positions(mask)
+    if(length(idx) == 0L) {
+      return(.ord_wrap_like(x, empty_tree(monoids = ms)))
+    }
+    out <- lapply(.ft_get_elems_at(x, idx), .ft_strip_name)
+    return(.ord_wrap_like(x, tree_from(out, monoids = ms)))
+  }
+
+  if(is.character(i)) {
+    idx <- .ft_assert_chr_indices(i)
+    if(length(idx) == 0L) {
+      return(.ord_wrap_like(x, empty_tree(monoids = ms)))
+    }
+    pos <- .ft_match_name_indices(x, idx, strict_missing = TRUE)
+    pos <- .ord_assert_positions_strict(pos)
+    out <- lapply(.ft_get_elems_at(x, pos), .ft_strip_name)
+    return(.ord_wrap_like(x, tree_from(out, monoids = ms)))
+  }
+
+  idx <- .ft_assert_int_indices(i, n)
+  if(length(idx) == 0L) {
+    return(.ord_wrap_like(x, empty_tree(monoids = ms)))
+  }
+  idx <- .ord_assert_positions_strict(idx)
+  out <- lapply(.ft_get_elems_at(x, idx), .ft_strip_name)
+  .ord_wrap_like(x, tree_from(out, monoids = ms))
+}
+
+# Runtime: O(log n) by index, O(n_lookup) by name.
+#' @rdname sub-.ordered_sequence
+#' @method [[ ordered_sequence
+#' @export
+`[[.ordered_sequence` <- function(x, i, ...) {
+  entry <- `[[.flexseq`(x, i, ...)
+  if(!is.list(entry) || !("item" %in% names(entry))) {
+    stop("Malformed ordered_sequence entry.")
+  }
+  entry$item
+}
+
+# Runtime: O(1).
+#' @rdname sub-.ordered_sequence
+#' @method [<- ordered_sequence
+#' @export
+`[<-.ordered_sequence` <- function(x, i, value) {
+  .ft_stop_ordered_like(x, "[<-", "Replacement indexing is not supported.")
+}
+
+# Runtime: O(1).
+#' @rdname sub-.ordered_sequence
+#' @method [[<- ordered_sequence
+#' @export
+`[[<-.ordered_sequence` <- function(x, i, value) {
+  .ft_stop_ordered_like(x, "[[<-", "Replacement indexing is not supported.")
+}
+
 # Runtime: O(1).
 .oms_make_entry <- function(item, key_value) {
   list(item = item, key = key_value)

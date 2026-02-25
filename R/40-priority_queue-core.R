@@ -42,6 +42,51 @@ add_monoids.priority_queue <- function(t, monoids, overwrite = FALSE) {
   add_monoids.flexseq(t, monoids, overwrite = overwrite)
 }
 
+# Runtime: O(k * n_lookup) for short name queries; O(n + k) in map-backed paths.
+#' @rdname sub-.priority_queue
+#' @method [ priority_queue
+#' @export
+`[.priority_queue` <- function(x, i, ...) {
+  if(missing(i)) {
+    return(x)
+  }
+  if(!is.character(i)) {
+    stop("`[.priority_queue` supports character name indexing only. Cast first with `as_flexseq()`.")
+  }
+  `[.flexseq`(x, i, ...)
+}
+
+# Runtime: O(n_lookup) single name lookup + O(log n) element fetch.
+#' @rdname sub-.priority_queue
+#' @method [[ priority_queue
+#' @export
+`[[.priority_queue` <- function(x, i, ...) {
+  if(!(is.character(i) && length(i) == 1L && !is.na(i))) {
+    stop("`[[.priority_queue` supports scalar character names only. Cast first with `as_flexseq()`.")
+  }
+  entry <- `[[.flexseq`(x, i, ...)
+  if(!is.list(entry) || !("item" %in% names(entry))) {
+    stop("Malformed priority_queue entry.")
+  }
+  entry$item
+}
+
+# Runtime: O(1).
+#' @rdname sub-.priority_queue
+#' @method [<- priority_queue
+#' @export
+`[<-.priority_queue` <- function(x, i, value) {
+  stop("`[<-` is not supported for priority_queue. Cast first with `as_flexseq()`.")
+}
+
+# Runtime: O(1).
+#' @rdname sub-.priority_queue
+#' @method [[<- priority_queue
+#' @export
+`[[<-.priority_queue` <- function(x, i, value) {
+  stop("`[[<-` is not supported for priority_queue. Cast first with `as_flexseq()`.")
+}
+
 # Runtime: O(1).
 .pq_parse_entry <- function(entry, context = "priority_queue", priority_type = NULL) {
   if(!is.list(entry)) {

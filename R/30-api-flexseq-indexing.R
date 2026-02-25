@@ -273,6 +273,8 @@
 # match requested names to positions. If strict_missing is FALSE, missing names
 # are represented as NA integer placeholders.
 # Runtime: O(n + k), where n = tree size and k = length(idx).
+# (within subcalls builds a name->index map as an environment, via recursive
+#  tree travel)
 .ft_match_name_indices <- function(t, idx, strict_missing = FALSE) {
   n <- as.integer(node_measure(t, ".size"))
   nn <- as.integer(node_measure(t, ".named_count"))
@@ -413,8 +415,10 @@
 #' x[c(TRUE, FALSE)]
 #' @export
 # Runtime: integer/logical reads O(k log n), where k = selected positions;
-# character reads are adaptive: O(k * n_lookup) for short queries, O(n + k)
-# with name-map path for wider queries.
+# character reads are adaptive: O(k * n_lookup) for short queries (effectively
+# O(k * n) due to repeated [[]] which is worse-case O(n) but faster than 
+# full tree name mapping in practice), O(n + k)
+# with name-map path for wider queries. (see comments for ..ft_match_name_indices)
 `[.flexseq` <- function(x, i, ...) {
   if(missing(i)) {
     return(x)
@@ -471,175 +475,6 @@
   pos
 }
 
-#' Index an ordered sequence
-#'
-#' Ordered sequences support read indexing while preserving key-order semantics.
-#'
-#' For `[`:
-#' - integer and logical indices must resolve to strictly increasing positions;
-#' - character indices are resolved by names and must also be strictly
-#'   increasing;
-#' - duplicates and reordering are rejected.
-#'
-#' For `[[`:
-#' - accepts scalar integer position or scalar character name and returns the
-#'   payload element.
-#'
-#' Replacement indexing (`[<-`, `[[<-`) is intentionally unsupported.
-#'
-#' @rdname sub-.ordered_sequence
-#' @method [ ordered_sequence
-#' @param x An `ordered_sequence`.
-#' @param i For `[`, positive integer indices, character names, or logical mask.
-#' @param ... Unused.
-#' @return For `[`, an `ordered_sequence` subset that preserves key order.
-#' @examples
-#' x <- as_ordered_sequence(list("b", "a", "c"), keys = c(2, 1, 3))
-#' x[1:2]
-#' try(x[c(2, 1)])
-#' @seealso [\[.flexseq], [\[<-.ordered_sequence], [\[\[<-.ordered_sequence]
-#' @export
-`[.ordered_sequence` <- function(x, i, ...) {
-  if(missing(i)) {
-    return(x)
-  }
-  ms <- resolve_tree_monoids(x, required = TRUE)
-  n <- as.integer(node_measure(x, ".size"))
-
-  if(is.logical(i)) {
-    mask <- .ft_assert_lgl_indices(i, n)
-    idx <- .ft_true_positions(mask)
-    if(length(idx) == 0L) {
-      return(.ord_wrap_like(x, empty_tree(monoids = ms)))
-    }
-    out <- lapply(.ft_get_elems_at(x, idx), .ft_strip_name)
-    return(.ord_wrap_like(x, tree_from(out, monoids = ms)))
-  }
-
-  if(is.character(i)) {
-    idx <- .ft_assert_chr_indices(i)
-    if(length(idx) == 0L) {
-      return(.ord_wrap_like(x, empty_tree(monoids = ms)))
-    }
-    pos <- .ft_match_name_indices(x, idx, strict_missing = TRUE)
-    pos <- .ord_assert_positions_strict(pos)
-    out <- lapply(.ft_get_elems_at(x, pos), .ft_strip_name)
-    return(.ord_wrap_like(x, tree_from(out, monoids = ms)))
-  }
-
-  idx <- .ft_assert_int_indices(i, n)
-  if(length(idx) == 0L) {
-    return(.ord_wrap_like(x, empty_tree(monoids = ms)))
-  }
-  idx <- .ord_assert_positions_strict(idx)
-  out <- lapply(.ft_get_elems_at(x, idx), .ft_strip_name)
-  .ord_wrap_like(x, tree_from(out, monoids = ms))
-}
-
-#' Index an interval index
-#'
-#' Interval indexes support read indexing while preserving interval-order
-#' semantics.
-#'
-#' For `[`:
-#' - integer and logical indices must resolve to strictly increasing positions;
-#' - character indices are resolved by names and must also be strictly
-#'   increasing;
-#' - duplicates and reordering are rejected.
-#'
-#' For `[[`:
-#' - accepts scalar integer position or scalar character name and returns the
-#'   payload element.
-#'
-#' Replacement indexing (`[<-`, `[[<-`) is intentionally unsupported.
-#'
-#' @rdname sub-.interval_index
-#' @method [ interval_index
-#' @param x An `interval_index`.
-#' @param i For `[`, positive integer indices, character names, or logical mask.
-#' @param ... Unused.
-#' @return For `[`, an `interval_index` subset that preserves interval order.
-#' @examples
-#' x <- as_interval_index(list("a", "b", "c"), start = c(1, 2, 3), end = c(2, 4, 5))
-#' x[1:2]
-#' try(x[c(2, 1)])
-#' @seealso [\[.flexseq], [\[<-.interval_index], [\[\[<-.interval_index]
-#' @export
-`[.interval_index` <- function(x, i, ...) {
-  if(missing(i)) {
-    return(x)
-  }
-  .ivx_assert_index(x)
-
-  ms <- resolve_tree_monoids(x, required = TRUE)
-  n <- as.integer(node_measure(x, ".size"))
-
-  if(is.logical(i)) {
-    mask <- .ft_assert_lgl_indices(i, n)
-    idx <- .ft_true_positions(mask)
-    if(length(idx) == 0L) {
-      return(.ivx_wrap_like(x, empty_tree(monoids = ms)))
-    }
-    out <- lapply(.ft_get_elems_at(x, idx), .ft_strip_name)
-    return(.ivx_wrap_like(x, tree_from(out, monoids = ms)))
-  }
-
-  if(is.character(i)) {
-    idx <- .ft_assert_chr_indices(i)
-    if(length(idx) == 0L) {
-      return(.ivx_wrap_like(x, empty_tree(monoids = ms)))
-    }
-    pos <- .ft_match_name_indices(x, idx, strict_missing = TRUE)
-    pos <- .ord_assert_positions_strict(pos)
-    out <- lapply(.ft_get_elems_at(x, pos), .ft_strip_name)
-    return(.ivx_wrap_like(x, tree_from(out, monoids = ms)))
-  }
-
-  idx <- .ft_assert_int_indices(i, n)
-  if(length(idx) == 0L) {
-    return(.ivx_wrap_like(x, empty_tree(monoids = ms)))
-  }
-  idx <- .ord_assert_positions_strict(idx)
-  out <- lapply(.ft_get_elems_at(x, idx), .ft_strip_name)
-  .ivx_wrap_like(x, tree_from(out, monoids = ms))
-}
-
-#' Index a priority queue by name
-#'
-#' Priority queues intentionally expose only name-based read indexing.
-#'
-#' For `[`:
-#' - `i` must be character (one or more names).
-#'
-#' For `[[`:
-#' - `i` must be a single character name.
-#'
-#' Numeric/logical indexing and replacement indexing are unsupported for
-#' `priority_queue`. Cast with [as_flexseq()] for full sequence-style indexing.
-#'
-#' @rdname sub-.priority_queue
-#' @method [ priority_queue
-#' @param x A `priority_queue`.
-#' @param i For `[`, character names.
-#' @param ... Unused.
-#' @return For `[`, a `priority_queue` containing matched named entries.
-#' @examples
-#' q <- as_priority_queue(setNames(c("A", "B"), c("a", "b")), priorities = c(2, 1))
-#' q["a"]
-#' q[["b"]]
-#' try(q[[1]])
-#' @seealso [\[.flexseq], [as_flexseq()]
-#' @export
-`[.priority_queue` <- function(x, i, ...) {
-  if(missing(i)) {
-    return(x)
-  }
-  if(!is.character(i)) {
-    stop("`[.priority_queue` supports character name indexing only. Cast first with `as_flexseq()`.")
-  }
-  `[.flexseq`(x, i, ...)
-}
-
 #' @rdname sub-.flexseq
 #' @method [[ flexseq
 #' @return For `[[`: the extracted element (internal name metadata is removed).
@@ -666,48 +501,6 @@
   }
 
   .ft_strip_name(.ft_get_elem_at(x, idx))
-}
-
-#' @rdname sub-.priority_queue
-#' @method [[ priority_queue
-#' @return For `[[`, one payload element matched by a single character name.
-#' @export
-`[[.priority_queue` <- function(x, i, ...) {
-  if(!(is.character(i) && length(i) == 1L && !is.na(i))) {
-    stop("`[[.priority_queue` supports scalar character names only. Cast first with `as_flexseq()`.")
-  }
-  entry <- `[[.flexseq`(x, i, ...)
-  if(!is.list(entry) || !("item" %in% names(entry))) {
-    stop("Malformed priority_queue entry.")
-  }
-  entry$item
-}
-
-#' @rdname sub-.ordered_sequence
-#' @method [[ ordered_sequence
-#' @return For `[[`, one payload element by scalar integer position or scalar
-#'   character name.
-#' @export
-`[[.ordered_sequence` <- function(x, i, ...) {
-  entry <- `[[.flexseq`(x, i, ...)
-  if(!is.list(entry) || !("item" %in% names(entry))) {
-    stop("Malformed ordered_sequence entry.")
-  }
-  entry$item
-}
-
-#' @rdname sub-.interval_index
-#' @method [[ interval_index
-#' @return For `[[`, one payload element by scalar integer position or scalar
-#'   character name.
-#' @export
-`[[.interval_index` <- function(x, i, ...) {
-  .ivx_assert_index(x)
-  entry <- `[[.flexseq`(x, i, ...)
-  if(!is.list(entry) || !("item" %in% names(entry))) {
-    stop("Malformed interval_index entry.")
-  }
-  entry$item
 }
 
 #' @rdname sub-.flexseq
@@ -917,58 +710,4 @@
   s <- split_around_by_predicate(x, function(v) v >= idx, ".size")
   left_plus <- push_back(s$left, value)
   .ft_restore_subclass(concat(left_plus, s$right, ms), x, context = "[[<-")
-}
-
-#' @rdname sub-.interval_index
-#' @method [<- interval_index
-#' @param value Replacement value (unsupported).
-#' @return No return value; always errors because replacement indexing is unsupported.
-#' @export
-`[<-.interval_index` <- function(x, i, value) {
-  stop("`[<-` is not supported for interval_index.")
-}
-
-#' @rdname sub-.interval_index
-#' @method [[<- interval_index
-#' @param value Replacement value (unsupported).
-#' @return No return value; always errors because replacement indexing is unsupported.
-#' @export
-`[[<-.interval_index` <- function(x, i, value) {
-  stop("`[[<-` is not supported for interval_index.")
-}
-
-#' @rdname sub-.ordered_sequence
-#' @method [<- ordered_sequence
-#' @param value Replacement value (unsupported).
-#' @return No return value; always errors because replacement indexing is unsupported.
-#' @export
-`[<-.ordered_sequence` <- function(x, i, value) {
-  .ft_stop_ordered_like(x, "[<-", "Replacement indexing is not supported.")
-}
-
-#' @rdname sub-.ordered_sequence
-#' @method [[<- ordered_sequence
-#' @param value Replacement value (unsupported).
-#' @return No return value; always errors because replacement indexing is unsupported.
-#' @export
-`[[<-.ordered_sequence` <- function(x, i, value) {
-  .ft_stop_ordered_like(x, "[[<-", "Replacement indexing is not supported.")
-}
-
-#' @rdname sub-.priority_queue
-#' @method [<- priority_queue
-#' @param value Replacement value (unsupported).
-#' @return No return value; always errors because replacement indexing is unsupported.
-#' @export
-`[<-.priority_queue` <- function(x, i, value) {
-  stop("`[<-` is not supported for priority_queue. Cast first with `as_flexseq()`.")
-}
-
-#' @rdname sub-.priority_queue
-#' @method [[<- priority_queue
-#' @param value Replacement value (unsupported).
-#' @return No return value; always errors because replacement indexing is unsupported.
-#' @export
-`[[<-.priority_queue` <- function(x, i, value) {
-  stop("`[[<-` is not supported for priority_queue. Cast first with `as_flexseq()`.")
 }

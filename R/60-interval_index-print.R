@@ -47,7 +47,7 @@ print.interval_index <- function(x, max_elements = 4L, ...) {
   }
 
   cat("\nElements (by interval start order):\n\n")
-  preview <- .ft_preview_indices(n, max_elements)
+  preview <- .pick_preview_sizes(n, max_elements)
   for(i in preview$head) {
     entry <- .ft_get_elem_at(x, as.integer(i))
     nm <- .ft_get_name(entry)

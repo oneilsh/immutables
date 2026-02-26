@@ -54,7 +54,7 @@ print.priority_queue <- function(x, max_elements = 4L, ...) {
 
   cat("\nElements (by priority):\n\n")
 
-  preview <- .ft_preview_indices(n, max_elements)
+  preview <- .pick_preview_sizes(n, max_elements)
   head_entries <- vector("list", length(preview$head))
   q_head <- x
   if(length(preview$head) > 0L) {

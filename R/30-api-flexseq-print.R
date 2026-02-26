@@ -10,7 +10,7 @@
 }
 
 # Runtime: O(1).
-.ft_preview_indices <- function(n, max_elements) {
+.pick_preview_sizes <- function(n, max_elements) {
   if(n <= 0L || max_elements <= 0L) {
     return(list(head = integer(0), tail = integer(0), skipped = max(0L, n)))
   }
@@ -95,7 +95,7 @@ print.FingerTree <- function(x, max_elements = 4L, show_internal_monoids = FALSE
     setdiff(monoids, c(".size", ".named_count"))
   }
   max_elements <- .ft_validate_print_max_elements(max_elements)
-  preview <- .ft_preview_indices(n, max_elements)
+  preview <- .pick_preview_sizes(n, max_elements)
   cat(if(named) "Named" else "Unnamed", " flexseq with ", n, " element", if(n == 1L) "" else "s", ".\n", sep = "")
   if(length(visible_monoids) > 0L) {
     cat("Custom monoids: ", paste(visible_monoids, collapse = ", "), "\n", sep = "")

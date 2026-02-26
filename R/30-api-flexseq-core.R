@@ -11,7 +11,8 @@
 }
 
 # restore subtype after shared flexseq operations.
-# Runtime: O(1) for plain flexseq, O(n) when validating priority_queue entries.
+# Runtime: O(1) for flexseq/ordered_sequence/priority_queue, O(n) when
+# interval_index restore validation is required.
 .ft_restore_subclass <- function(out, source, context = "flexseq operation") {
   if(!is_structural_node(out)) {
     stop("Expected a structural tree node.")
@@ -24,7 +25,7 @@
     return(.as_ordered_sequence(out, key_type = key_type))
   }
   if(inherits(source, "priority_queue")) {
-    return(.pq_restore_tree(out, template = source, context = context))
+    return(.pq_wrap_like(source, out))
   }
   .as_flexseq(out)
 }

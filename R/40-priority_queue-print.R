@@ -1,4 +1,7 @@
+#SO
+
 # Runtime: O(log n) near split point depth.
+# not using public pop/peek because those don't return priority (for peek) or name (for pop)
 .pq_extract_entry <- function(q, monoid_name) {
   .pq_assert_queue(q)
   if(length(q) == 0L) {

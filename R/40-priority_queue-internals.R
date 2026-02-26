@@ -4,6 +4,8 @@
 }
 
 # Runtime: O(1).
+# Normalize/validate one priority scalar and enforce queue-wide type consistency.
+# Used by: .pq_make_entry() for constructors and insert paths.
 .pq_resolve_priority <- function(priority, priority_type = NULL, arg_name = "priority") {
   # 1) Normalize to package canonical scalar representation.
   norm <- .ft_normalize_scalar_orderable(priority, arg_name = arg_name)
@@ -21,6 +23,8 @@
 }
 
 # Runtime: O(1).
+# Assert queue class/shape at API boundaries.
+# Used by: queue ops, print, and apply entry points.
 .pq_assert_queue <- function(q) {
   if(!inherits(q, "priority_queue") || !is_structural_node(q)) {
     stop("`q` must be a priority_queue.")
@@ -29,6 +33,8 @@
 }
 
 # Runtime: O(n) over tree size for any non-trivial update (rebind/recompute pass).
+# also the exported version of add_monoids that allows custom monoids so long as they
+# don't stop on reserved names
 #' @method add_monoids priority_queue
 #' @export
 #' @noRd
@@ -42,60 +48,10 @@ add_monoids.priority_queue <- function(t, monoids, overwrite = FALSE) {
   add_monoids.flexseq(t, monoids, overwrite = overwrite)
 }
 
-.pq_parse_entry <- function(entry, context = "priority_queue", priority_type = NULL) {
-  if(!is.list(entry)) {
-    stop(context, " entries must be named lists with fields: item, priority (optional: name).")
-  }
-  nm <- names(entry)
-  if(is.null(nm) || any(is.na(nm)) || any(nm == "")) {
-    stop(context, " entries must be named lists with fields: item, priority (optional: name).")
-  }
-  if(anyDuplicated(nm) > 0L) {
-    stop(context, " entry fields must be unique.")
-  }
-  bad <- setdiff(nm, c("item", "priority", "name", "seq_id"))
-  if(length(bad) > 0L) {
-    stop(context, " entry contains unsupported field(s): ", paste(bad, collapse = ", "))
-  }
-  if(!("item" %in% nm) || !("priority" %in% nm)) {
-    stop(context, " entries must include both `item` and `priority`.")
-  }
-
-  nm_hint <- if("name" %in% nm) .ft_normalize_name(entry[["name"]]) else NULL
-  if(is.null(nm_hint)) {
-    nm_hint <- .ft_get_name(entry)
-  }
-
-  .pq_make_entry(
-    item = entry[["item"]],
-    priority = entry[["priority"]],
-    priority_type = priority_type,
-    name = nm_hint
-  )
-}
-
-# Runtime: O(n) to validate all entries.
-.pq_validate_tree_entries <- function(x, context = "priority_queue", priority_type = NULL) {
-  els <- .ft_to_list(x)
-  if(length(els) == 0L) {
-    return(priority_type)
-  }
-  out_type <- priority_type
-  for(el in els) {
-    parsed <- .pq_parse_entry(el, context = context, priority_type = out_type)
-    out_type <- parsed$priority_type
-  }
-  out_type
-}
-
-# Runtime: O(n) to validate then O(1) to reclass.
-.pq_restore_tree <- function(x, template = NULL, context = "priority_queue") {
-  priority_type <- if(is.null(template)) NULL else .pq_priority_type_state(template)
-  priority_type <- .pq_validate_tree_entries(x, context = context, priority_type = priority_type)
-  .as_priority_queue(x, priority_type = priority_type)
-}
-
 # Runtime: O(1).
+# Build one canonical entry (`list(item, priority)` + optional name) while
+# threading the queue priority_type invariant.
+# Used by: constructors and insert paths.
 .pq_make_entry <- function(item, priority, priority_type = NULL, name = NULL) {
   resolved <- .pq_resolve_priority(priority, priority_type = priority_type)
   out <- list(item = item, priority = resolved$priority)
@@ -106,6 +62,8 @@ add_monoids.priority_queue <- function(t, monoids, overwrite = FALSE) {
 }
 
 # Runtime: O(1) under fixed monoid set.
+# Merge user monoids with required queue monoids and reject reserved-name writes.
+# Used by: constructors and fapply rebuild paths.
 .pq_merge_monoids <- function(monoids = NULL) {
   user <- if(is.null(monoids)) list() else monoids
   if(length(user) > 0L) {
@@ -118,6 +76,8 @@ add_monoids.priority_queue <- function(t, monoids, overwrite = FALSE) {
 }
 
 # Runtime: O(1).
+# Attach class + PQ metadata to a structural tree.
+# Used by: constructors and .pq_wrap_like().
 .as_priority_queue <- function(x, priority_type = NULL) {
   if(!is_structural_node(x)) {
     stop("Expected a structural tree node.")
@@ -129,6 +89,8 @@ add_monoids.priority_queue <- function(t, monoids, overwrite = FALSE) {
 }
 
 # Runtime: O(1).
+# Rewrap a newly-built tree using queue metadata from a template queue.
+# Used by: insert/pop/apply/print helpers after structural operations.
 .pq_wrap_like <- function(template, tree, priority_type = NULL) {
   resolved_type <- if(is.null(priority_type)) .pq_priority_type_state(template) else priority_type
   .as_priority_queue(tree, priority_type = resolved_type)

@@ -1,5 +1,9 @@
 #SO
 
+# Canonical interval entry constructor.
+# **Inputs:** payload `item`; scalar `start`/`end`.
+# **Outputs:** entry list(item,start,end,key) with key==start.
+# **Used by:** constructor/insert/apply/parse rebuild paths.
 .ivx_make_entry <- function(item, start, end) {
   # `key` mirrors `start` so interval entries remain compatible with ordered
   # key monoid paths (e.g. `.oms_max_key`) when those monoids are present.
@@ -7,6 +11,10 @@
 }
 
 
+# Applies validated element names to entry records as `ft_name` attrs.
+# **Inputs:** `entries` list of entry records (optionally named).
+# **Outputs:** entries list with normalized per-entry names and stripped list names.
+# **Used by:** .ivx_tree_from_ordered_entries().
 .ivx_prepare_entry_names <- function(entries) {
   if(length(entries) == 0L) {
     return(entries)
@@ -28,6 +36,10 @@
 }
 
 # Runtime: O(n) for ordered entries.
+# Bulk-builds a measured tree from already ordered entries.
+# **Inputs:** `entries` ordered entry list; `monoids` normalized monoid list.
+# **Outputs:** structural tree/flexseq node carrying the entries.
+# **Used by:** constructors and rebuild helpers.
 .ivx_tree_from_ordered_entries <- function(entries, monoids) {
   entries <- .ivx_prepare_entry_names(entries)
   if(.ft_cpp_can_use(monoids)) {
@@ -37,6 +49,10 @@
 }
 
 # Runtime: O(n log n) for stable merge sort by start.
+# Stable merge-sort over entry indices by `start`.
+# **Inputs:** integer index vector `idx`; `entries` list; scalar `endpoint_type`.
+# **Outputs:** reordered integer index vector.
+# **Used by:** .ivx_order_entries() fallback path.
 .ivx_merge_sort_indices <- function(idx, entries, endpoint_type) {
   n <- length(idx)
   if(n <= 1L) {
@@ -77,6 +93,10 @@
 }
 
 # Runtime: O(n log n) stable by start and FIFO on ties.
+# Produces start-ordered entries with stable tie handling.
+# **Inputs:** `entries` list; scalar `endpoint_type`.
+# **Outputs:** ordered entry list.
+# **Used by:** .ivx_build_from_items().
 .ivx_order_entries <- function(entries, endpoint_type) {
   if(length(entries) <= 1L) {
     return(entries)
@@ -95,6 +115,15 @@
 }
 
 # Runtime: O(n log n) from sort + bulk build.
+# Core builder from user item/start/end vectors.
+# **Inputs:**
+#
+# - `items`: list payloads.
+# - `start`,`end`: vectors/lists of scalar endpoints or NULL.
+# - `bounds`: scalar bounds string.
+# - `monoids`: optional user monoid list.
+# **Outputs:** interval_index.
+# **Used by:** as_interval_index(), interval_index(), .as_interval_index_build().
 .ivx_build_from_items <- function(items, start = NULL, end = NULL, bounds = "[)", monoids = NULL) {
   n <- length(items)
 
@@ -147,6 +176,10 @@
   .as_interval_index(base, endpoint_type = endpoint_type, bounds = bounds)
 }
 
+# Public coercion constructor.
+# **Inputs:** `x` coercible to list; `start`/`end` endpoint vectors; `bounds`.
+# **Outputs:** interval_index.
+# **Used by:** users/tests.
 #' Build an Interval Index from elements and interval bounds
 #'
 #' @param x Elements to add.
@@ -164,11 +197,19 @@ as_interval_index <- function(x, start, end, bounds = "[)") {
 }
 
 # Runtime: O(n log n) from sort + bulk build.
+# Internal constructor wrapper accepting optional custom monoids.
+# **Inputs:** `x`, `start`, `end`, `bounds`, optional `monoids`.
+# **Outputs:** interval_index.
+# **Used by:** as_interval_index(), interval_index(), internal rebuild paths.
 .as_interval_index_build <- function(x, start, end, bounds = "[)", monoids = NULL) {
   .ivx_build_from_items(as.list(x), start = start, end = end, bounds = bounds, monoids = monoids)
 }
 
 # Runtime: O(n log n) from sort + bulk build.
+# Variadic convenience constructor.
+# **Inputs:** variadic payload args; `start`,`end`; `bounds`.
+# **Outputs:** interval_index.
+# **Used by:** users/tests.
 #' Construct an Interval Index
 #'
 #' @param ... Elements to add.

@@ -13,6 +13,10 @@
 NULL
 
 # Runtime: O(k log n) for reads + O(k) strict-order validation.
+# Subset method preserving interval-index wrapper semantics.
+# **Inputs:** `x` interval_index; `i` integer/logical/character index.
+# **Outputs:** interval_index subset (empty-like when no positions selected).
+# **Used by:** user indexing and internal position-based slicing.
 #' @rdname sub-.interval_index
 #' @method [ interval_index
 #' @export
@@ -56,6 +60,10 @@ NULL
 }
 
 # Runtime: O(log n) by index, O(n_lookup) by name.
+# Scalar extract method returning payload item (not full entry record).
+# **Inputs:** `x` interval_index; scalar index/name `i`.
+# **Outputs:** payload item.
+# **Used by:** `$.interval_index()`, users.
 #' @rdname sub-.interval_index
 #' @method [[ interval_index
 #' @export
@@ -69,6 +77,10 @@ NULL
 }
 
 # Runtime: O(1).
+# Replacement subset is intentionally blocked for ordered interval semantics.
+# **Inputs:** `x` interval_index; `i`; `value`.
+# **Outputs:** none (always errors).
+# **Used by:** users.
 #' @rdname sub-.interval_index
 #' @method [<- interval_index
 #' @export
@@ -77,6 +89,10 @@ NULL
 }
 
 # Runtime: O(1).
+# Replacement scalar extract is intentionally blocked.
+# **Inputs:** `x` interval_index; `i`; `value`.
+# **Outputs:** none (always errors).
+# **Used by:** users.
 #' @rdname sub-.interval_index
 #' @method [[<- interval_index
 #' @export
@@ -84,6 +100,10 @@ NULL
   stop("`[[<-` is not supported for interval_index.")
 }
 
+# Name-based scalar read forwarding to `[[.interval_index`.
+# **Inputs:** `x` interval_index; symbol/character `name`.
+# **Outputs:** payload item.
+# **Used by:** users.
 #' @rdname sub-.interval_index
 #' @method $ interval_index
 #' @param name Element name (for `$` and `$<-`).
@@ -94,6 +114,10 @@ NULL
   `[[.interval_index`(x, nm)
 }
 
+# Name-based replacement is intentionally blocked.
+# **Inputs:** `x` interval_index; `name`; `value`.
+# **Outputs:** none (always errors).
+# **Used by:** users.
 #' @rdname sub-.interval_index
 #' @method $<- interval_index
 #' @param value Replacement value (unsupported).

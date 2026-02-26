@@ -1,3 +1,13 @@
+# Applies a payload transform across interval entries while preserving interval
+# coordinates and names.
+# **Inputs:**
+#
+# - `x`: interval_index.
+# - `f`: function(item, start, end, name, ...) -> new item.
+# - `...`: forwarded to `f`.
+# - `preserve_custom_monoids`: scalar logical.
+# **Outputs:** interval_index with transformed payload items.
+# **Used by:** fapply.interval_index().
 .ivx_apply_impl <- function(x, f, ..., preserve_custom_monoids = TRUE) {
   .ivx_assert_index(x)
   if(!is.function(f)) {
@@ -45,6 +55,11 @@
 }
 
 # Runtime: O(n) from traversal + ordered bulk rebuild.
+# S3 fapply method for interval_index.
+# **Inputs:** `X` interval_index; `FUN` transform function; `...`; scalar logical
+# `preserve_custom_monoids`.
+# **Outputs:** interval_index with transformed payload items.
+# **Used by:** public `fapply()` generic dispatch.
 #' Apply a function over interval index entries
 #'
 #' @method fapply interval_index

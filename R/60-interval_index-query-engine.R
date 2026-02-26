@@ -1,3 +1,7 @@
+# Point containment predicate for fallback/non-fast endpoint types.
+# **Inputs:** scalar `start`, `end`, `point`; scalar `bounds` string; scalar `endpoint_type`.
+# **Outputs:** scalar logical; TRUE when `point` is inside [start,end] under `bounds`.
+# **Used by:** .ivx_spec_point() fallback leaf matcher.
 .ivx_contains_point <- function(start, end, point, bounds, endpoint_type) {
   f <- .ivx_bounds_flags(bounds)
   cmp_lo <- .ivx_compare_scalar(point, start, endpoint_type)
@@ -9,6 +13,10 @@
 }
 
 # Runtime: O(1).
+# Interval overlap predicate for fallback/non-fast endpoint types.
+# **Inputs:** scalar interval endpoints + bounds + endpoint_type.
+# **Outputs:** scalar logical; TRUE when intervals overlap under `bounds`.
+# **Used by:** .ivx_spec_overlaps(), .ivx_spec_containing(), .ivx_spec_within() fallback leaf matchers.
 .ivx_overlaps_interval <- function(a_start, a_end, b_start, b_end, bounds, endpoint_type) {
   f <- .ivx_bounds_flags(bounds)
   touching_is_overlap <- isTRUE(f$include_start) && isTRUE(f$include_end)
@@ -23,6 +31,10 @@
 }
 
 # Runtime: O(1).
+# Interval containment predicate for fallback/non-fast endpoint types.
+# **Inputs:** scalar container endpoints, scalar inner endpoints, scalar endpoint_type.
+# **Outputs:** scalar logical; TRUE when [inner_start,inner_end] is inside container interval.
+# **Used by:** .ivx_spec_containing(), .ivx_spec_within() fallback leaf matchers.
 .ivx_contains_interval <- function(container_start, container_end, inner_start, inner_end, endpoint_type) {
   left_ok <- .ivx_compare_scalar(container_start, inner_start, endpoint_type) <= 0L
   right_ok <- .ivx_compare_scalar(container_end, inner_end, endpoint_type) >= 0L
@@ -30,6 +42,10 @@
 }
 
 # Runtime: O(k) in matched entry count.
+# Rebuilds an interval_index from entry payloads while preserving wrapper metadata.
+# **Inputs:** `x` interval_index template; `entries` list of interval entry records.
+# **Outputs:** interval_index containing `entries` in order (or empty-like if none).
+# **Used by:** .ivx_run_relation_query() and all-match pop rebuild path.
 .ivx_slice_entries <- function(x, entries) {
   if(length(entries) == 0L) {
     return(.ivx_empty_like(x))
@@ -41,6 +57,10 @@
 }
 
 # Runtime: O(log n) near locate point depth.
+# Computes lower/upper bound index from prepared start key and strictness.
+# **Inputs:** `x` interval_index; scalar `key`; scalar logical `strict`.
+# **Outputs:** 1-based integer insertion/bound index in [1, n+1].
+# **Used by:** .ivx_query_candidate_span().
 .ivx_bound_index_prepared <- function(x, key, strict = FALSE) {
   n <- length(x)
   if(n == 0L) {
@@ -65,6 +85,10 @@
 }
 
 # Runtime: O(log n) near bound locate points.
+# Computes candidate start-index window from query spec bounds.
+# **Inputs:** `x` interval_index; optional scalar `lower`/`upper`; scalar logical strict flags.
+# **Outputs:** list(start, end_excl, empty) describing candidate index span.
+# **Used by:** .ivx_run_relation_query().
 .ivx_query_candidate_span <- function(x, lower = NULL, lower_strict = FALSE, upper = NULL, upper_strict = FALSE) {
   n <- length(x)
   if(n == 0L) {
@@ -92,6 +116,10 @@
 }
 
 # Runtime: O(1).
+# Returns subtree element count using `.size` measure (or 1 for leaves).
+# **Inputs:** structural node or leaf entry.
+# **Outputs:** scalar integer subtree size.
+# **Used by:** .ivx_collect_query() when pruning whole subtrees.
 .ivx_subtree_size <- function(node) {
   if(!.ivx_is_structural_fast(node)) {
     return(1L)
@@ -100,6 +128,10 @@
 }
 
 # Runtime: O(log n) near split point depth.
+# Splits an interval_index at 1-based position into left/right interval_index trees.
+# **Inputs:** `x` interval_index; scalar integer-like `index`.
+# **Outputs:** list(left, right) interval_index fragments.
+# **Used by:** .ivx_partition_span().
 .ivx_split_at_index <- function(x, index) {
   n <- length(x)
   idx <- as.integer(index)
@@ -126,6 +158,10 @@
 }
 
 # Runtime: O(log n) near boundary split points.
+# Splits full tree into left/candidate/right partitions for query scanning.
+# **Inputs:** `x` interval_index; `span` list with `start` and `end_excl`.
+# **Outputs:** list(left, candidate, right) interval_index fragments.
+# **Used by:** .ivx_run_relation_query() non-window path.
 .ivx_partition_span <- function(x, span) {
   s1 <- .ivx_split_at_index(x, span$start)
   left <- s1$left
@@ -141,6 +177,10 @@
 }
 
 # Runtime: O(1).
+# Concatenates three interval_index fragments and restores wrapper metadata.
+# **Inputs:** interval_index `template`; structural trees `left`, `middle`, `right`.
+# **Outputs:** interval_index rebuilt as left + middle + right.
+# **Used by:** all-match pop rebuild to construct remaining tree.
 .ivx_concat3_like <- function(template, left, middle, right) {
   out <- concat_trees(left, middle)
   out <- concat_trees(out, right)
@@ -148,6 +188,10 @@
 }
 
 # Runtime: O(1).
+# Standardized miss return for peek relation endpoints.
+# **Inputs:** `x` interval_index; `which` in {"first","all"}.
+# **Outputs:** NULL for first; empty interval_index for all.
+# **Used by:** .ivx_run_relation_query() miss branches.
 .ivx_query_peek_miss <- function(x, which = c("first", "all")) {
   which <- match.arg(which)
   if(identical(which, "all")) {
@@ -157,6 +201,10 @@
 }
 
 # Runtime: O(1).
+# Standardized miss return for pop relation endpoints.
+# **Inputs:** `x` interval_index; `which` in {"first","all"}.
+# **Outputs:** list(element,start,end,remaining) with empty/NULL element by `which`.
+# **Used by:** .ivx_run_relation_query() miss branches.
 .ivx_query_pop_miss <- function(x, which = c("first", "all")) {
   which <- match.arg(which)
   if(identical(which, "all")) {
@@ -166,6 +214,19 @@
 }
 
 # Runtime: O(s), where s is traversed subtree size after pruning.
+# Traverses candidate tree with spec predicates and optional unmatched collection.
+# **Inputs:**
+#
+# - `tree`: structural candidate subtree.
+# - `no_match_subtree`: function(node) -> logical prune decision.
+# - `leaf_match`: function(entry) -> logical exact match decision.
+# - scalar logical flags `collect_unmatched`, `stop_after_first`.
+#
+# **Outputs:**
+#
+# - list(first_found, first_index, first_entry, matched_entries, unmatched_entries).
+#
+# **Used by:** .ivx_run_relation_query() traversal path.
 .ivx_collect_query <- function(
     tree,
     no_match_subtree,
@@ -173,6 +234,8 @@
     collect_unmatched = FALSE,
     stop_after_first = FALSE
 ) {
+  # Accumulator state for traversal order, first-hit tracking, and optional
+  # matched/unmatched entry capture.
   st <- new.env(parent = emptyenv())
   st$index <- 0L
   st$first_index <- NULL
@@ -201,10 +264,13 @@
   }
 
   walk <- function(node) {
+    # Early stop for first-hit queries once a hit has been recorded.
     if(isTRUE(stop_after_first) && !is.null(st$first_index)) {
       return(invisible(NULL))
     }
 
+    # Leaf entry path: evaluate exact predicate and capture into requested
+    # output buckets.
     if(!.ivx_is_structural_fast(node)) {
       st$index <- st$index + 1L
       hit <- isTRUE(leaf_match(node))
@@ -227,6 +293,8 @@
     # spans; pruning tiny Digit/Node fragments often costs more than it saves.
     can_prune <- inherits(node, "Deep")
     if(isTRUE(can_prune) && isTRUE(no_match_subtree(node))) {
+      # Pruned subtree contributes only index offset; optionally capture
+      # unmatched entries for all-pop rebuild path.
       sz <- .ivx_subtree_size(node)
       if(isTRUE(collect_unmatched) && sz > 0L) {
         append_many("unmatched", .ivx_entries(node))
@@ -235,6 +303,7 @@
       return(invisible(NULL))
     }
 
+    # Structural descent in left-to-right entry order.
     if(inherits(node, "Empty")) {
       return(invisible(NULL))
     }
@@ -257,6 +326,7 @@
 
   walk(tree)
 
+  # Return traversal summary used by peek/pop execution paths.
   list(
     first_found = !is.null(st$first_index),
     first_index = st$first_index,
@@ -267,12 +337,29 @@
 }
 
 # Runtime: O(log n + s), where s is traversed candidate subtree size after pruning.
+# Main executor for interval relation queries.
+# **Inputs:**
+#
+# - `x`: interval_index.
+# - `spec`: query-spec list from .ivx_spec_*.
+# - `mode`: "peek" or "pop".
+# - `which`: "first" or "all".
+#
+# **Outputs:**
+#
+# - peek/first: element item or NULL.
+# - peek/all: interval_index slice of matches (possibly empty).
+# - pop/first: list(element,start,end,remaining).
+# - pop/all: list(element=<interval_index>, start=NULL, end=NULL, remaining=<interval_index>).
+#
+# **Used by:** public query API (peek_*/pop_* endpoints).
 .ivx_run_relation_query <- function(x, spec, mode = c("peek", "pop"), which = c("first", "all")) {
   mode <- match.arg(mode)
   which <- match.arg(which)
   ms <- resolve_tree_monoids(x, required = TRUE)
   use_window_fast_path <- isTRUE(.ft_cpp_can_use(ms))
 
+  # Phase 1: derive candidate start-index window from query-spec bounds.
   span <- .ivx_query_candidate_span(
     x,
     lower = spec$lower,
@@ -287,6 +374,7 @@
     return(.ivx_query_pop_miss(x, which = which))
   }
 
+  # Phase 2: C++-friendly window scan fast path for peek and first-hit pop.
   # When C++ backend is active, candidate-window scanning has lower constants
   # for read-heavy/first-hit queries than split+rebuild traversal.
   if(isTRUE(use_window_fast_path) && (identical(mode, "peek") || identical(which, "first"))) {
@@ -323,6 +411,8 @@
       return(.ivx_query_pop_miss(x, which = which))
     }
 
+    # First-hit branches can return item directly (peek) or pop by absolute
+    # index without rebuilding candidate partitions.
     if(identical(which, "first")) {
       if(identical(mode, "peek")) {
         return(entries[[first_i]]$item)
@@ -338,6 +428,7 @@
     return(.ivx_slice_entries(x, matched_entries))
   }
 
+  # Phase 3: split into left/candidate/right and traverse only candidate tree.
   parts <- .ivx_partition_span(x, span)
   cand <- parts$candidate
   if(length(cand) == 0L) {
@@ -347,6 +438,7 @@
     return(.ivx_query_pop_miss(x, which = which))
   }
 
+  # Phase 4A: peek branches (first/all) from collected candidate hits.
   if(identical(mode, "peek")) {
     hit <- .ivx_collect_query(
       cand,
@@ -369,6 +461,7 @@
     return(.ivx_slice_entries(x, hit$matched_entries))
   }
 
+  # Phase 4B: pop first-hit branch via absolute index.
   if(identical(which, "first")) {
     hit <- .ivx_collect_query(
       cand,
@@ -385,6 +478,8 @@
     return(.ivx_pop_positions(x, abs_idx, which = "first"))
   }
 
+  # Phase 4C: pop all branch rebuilds matched slice and remaining tree from
+  # matched/unmatched candidate partitions.
   hit <- .ivx_collect_query(
     cand,
     no_match_subtree = spec$no_match_subtree,
@@ -405,6 +500,10 @@
   list(element = matched, start = NULL, end = NULL, remaining = remaining)
 }
 
+# Returns a slice by positions as interval_index, preserving class metadata.
+# **Inputs:** `x` interval_index; integer-like vector `positions`.
+# **Outputs:** interval_index slice (empty-like when `positions` is empty).
+# **Used by:** .ivx_pop_positions() all-branch.
 .ivx_slice_positions <- function(x, positions) {
   if(length(positions) == 0L) {
     return(.ivx_empty_like(x))
@@ -413,6 +512,10 @@
 }
 
 # Runtime: O(log n) for single index removal; O(n log n) for multi-index rebuild.
+# Removes one or more positions from an interval_index.
+# **Inputs:** `x` interval_index; integer-like vector `positions`.
+# **Outputs:** interval_index with those positions removed.
+# **Used by:** .ivx_pop_positions().
 .ivx_remove_positions <- function(x, positions) {
   n <- length(x)
   if(length(positions) == 0L) {
@@ -432,6 +535,15 @@
 }
 
 # Runtime: O(log n + c) for `which = "first"`; O(n log n) for `which = "all"`.
+# Pop helper for already-resolved match positions.
+# **Inputs:** `x` interval_index; integer-like `positions`; `which` in {"first","all"}.
+# **Outputs:**
+#
+# - which = "first": list(element=<payload item>, start=<scalar>, end=<scalar>, remaining=<interval_index>).
+# - which = "all": list(element=<interval_index slice at `positions`>, start=NULL, end=NULL,
+#   remaining=<interval_index with those positions removed>).
+#
+# **Used by:** .ivx_run_relation_query() fast path and first-hit pop path.
 .ivx_pop_positions <- function(x, positions, which = c("first", "all")) {
   which <- match.arg(which)
 

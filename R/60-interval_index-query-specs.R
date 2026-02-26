@@ -1,3 +1,5 @@
+#SO
+
 # Query-spec builders return a plan consumed by .ivx_run_relation_query():
 # - lower: optional lower start-bound value for candidate windowing (NULL = no bound).
 # - lower_strict: FALSE => start >= lower, TRUE => start > lower.
@@ -8,7 +10,9 @@
 # - leaf_match(entry): exact entry-level relation test run on remaining candidates.
 
 # Point relation spec (entry interval contains query point).
-# Used by: peek_point(), pop_point().
+# **Inputs:** `qp` normalized point query list; scalar `bounds`; bounds-flag list `flags`.
+# **Outputs:** query-spec list(lower/lower_strict/upper/upper_strict/no_match_subtree/leaf_match).
+# **Used by:** peek_point(), pop_point().
 .ivx_spec_point <- function(qp, bounds, flags) {
   include_start <- isTRUE(flags$include_start)
   include_end <- isTRUE(flags$include_end)
@@ -46,7 +50,9 @@
 
 # Runtime: O(1).
 # Overlap relation spec (entry overlaps query interval under current bounds).
-# Used by: peek_overlaps(), pop_overlaps().
+# **Inputs:** `q` normalized interval query list; scalar `bounds`; bounds-flag list `flags`.
+# **Outputs:** query-spec list(lower/lower_strict/upper/upper_strict/no_match_subtree/leaf_match).
+# **Used by:** peek_overlaps(), pop_overlaps().
 .ivx_spec_overlaps <- function(q, bounds, flags) {
   touching_is_overlap <- isTRUE(flags$include_start) && isTRUE(flags$include_end)
 
@@ -83,7 +89,9 @@
 
 # Runtime: O(1).
 # Containing relation spec (entry contains query interval).
-# Used by: peek_containing(), pop_containing().
+# **Inputs:** `q` normalized interval query list; scalar `bounds`; bounds-flag list `flags`.
+# **Outputs:** query-spec list(lower/lower_strict/upper/upper_strict/no_match_subtree/leaf_match).
+# **Used by:** peek_containing(), pop_containing().
 .ivx_spec_containing <- function(q, bounds, flags) {
   touching_is_overlap <- isTRUE(flags$include_start) && isTRUE(flags$include_end)
 
@@ -122,7 +130,9 @@
 
 # Runtime: O(1).
 # Within relation spec (entry is within query interval).
-# Used by: peek_within(), pop_within().
+# **Inputs:** `q` normalized interval query list; scalar `bounds`; bounds-flag list `flags`.
+# **Outputs:** query-spec list(lower/lower_strict/upper/upper_strict/no_match_subtree/leaf_match).
+# **Used by:** peek_within(), pop_within().
 .ivx_spec_within <- function(q, bounds, flags) {
   touching_is_overlap <- isTRUE(flags$include_start) && isTRUE(flags$include_end)
 

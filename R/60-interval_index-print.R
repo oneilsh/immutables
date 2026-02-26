@@ -1,4 +1,8 @@
 # Runtime: O(1).
+# Formats bounds string into human-readable phrase for headers.
+# **Inputs:** scalar `bounds` string.
+# **Outputs:** scalar character phrase.
+# **Used by:** print.interval_index().
 .ivx_bounds_phrase <- function(bounds) {
   paste0(substr(bounds, 1L, 1L), "start, end", substr(bounds, 2L, 2L))
 }
@@ -21,6 +25,10 @@
 #' @export
 #' @method print interval_index
 # Runtime: O((k + h) log n), where k = shown elements and h = preview split overhead.
+# Pretty-printer with bounded head/tail preview in interval-start order.
+# **Inputs:** `x` interval_index; scalar integer `max_elements`; forwarded `...`.
+# **Outputs:** invisibly returns `x`.
+# **Used by:** users/tests.
 print.interval_index <- function(x, max_elements = 4L, ...) {
   .ivx_assert_index(x)
   max_elements <- .ft_validate_print_max_elements(max_elements)

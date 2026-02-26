@@ -1,3 +1,7 @@
+# Internal insert engine preserving interval ordering by start.
+# **Inputs:** `x` interval_index; `entry` canonical entry; optional `endpoint_type`.
+# **Outputs:** updated interval_index with inserted entry.
+# **Used by:** insert.interval_index().
 .ivx_insert_entry <- function(x, entry, endpoint_type = NULL) {
   ep <- if(is.null(endpoint_type)) .ivx_endpoint_type_state(x) else endpoint_type
   ms <- resolve_tree_monoids(x, required = TRUE)
@@ -39,6 +43,10 @@
 }
 
 # Runtime: O(n) over tree size for any non-trivial update (rebind/recompute pass).
+# Interval-specific add_monoids guard for reserved monoid names.
+# **Inputs:** `t` interval_index-like tree; user `monoids`; scalar logical `overwrite`.
+# **Outputs:** interval_index tree with merged monoids.
+# **Used by:** public add_monoids() S3 dispatch.
 #' @method add_monoids interval_index
 #' @export
 #' @noRd
@@ -53,6 +61,10 @@ add_monoids.interval_index <- function(t, monoids, overwrite = FALSE) {
 }
 
 # Runtime: O(log n) near split point depth.
+# Public insert method for interval_index.
+# **Inputs:** `x` interval_index; payload `element`; scalar `start`/`end`; optional `name`.
+# **Outputs:** updated interval_index.
+# **Used by:** users/tests.
 #' Insert an element into an interval index
 #'
 #' @method insert interval_index

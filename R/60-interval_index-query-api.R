@@ -1,4 +1,8 @@
 # Runtime: O(n).
+# Returns per-entry interval endpoints in current sequence order.
+# **Inputs:** `x` interval_index.
+# **Outputs:** data.frame with list-cols `start` and `end`.
+# **Used by:** users/tests.
 #' Get interval bounds in sequence order
 #'
 #' @param x An `interval_index`.
@@ -19,6 +23,10 @@ interval_bounds <- function(x) {
 }
 
 # Runtime: O(log n + c + k), where c = candidate count and k = matched count (worst-case O(n)).
+# Point query (peek) endpoint.
+# **Inputs:** `x` interval_index; scalar `point`; `which` in {"first","all"}; optional `bounds`.
+# **Outputs:** payload item (first) or interval_index slice (all).
+# **Used by:** users/tests.
 #' Peek intervals containing a point
 #'
 #' @param x An `interval_index`.
@@ -39,6 +47,10 @@ peek_point <- function(x, point, which = c("first", "all"), bounds = NULL) {
 }
 
 # Runtime: O(log n + c) for `which = "first"`; O(n log n) for `which = "all"`.
+# Point query (pop) endpoint.
+# **Inputs:** `x` interval_index; scalar `point`; `which`; optional `bounds`.
+# **Outputs:** pop result list with `element/start/end/remaining`.
+# **Used by:** users/tests.
 #' Pop intervals containing a point
 #'
 #' @param x An `interval_index`.
@@ -59,6 +71,10 @@ pop_point <- function(x, point, which = c("first", "all"), bounds = NULL) {
 }
 
 # Runtime: O(log n + c + k), where c = candidate count and k = matched count (worst-case O(n)).
+# Overlap relation query (peek) endpoint.
+# **Inputs:** `x`; scalar `start`/`end`; `which`; optional `bounds`.
+# **Outputs:** payload item (first) or interval_index slice (all).
+# **Used by:** users/tests.
 #' Peek intervals overlapping a query interval
 #'
 #' @param x An `interval_index`.
@@ -80,6 +96,10 @@ peek_overlaps <- function(x, start, end, which = c("first", "all"), bounds = NUL
 }
 
 # Runtime: O(log n + c + k), where c = candidate count and k = matched count (worst-case O(n)).
+# Containing relation query (peek) endpoint.
+# **Inputs:** `x`; scalar `start`/`end`; `which`; optional `bounds`.
+# **Outputs:** payload item (first) or interval_index slice (all).
+# **Used by:** users/tests.
 #' Peek intervals containing a query interval
 #'
 #' @param x An `interval_index`.
@@ -101,6 +121,10 @@ peek_containing <- function(x, start, end, which = c("first", "all"), bounds = N
 }
 
 # Runtime: O(log n + c + k), where c = candidate count and k = matched count (worst-case O(n)).
+# Within relation query (peek) endpoint.
+# **Inputs:** `x`; scalar `start`/`end`; `which`; optional `bounds`.
+# **Outputs:** payload item (first) or interval_index slice (all).
+# **Used by:** users/tests.
 #' Peek intervals within a query interval
 #'
 #' @param x An `interval_index`.
@@ -122,6 +146,10 @@ peek_within <- function(x, start, end, which = c("first", "all"), bounds = NULL)
 }
 
 # Runtime: O(log n + c) for `which = "first"`; O(n log n) for `which = "all"`.
+# Overlap relation query (pop) endpoint.
+# **Inputs:** `x`; scalar `start`/`end`; `which`; optional `bounds`.
+# **Outputs:** pop result list with `element/start/end/remaining`.
+# **Used by:** users/tests.
 #' Pop overlapping intervals
 #'
 #' @param x An `interval_index`.
@@ -143,6 +171,10 @@ pop_overlaps <- function(x, start, end, which = c("first", "all"), bounds = NULL
 }
 
 # Runtime: O(log n + c) for `which = "first"`; O(n log n) for `which = "all"`.
+# Containing relation query (pop) endpoint.
+# **Inputs:** `x`; scalar `start`/`end`; `which`; optional `bounds`.
+# **Outputs:** pop result list with `element/start/end/remaining`.
+# **Used by:** users/tests.
 #' Pop intervals containing a query interval
 #'
 #' @param x An `interval_index`.
@@ -164,6 +196,10 @@ pop_containing <- function(x, start, end, which = c("first", "all"), bounds = NU
 }
 
 # Runtime: O(log n + c) for `which = "first"`; O(n log n) for `which = "all"`.
+# Within relation query (pop) endpoint.
+# **Inputs:** `x`; scalar `start`/`end`; `which`; optional `bounds`.
+# **Outputs:** pop result list with `element/start/end/remaining`.
+# **Used by:** users/tests.
 #' Pop intervals within a query interval
 #'
 #' @param x An `interval_index`.

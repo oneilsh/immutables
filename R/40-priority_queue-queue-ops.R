@@ -190,13 +190,3 @@ pop_min <- function(q) {
 pop_max <- function(q) {
   .pq_extract(q, ".pq_max")
 }
-
-#' Priority Queue Length
-#'
-#' @method length priority_queue
-#' @param x A `priority_queue`.
-#' @return Integer length.
-#' @export
-length.priority_queue <- function(x) {
-  as.integer(node_measure(x, ".size"))
-}

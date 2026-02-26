@@ -1,3 +1,5 @@
+#SO
+
 #' Indexing for Priority Queues
 #'
 #' Name-based indexing is supported for reads only. Positional indexing and all

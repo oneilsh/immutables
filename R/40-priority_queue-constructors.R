@@ -1,3 +1,5 @@
+#SO
+
 # Runtime: O(n) overall (entry normalization + linear sequence construction).
 #' Build a Priority Queue from elements and priorities
 #'

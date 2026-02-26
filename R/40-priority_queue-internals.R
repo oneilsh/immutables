@@ -1,3 +1,5 @@
+#SO
+
 # Runtime: O(1).
 .pq_priority_type_state <- function(x) {
   attr(x, "pq_priority_type", exact = TRUE)

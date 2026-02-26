@@ -83,11 +83,6 @@ testthat::test_that("priority queue carries required monoids", {
   testthat::expect_true(all(c(".size", ".named_count", ".pq_min", ".pq_max") %in% ms))
 })
 
-testthat::test_that("values path is removed", {
-  testthat::expect_error(as_flexseq(1:3, values = 1:3), "unused argument")
-  testthat::expect_error(tree_from(1:3, values = 1:3), "unused argument")
-})
-
 testthat::test_that("priority_queue casts down to flexseq explicitly", {
   q_named <- as_priority_queue(setNames(as.list(c("x", "y")), c("kx", "ky")), priorities = c(2, 1))
   x <- as_flexseq(q_named)

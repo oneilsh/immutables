@@ -9,7 +9,12 @@
 
   out <- if(length(x) == 0L) {
     if(.ivx_supports_oms_key_type(ep)) {
-      ms0 <- .ivx_merge_monoids(.ivx_user_monoids(x), endpoint_type = ep)
+      monoids0 <- attr(x, "monoids", exact = TRUE)
+      user0 <- monoids0[setdiff(
+        names(monoids0),
+        c(".size", ".named_count", ".ivx_max_start", ".ivx_max_end", ".ivx_min_end", ".oms_max_key")
+      )]
+      ms0 <- .ivx_merge_monoids(if(length(user0) == 0L) NULL else user0, endpoint_type = ep)
       if(.ft_cpp_can_use(ms0) && !is.null(ms0[[".oms_max_key"]])) {
         .ft_cpp_oms_insert(empty_tree(monoids = ms0), entry, ms0, ep)
       } else {

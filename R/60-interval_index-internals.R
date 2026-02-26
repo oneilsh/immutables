@@ -208,16 +208,6 @@
   st$out
 }
 
-# Runtime: O(m), where m = number of attached monoids.
-.ivx_user_monoids <- function(x) {
-  ms <- attr(x, "monoids", exact = TRUE)
-  out <- ms[setdiff(names(ms), c(".size", ".named_count", ".ivx_max_start", ".ivx_max_end", ".ivx_min_end", ".oms_max_key"))]
-  if(length(out) == 0L) {
-    return(NULL)
-  }
-  out
-}
-
 # Runtime: O(1).
 .ivx_empty_like <- function(template) {
   ms <- resolve_tree_monoids(template, required = TRUE)

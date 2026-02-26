@@ -29,21 +29,6 @@
   isTRUE(left_ok && right_ok)
 }
 
-# Runtime: O(n).
-.ivx_match_positions <- function(x, predicate) {
-  entries <- .ivx_entries(x)
-  n <- length(entries)
-  if(n == 0L) {
-    return(integer(0))
-  }
-
-  out <- logical(n)
-  for(i in seq_len(n)) {
-    out[[i]] <- isTRUE(predicate(entries[[i]]))
-  }
-  which(out)
-}
-
 # Runtime: O(k) in matched entry count.
 .ivx_slice_entries <- function(x, entries) {
   if(length(entries) == 0L) {
@@ -53,20 +38,6 @@
   ms <- resolve_tree_monoids(x, required = TRUE)
   tree <- .ivx_tree_from_ordered_entries(entries, monoids = ms)
   .ivx_wrap_like(x, tree)
-}
-
-# Runtime: O(c + k), where c = candidate count and k = matched count.
-.ivx_filter_slice <- function(x, entries, predicate) {
-  n <- length(entries)
-  if(n == 0L) {
-    return(.ivx_empty_like(x))
-  }
-
-  keep <- logical(n)
-  for(i in seq_len(n)) {
-    keep[[i]] <- isTRUE(predicate(entries[[i]]))
-  }
-  .ivx_slice_entries(x, entries[keep])
 }
 
 # Runtime: O(log n) near locate point depth.
@@ -458,26 +429,6 @@
 
   keep <- setdiff(seq_len(n), as.integer(positions))
   x[as.integer(keep)]
-}
-
-# Runtime: O(log n) for `which = "first"`; O(k log n) for `which = "all"`.
-.ivx_peek_positions <- function(x, positions, which = c("first", "all")) {
-  which <- match.arg(which)
-
-  if(length(positions) == 0L) {
-    if(identical(which, "all")) {
-      return(.ivx_empty_like(x))
-    }
-    return(NULL)
-  }
-
-  if(identical(which, "first")) {
-    idx <- as.integer(positions[[1L]])
-    entry <- .ft_get_elem_at(x, idx)
-    return(entry$item)
-  }
-
-  .ivx_slice_positions(x, positions)
 }
 
 # Runtime: O(log n + c) for `which = "first"`; O(n log n) for `which = "all"`.

@@ -6,14 +6,9 @@
   invisible(TRUE)
 }
 
+# Runtime: O(1).
 .ivx_endpoint_type_state <- function(x) {
   attr(x, "ivx_endpoint_type", exact = TRUE)
-}
-
-# Runtime: O(1).
-.ivx_bounds_state <- function(x) {
-  b <- attr(x, "ivx_bounds", exact = TRUE)
-  if(is.null(b)) "[)" else b
 }
 
 # Runtime: O(1).
@@ -33,26 +28,6 @@
     include_start = identical(substr(bounds, 1L, 1L), "["),
     include_end = identical(substr(bounds, 2L, 2L), "]")
   )
-}
-
-# Runtime: O(1).
-.ivx_entry_name_fast <- function(entry) {
-  nm <- attr(entry, "ft_name", exact = TRUE)
-  if(is.null(nm) || length(nm) == 0L) {
-    return(NULL)
-  }
-  if(is.character(nm) && length(nm) == 1L && !is.na(nm) && nzchar(nm)) {
-    return(nm)
-  }
-  .ft_get_name(entry)
-}
-
-# Runtime: O(1).
-.ivx_set_entry_name_fast <- function(entry, name) {
-  if(!is.null(name)) {
-    attr(entry, "ft_name") <- name
-  }
-  entry
 }
 
 # Runtime: O(1).
@@ -111,7 +86,7 @@
 # Runtime: O(1).
 .ivx_wrap_like <- function(template, tree, endpoint_type = NULL, bounds = NULL) {
   ep <- if(is.null(endpoint_type)) .ivx_endpoint_type_state(template) else endpoint_type
-  b <- if(is.null(bounds)) .ivx_bounds_state(template) else bounds
+  b <- .ivx_resolve_bounds(template, bounds)
   .as_interval_index(tree, endpoint_type = ep, bounds = b)
 }
 
@@ -170,7 +145,7 @@
 # Runtime: O(n) validation + O(1) wrap.
 .ivx_restore_tree <- function(x, template = NULL, context = "interval_index") {
   endpoint_type <- if(is.null(template)) NULL else .ivx_endpoint_type_state(template)
-  bounds <- if(is.null(template)) "[)" else .ivx_bounds_state(template)
+  bounds <- if(is.null(template)) "[)" else .ivx_resolve_bounds(template, NULL)
   endpoint_type <- .ivx_validate_tree_entries(x, endpoint_type = endpoint_type, context = context)
   .as_interval_index(x, endpoint_type = endpoint_type, bounds = bounds)
 }
@@ -231,13 +206,6 @@
   st$out
 }
 
-# Runtime: O(n).
-.ivx_extract_items <- function(entries) {
-  out <- lapply(entries, function(e) e$item)
-  names(out) <- names(entries)
-  out
-}
-
 # Runtime: O(m), where m = number of attached monoids.
 .ivx_user_monoids <- function(x) {
   ms <- attr(x, "monoids", exact = TRUE)
@@ -254,9 +222,11 @@
   .ivx_wrap_like(template, empty_tree(monoids = ms))
 }
 
+# Runtime: O(1).
 .ivx_resolve_bounds <- function(x, bounds = NULL) {
-  if(is.null(bounds)) {
-    return(.ivx_bounds_state(x))
+  if(!is.null(bounds)) {
+    return(.ivx_normalize_bounds(bounds))
   }
-  .ivx_normalize_bounds(bounds)
+  b <- attr(x, "ivx_bounds", exact = TRUE)
+  if(is.null(b)) "[)" else b
 }

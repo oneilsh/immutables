@@ -43,16 +43,6 @@ add_monoids.ordered_sequence <- function(t, monoids, overwrite = FALSE) {
 }
 
 # Runtime: O(1).
-.ft_scalar_is_missing <- function(v, domain = NULL) {
-  if(.ft_scalar_is_fast_domain(domain)) {
-    na_flag <- is.na(v)
-    return(is.logical(na_flag) && length(na_flag) == 1L && isTRUE(na_flag))
-  }
-  na_flag <- suppressWarnings(tryCatch(is.na(v), error = function(e) FALSE))
-  is.logical(na_flag) && length(na_flag) == 1L && isTRUE(na_flag)
-}
-
-# Runtime: O(1).
 .ft_scalar_compare <- function(a, b, error_message = "Values must support scalar ordering with `<` and `>`.") {
   lt <- suppressWarnings(tryCatch(a < b, error = function(e) e))
   gt <- suppressWarnings(tryCatch(a > b, error = function(e) e))
@@ -116,47 +106,44 @@ add_monoids.ordered_sequence <- function(t, monoids, overwrite = FALSE) {
 }
 
 # Runtime: O(1).
-.ft_scalar_coerce <- function(value, domain) {
-  if(identical(domain, "numeric")) {
-    return(as.numeric(value))
-  }
-  if(identical(domain, "character")) {
-    return(as.character(value))
-  }
-  if(identical(domain, "logical")) {
-    return(as.logical(value))
-  }
-  if(identical(domain, "Date")) {
-    return(as.Date(value))
-  }
-  if(identical(domain, "POSIXct")) {
-    return(as.POSIXct(value))
-  }
-  value
-}
-
-# Runtime: O(1).
-.ft_normalize_scalar_trusted <- function(value, arg_name = "value", value_type = NULL) {
+.ft_normalize_scalar_orderable <- function(value, arg_name = "value") {
+  # 1) Scalar shape + non-missing checks.
   if(length(value) != 1L) {
     stop(sprintf("`%s` must be a scalar value.", arg_name))
   }
-  if(isTRUE(.ft_scalar_is_missing(value, domain = value_type))) {
+  domain <- .ft_scalar_domain(value)
+  if(.ft_scalar_is_fast_domain(domain)) {
+    na_flag <- is.na(value)
+  } else {
+    na_flag <- suppressWarnings(tryCatch(is.na(value), error = function(e) FALSE))
+  }
+  if(is.logical(na_flag) && length(na_flag) == 1L && isTRUE(na_flag)) {
     stop(sprintf("`%s` must be non-missing.", arg_name))
   }
-  resolved_type <- if(is.null(value_type)) .ft_scalar_domain(value) else value_type
-  list(value = .ft_scalar_coerce(value, resolved_type), value_type = resolved_type)
-}
 
-# Runtime: O(1).
-.ft_normalize_scalar_orderable <- function(value, arg_name = "value") {
-  norm <- .ft_normalize_scalar_trusted(value, arg_name = arg_name)
+  # 2) Domain-specific canonical coercion.
+  norm_value <- if(identical(domain, "numeric")) {
+    as.numeric(value)
+  } else if(identical(domain, "character")) {
+    as.character(value)
+  } else if(identical(domain, "logical")) {
+    as.logical(value)
+  } else if(identical(domain, "Date")) {
+    as.Date(value)
+  } else if(identical(domain, "POSIXct")) {
+    as.POSIXct(value)
+  } else {
+    value
+  }
+
+  # 3) Confirm the normalized value supports scalar ordering.
   .ft_scalar_compare_fast(
-    norm$value,
-    norm$value,
-    domain = norm$value_type,
+    norm_value,
+    norm_value,
+    domain = domain,
     error_message = sprintf("`%s` must support scalar ordering with `<` and `>`.", arg_name)
   )
-  norm
+  list(value = norm_value, value_type = domain)
 }
 
 # Runtime: O(1).

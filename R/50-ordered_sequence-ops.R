@@ -142,7 +142,7 @@ lower_bound <- function(x, key) {
     return(list(found = FALSE, index = NULL, element = NULL, key = NULL))
   }
 
-  entry <- .oms_entry_at(x, idx)
+  entry <- .ft_get_elem_at(x, as.integer(idx))
   list(found = TRUE, index = idx, element = entry$item, key = entry$key)
 }
 
@@ -165,7 +165,7 @@ upper_bound <- function(x, key) {
     return(list(found = FALSE, index = NULL, element = NULL, key = NULL))
   }
 
-  entry <- .oms_entry_at(x, idx)
+  entry <- .ft_get_elem_at(x, as.integer(idx))
   list(found = TRUE, index = idx, element = entry$item, key = entry$key)
 }
 

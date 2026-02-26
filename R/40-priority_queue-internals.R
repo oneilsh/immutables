@@ -4,20 +4,20 @@
 }
 
 # Runtime: O(1).
-.pq_validate_priority_type <- function(pq_priority_type, new_priority_type) {
-  if(is.null(pq_priority_type)) {
-    return(new_priority_type)
-  }
-  if(!identical(pq_priority_type, new_priority_type)) {
+.pq_resolve_priority <- function(priority, priority_type = NULL, arg_name = "priority") {
+  # 1) Normalize to package canonical scalar representation.
+  norm <- .ft_normalize_scalar_orderable(priority, arg_name = arg_name)
+
+  # 2) Enforce single priority domain for a queue.
+  resolved_type <- if(is.null(priority_type)) {
+    norm$value_type
+  } else if(identical(priority_type, norm$value_type)) {
+    priority_type
+  } else {
     stop("Incompatible priority type for this priority_queue.")
   }
-  pq_priority_type
-}
 
-# Runtime: O(1).
-.pq_normalize_priority <- function(priority) {
-  norm <- .ft_normalize_scalar_orderable(priority, arg_name = "priority")
-  list(priority = norm$value, priority_type = norm$value_type)
+  list(priority = norm$value, priority_type = resolved_type)
 }
 
 # Runtime: O(1).
@@ -61,15 +61,17 @@ add_monoids.priority_queue <- function(t, monoids, overwrite = FALSE) {
     stop(context, " entries must include both `item` and `priority`.")
   }
 
-  norm <- .pq_normalize_priority(entry[["priority"]])
-  resolved_type <- .pq_validate_priority_type(priority_type, norm$priority_type)
-  out <- list(item = entry[["item"]], priority = norm$priority)
-
   nm_hint <- if("name" %in% nm) .ft_normalize_name(entry[["name"]]) else NULL
   if(is.null(nm_hint)) {
     nm_hint <- .ft_get_name(entry)
   }
-  list(entry = .ft_set_name(out, nm_hint), priority_type = resolved_type)
+
+  .pq_make_entry(
+    item = entry[["item"]],
+    priority = entry[["priority"]],
+    priority_type = priority_type,
+    name = nm_hint
+  )
 }
 
 # Runtime: O(n) to validate all entries.
@@ -94,11 +96,12 @@ add_monoids.priority_queue <- function(t, monoids, overwrite = FALSE) {
 }
 
 # Runtime: O(1).
-.pq_make_entry <- function(item, priority, priority_type = NULL) {
-  norm <- .pq_normalize_priority(priority)
+.pq_make_entry <- function(item, priority, priority_type = NULL, name = NULL) {
+  resolved <- .pq_resolve_priority(priority, priority_type = priority_type)
+  out <- list(item = item, priority = resolved$priority)
   list(
-    entry = list(item = item, priority = norm$priority),
-    priority_type = .pq_validate_priority_type(priority_type, norm$priority_type)
+    entry = .ft_set_name(out, name),
+    priority_type = resolved$priority_type
   )
 }
 

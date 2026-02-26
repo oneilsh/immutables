@@ -14,12 +14,22 @@
 
   for(i in seq_len(n)) {
     e <- entries[[i]]
-    nm <- .ivx_entry_name_fast(e)
+    nm <- attr(e, "ft_name", exact = TRUE)
+    if(
+      is.null(nm) ||
+      length(nm) == 0L ||
+      !is.character(nm) ||
+      length(nm) != 1L ||
+      is.na(nm) ||
+      !nzchar(nm)
+    ) {
+      nm <- .ft_get_name(e)
+    }
     cur_name <- if(is.null(nm)) "" else nm
 
     item2 <- f(e$item, e$start, e$end, cur_name, ...)
     entry2 <- .ivx_make_entry(item2, e$start, e$end)
-    out_entries[[i]] <- .ivx_set_entry_name_fast(entry2, nm)
+    out_entries[[i]] <- .ft_set_name(entry2, nm)
   }
 
   ms <- resolve_tree_monoids(x, required = TRUE)

@@ -56,13 +56,3 @@
 .oms_extract_items <- function(entries) {
   lapply(entries, function(e) e$item)
 }
-
-# Runtime: O(n).
-.oms_entries <- function(x) {
-  as.list.flexseq(x)
-}
-
-# Runtime: O(log n) via indexed locate path.
-.oms_entry_at <- function(x, idx) {
-  .ft_get_elem_at(x, as.integer(idx))
-}

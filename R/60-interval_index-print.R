@@ -26,7 +26,7 @@ print.interval_index <- function(x, max_elements = 4L, ...) {
   max_elements <- .ft_validate_print_max_elements(max_elements)
 
   n <- length(x)
-  bounds <- .ivx_bounds_state(x)
+  bounds <- .ivx_resolve_bounds(x, NULL)
   nn <- as.integer(node_measure(x, ".named_count"))
   named <- isTRUE(nn > 0L)
 

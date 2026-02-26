@@ -26,7 +26,10 @@ as_flexseq.interval_index <- function(x) {
 #' @export
 as.list.interval_index <- function(x, ...) {
   .ivx_assert_index(x)
-  .ivx_extract_items(as.list.flexseq(x, ...))
+  entries <- as.list.flexseq(x, ...)
+  out <- lapply(entries, function(e) e$item)
+  names(out) <- names(entries)
+  out
 }
 
 # Runtime: O(1).

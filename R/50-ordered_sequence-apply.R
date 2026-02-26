@@ -5,7 +5,7 @@
     stop("`FUN` must be a function.")
   }
 
-  entries <- .oms_entries(x)
+  entries <- as.list.flexseq(x)
   n <- length(entries)
   if(n == 0L) {
     return(x)

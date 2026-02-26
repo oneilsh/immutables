@@ -1,3 +1,5 @@
+#SO
+
 # Runtime: O(n) from list materialization + linear rebuild.
 .as_flexseq_build.ordered_sequence <- function(x, monoids = NULL) {
   entries <- as.list.flexseq(x)

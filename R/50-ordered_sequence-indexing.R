@@ -1,3 +1,5 @@
+#SO
+
 #' Indexing for Ordered Sequences
 #'
 #' Read indexing returns `ordered_sequence` subsets while preserving key order.
@@ -10,12 +12,11 @@
 #' @param ... Unused.
 #' @return Read methods return ordered payload values/subsets; replacement forms
 #'   always error.
-NULL
-
-# Runtime: O(k log n) for reads + O(k) strict-order validation.
 #' @rdname sub-.ordered_sequence
 #' @method [ ordered_sequence
 #' @export
+# Runtime: O(k log n) for reads + O(k) strict-order validation and rebuild
+#          but for name access O(n + k log n) due to how name indexing works
 `[.ordered_sequence` <- function(x, i, ...) {
   if(missing(i)) {
     return(x)
@@ -70,7 +71,7 @@ NULL
 #' @method [<- ordered_sequence
 #' @export
 `[<-.ordered_sequence` <- function(x, i, value) {
-  .ft_stop_ordered_like(x, "[<-", "Replacement indexing is not supported.")
+  .ft_stop_ordered_like(x, "[<-", "Replacement indexing is not supported for ordered sequences. Consider converting with as_flexseq().")
 }
 
 # Runtime: O(1).
@@ -78,7 +79,7 @@ NULL
 #' @method [[<- ordered_sequence
 #' @export
 `[[<-.ordered_sequence` <- function(x, i, value) {
-  .ft_stop_ordered_like(x, "[[<-", "Replacement indexing is not supported.")
+  .ft_stop_ordered_like(x, "[[<-", "Replacement indexing is not supported. Consider converting with as_flexseq().")
 }
 
 
@@ -97,5 +98,5 @@ NULL
 #' @method $<- ordered_sequence
 #' @export
 `$<-.ordered_sequence` <- function(x, name, value) {
-  .ft_stop_ordered_like(x, "$<-", "Replacement indexing is not supported.")
+  .ft_stop_ordered_like(x, "$<-", "Replacement indexing is not supported. Consider converting with as_flexseq().")
 }

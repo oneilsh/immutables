@@ -1,3 +1,5 @@
+#SO
+
 # Runtime: O(n) from traversal + ordered bulk rebuild.
 .oms_apply_impl <- function(x, f, ..., preserve_custom_monoids = TRUE) {
   .oms_assert_set(x)

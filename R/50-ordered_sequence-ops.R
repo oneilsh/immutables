@@ -1,4 +1,9 @@
+#SO
+
 # Runtime: O(log n) near locate point depth.
+# Core bound-search worker on a pre-normalized key; strict=FALSE yields first
+# key >= target, strict=TRUE yields first key > target.
+# Used by: .oms_bound_index(), .oms_key_span().
 .oms_bound_index_prepared <- function(x, key, strict = FALSE) {
   .oms_assert_set(x)
   n <- length(x)
@@ -39,6 +44,9 @@ add_monoids.ordered_sequence <- function(t, monoids, overwrite = FALSE) {
 }
 
 # Runtime: O(log n) near locate point depth.
+# Normalize/validate a key against sequence key_type, then delegate to prepared
+# bound search.
+# Used by: lower_bound()/upper_bound(), range/count helpers, key span logic.
 .oms_bound_index <- function(x, key_value, strict = FALSE) {
   .oms_assert_set(x)
   key_type <- .oms_key_type_state(x)
@@ -48,6 +56,8 @@ add_monoids.ordered_sequence <- function(t, monoids, overwrite = FALSE) {
 }
 
 # Runtime: O(1).
+# Resolve inclusive/exclusive lower-range boundary into a start index.
+# Used by: elements_between(), count_between().
 .oms_range_start_index <- function(x, lo, include_lo) {
   if(isTRUE(include_lo)) {
     .oms_bound_index(x, lo, strict = FALSE)
@@ -57,6 +67,8 @@ add_monoids.ordered_sequence <- function(t, monoids, overwrite = FALSE) {
 }
 
 # Runtime: O(1).
+# Resolve inclusive/exclusive upper-range boundary into an exclusive end index.
+# Used by: elements_between(), count_between().
 .oms_range_end_exclusive_index <- function(x, hi, include_hi) {
   if(isTRUE(include_hi)) {
     .oms_bound_index(x, hi, strict = TRUE)
@@ -68,6 +80,8 @@ add_monoids.ordered_sequence <- function(t, monoids, overwrite = FALSE) {
 
 # Runtime: O(log n) near insertion/split point depth.
 #' @noRd
+# Insert one (item,key) while preserving sorted order and FIFO tie stability.
+# Used by: insert.ordered_sequence().
 .oms_insert_impl <- function(x, element, key) {
   .oms_assert_set(x)
   norm <- .oms_normalize_key(key)
@@ -86,6 +100,8 @@ add_monoids.ordered_sequence <- function(t, monoids, overwrite = FALSE) {
     )
     # Internal append avoids public ordered_sequence push guards on boundary splits.
     left_plus <- .ft_push_back_impl(s$left, entry, context = "insert()")
+    # concat_trees returns a flexseq so need to re-wrap with ordered seq class below
+    # the .as_flexseq() above isn't required but matches the return class with this case
     concat_trees(left_plus, s$right)
   }
 
@@ -107,6 +123,8 @@ insert.ordered_sequence <- function(x, element, key, ...) {
 }
 
 # Runtime: O(log n).
+# Compute the contiguous duplicate-key run as [start, end_excl) for one key.
+# Used by: peek_key() and pop_key().
 .oms_key_span <- function(x, key) {
   .oms_assert_set(x)
   norm <- .oms_normalize_key(key)
@@ -123,6 +141,8 @@ insert.ordered_sequence <- function(x, element, key, ...) {
 }
 
 # Runtime: O(log n) near split points.
+# Extract and remove the positional span [start, end_excl) using .size splits.
+# Used by: peek_key(which="all") and pop_key(which="all").
 .oms_slice_key_span <- function(x, start, end_excl) {
   .oms_assert_set(x)
   if(end_excl <= start) {
@@ -147,6 +167,7 @@ insert.ordered_sequence <- function(x, element, key, ...) {
 #'   When no match exists, `found` is `FALSE` and the remaining fields
 #'   are `NULL`.
 #' @export
+# Public lower-bound query wrapper over .oms_bound_index().
 lower_bound <- function(x, key) {
   .oms_stop_interval_index(x, "lower_bound")
   .oms_assert_set(x)
@@ -170,6 +191,7 @@ lower_bound <- function(x, key) {
 #'   When no match exists, `found` is `FALSE` and the remaining fields
 #'   are `NULL`.
 #' @export
+# Public upper-bound query wrapper over .oms_bound_index().
 upper_bound <- function(x, key) {
   .oms_stop_interval_index(x, "upper_bound")
   .oms_assert_set(x)
@@ -200,6 +222,7 @@ upper_bound <- function(x, key) {
 #'   For `which = "all"`, an ordered sequence with matching elements.
 #'   Throws when no matching key exists.
 #' @export
+# Public key lookup API: one element or full duplicate-key run.
 peek_key <- function(x, key, which = c("first", "all")) {
   .oms_stop_interval_index(x, "peek_key")
   which <- match.arg(which)
@@ -251,6 +274,8 @@ peek_key <- function(x, key, which = c("first", "all")) {
 #'   }
 #'   }
 #' @export
+# Public key removal API: one element or full duplicate-key run, returning
+# persistent remainder sequence.
 pop_key <- function(x, key, which = c("first", "all")) {
   .oms_stop_interval_index(x, "pop_key")
   which <- match.arg(which)
@@ -287,6 +312,7 @@ pop_key <- function(x, key, which = c("first", "all")) {
 #' @param include_to Include upper bound when `TRUE`.
 #' @return List of raw elements.
 #' @export
+# Public range extraction API over bound-index helpers.
 elements_between <- function(x, from_key, to_key, include_from = TRUE, include_to = TRUE) {
   .oms_stop_interval_index(x, "elements_between")
   .oms_assert_set(x)
@@ -311,6 +337,7 @@ elements_between <- function(x, from_key, to_key, include_from = TRUE, include_t
 #' @param key Query key.
 #' @return Integer count of matching elements.
 #' @export
+# Public multiplicity query for a single key (size of duplicate-key run).
 count_key <- function(x, key) {
   .oms_stop_interval_index(x, "count_key")
   .oms_assert_set(x)
@@ -329,6 +356,7 @@ count_key <- function(x, key) {
 #' @param include_to Include upper bound when `TRUE`.
 #' @return Integer count of matching elements.
 #' @export
+# Public multiplicity query for a key interval.
 count_between <- function(x, from_key, to_key, include_from = TRUE, include_to = TRUE) {
   .oms_stop_interval_index(x, "count_between")
   .oms_assert_set(x)

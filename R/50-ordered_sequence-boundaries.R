@@ -1,3 +1,6 @@
+
+#SO
+
 # Runtime: O(1).
 .oms_stop_interval_index <- function(x, fn_name) {
   if(inherits(x, "interval_index")) {

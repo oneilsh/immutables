@@ -1,9 +1,15 @@
+#SO
+
 # Runtime: O(1).
+# Build one canonical ordered entry payload.
+# Used by: .oms_build_from_items() constructor assembly loop.
 .oms_make_entry <- function(item, key_value) {
   list(item = item, key = key_value)
 }
 
 # Runtime: O(n log n) for stable merge sort by key.
+# Stable sort fallback when base order() cannot safely order key objects.
+# Used by: .oms_order_entries() for non-primitive/custom key classes.
 .oms_merge_sort_indices <- function(idx, entries, key_type) {
   n <- length(idx)
   if(n <= 1L) {
@@ -44,6 +50,8 @@
 }
 
 # Runtime: O(n log n) stable by key and FIFO on ties.
+# Sort entries by key while preserving input order across ties.
+# Used by: .oms_build_from_items() before tree construction.
 .oms_order_entries <- function(entries, key_type) {
   if(length(entries) <= 1L) {
     return(entries)
@@ -69,6 +77,8 @@
 }
 
 # Runtime: O(n) in entry count.
+# Normalize outer names into ft_name entry attrs, then clear list names.
+# Used by: .oms_tree_from_ordered_entries() to preserve name indexing contract.
 .oms_prepare_entry_names <- function(entries) {
   if(length(entries) == 0L) {
     return(entries)
@@ -89,17 +99,10 @@
   out
 }
 
-
-# Runtime: O(1).
-.oms_as_key_list <- function(keys, n) {
-  key_list <- as.list(keys)
-  if(length(key_list) != n) {
-    stop("`keys` length must match elements length.")
-  }
-  key_list
-}
-
 # Runtime: O(n log n) for sorting + O(n) bulk build.
+# Main constructor pipeline: validate lengths, normalize keys/type, build
+# canonical entries, stable-sort, merge required monoids, and wrap class state.
+# Used by: as_ordered_sequence() and ordered_sequence().
 .oms_build_from_items <- function(items, keys = NULL, monoids = NULL) {
   n <- length(items)
 
@@ -114,13 +117,16 @@
   if(is.null(keys)) {
     stop("`keys` is required when elements are supplied.")
   }
-  keys <- .oms_as_key_list(keys, n)
+  key_list <- as.list(keys)
+  if(length(key_list) != n) {
+    stop("`keys` length must match elements length.")
+  }
 
   entries <- vector("list", n)
   item_names <- names(items)
   key_type <- NULL
   for(i in seq_len(n)) {
-    norm <- .oms_normalize_key(keys[[i]])
+    norm <- .oms_normalize_key(key_list[[i]])
     key_type <- .oms_validate_key_type(key_type, norm$key_type)
     entries[[i]] <- .oms_make_entry(items[[i]], norm$key)
   }
@@ -136,6 +142,9 @@
 }
 
 # Runtime: O(n) for ordered entries.
+# Build a measured tree from already key-ordered entries (C++ fast path when
+# available, otherwise linear R reference path).
+# Used by: .oms_build_from_items() and ordered fapply rebuild path.
 .oms_tree_from_ordered_entries <- function(entries, monoids) {
   entries <- .oms_prepare_entry_names(entries)
   if(.ft_cpp_can_use(monoids)) {
@@ -159,6 +168,8 @@
 #' xs
 #' length(elements_between(xs, 1, 1))
 #' @export
+# Public cast/build entry for list/vector-like inputs.
+# Used by: users and tests; delegates to .oms_build_from_items().
 as_ordered_sequence <- function(x, keys) {
   .oms_build_from_items(as.list(x), keys = keys, monoids = NULL)
 }
@@ -174,6 +185,7 @@ as_ordered_sequence <- function(x, keys) {
 #' xs
 #' lower_bound(xs, 2)
 #' @export
+# Variadic convenience constructor; delegates to .oms_build_from_items().
 ordered_sequence <- function(..., keys) {
   if(missing(keys)) {
     keys <- NULL

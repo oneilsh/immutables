@@ -23,6 +23,21 @@
   as.integer(loc$metadata$index)
 }
 
+# Runtime: O(n) over tree size for any non-trivial update (rebind/recompute pass).
+#' @method add_monoids ordered_sequence
+#' @export
+#' @noRd
+add_monoids.ordered_sequence <- function(t, monoids, overwrite = FALSE) {
+  if(length(monoids) > 0L) {
+    bad <- intersect(names(monoids), c(".size", ".named_count", ".oms_max_key"))
+    if(length(bad) > 0L) {
+      target <- .ft_ordered_owner_class(t)
+      stop("Reserved monoid names cannot be supplied for ", target, ": ", paste(bad, collapse = ", "))
+    }
+  }
+  add_monoids.flexseq(t, monoids, overwrite = overwrite)
+}
+
 # Runtime: O(log n) near locate point depth.
 .oms_bound_index <- function(x, key_value, strict = FALSE) {
   .oms_assert_set(x)

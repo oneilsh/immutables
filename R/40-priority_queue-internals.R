@@ -32,22 +32,6 @@
   invisible(TRUE)
 }
 
-# Runtime: O(n) over tree size for any non-trivial update (rebind/recompute pass).
-# also the exported version of add_monoids that allows custom monoids so long as they
-# don't stop on reserved names
-#' @method add_monoids priority_queue
-#' @export
-#' @noRd
-add_monoids.priority_queue <- function(t, monoids, overwrite = FALSE) {
-  if(length(monoids) > 0L) {
-    bad <- intersect(names(monoids), c(".size", ".named_count", ".pq_min", ".pq_max"))
-    if(length(bad) > 0L) {
-      stop("Reserved monoid names cannot be supplied for priority_queue: ", paste(bad, collapse = ", "))
-    }
-  }
-  add_monoids.flexseq(t, monoids, overwrite = overwrite)
-}
-
 # Runtime: O(1).
 # Build one canonical entry (`list(item, priority)` + optional name) while
 # threading the queue priority_type invariant.

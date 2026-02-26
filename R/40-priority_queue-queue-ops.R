@@ -1,5 +1,19 @@
 #SO
 
+# Runtime: O(n) over tree size for any non-trivial update (rebind/recompute pass).
+#' @method add_monoids priority_queue
+#' @export
+#' @noRd
+add_monoids.priority_queue <- function(t, monoids, overwrite = FALSE) {
+  if(length(monoids) > 0L) {
+    bad <- intersect(names(monoids), c(".size", ".named_count", ".pq_min", ".pq_max"))
+    if(length(bad) > 0L) {
+      stop("Reserved monoid names cannot be supplied for priority_queue: ", paste(bad, collapse = ", "))
+    }
+  }
+  add_monoids.flexseq(t, monoids, overwrite = overwrite)
+}
+
 # Runtime: O(log n) near right edge, with O(1) local name-state checks.
 .pq_append_entry <- function(q, entry) {
   ms <- attr(q, "monoids", exact = TRUE)

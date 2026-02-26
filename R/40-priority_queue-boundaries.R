@@ -1,3 +1,10 @@
+#SO
+
+# theoretically someone could define a monoid that allows splitting a priority
+# queue, but since the order of elements doesn't relate to priorities the
+# resulting split wouldn't be well defined with respect to priorities.
+# so we block splitting operations.
+
 # Runtime: O(1).
 #' @method split_by_predicate priority_queue
 #' @export

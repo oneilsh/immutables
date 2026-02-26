@@ -44,6 +44,8 @@ add_monoids.ordered_sequence <- function(t, monoids, overwrite = FALSE) {
 
 # Runtime: O(1).
 .ft_scalar_compare <- function(a, b, error_message = "Values must support scalar ordering with `<` and `>`.") {
+  # Strict comparator for validation-facing paths.
+  # Always guards base Ops with tryCatch and shape checks.
   lt <- suppressWarnings(tryCatch(a < b, error = function(e) e))
   gt <- suppressWarnings(tryCatch(a > b, error = function(e) e))
 
@@ -71,6 +73,9 @@ add_monoids.ordered_sequence <- function(t, monoids, overwrite = FALSE) {
 
 # Runtime: O(1).
 .ft_scalar_compare_fast <- function(a, b, domain = NULL, error_message = "Values must support scalar ordering with `<` and `>`.") {
+  # Hot-path comparator used by monoid aggregation and tight scans.
+  # For known scalar domains, use direct Ops first; otherwise fallback to
+  # the strict comparator above to keep behavior safe for custom classes.
   if(.ft_scalar_is_fast_domain(domain)) {
     lt <- a < b
     gt <- a > b
@@ -96,6 +101,8 @@ add_monoids.ordered_sequence <- function(t, monoids, overwrite = FALSE) {
 
 # Runtime: O(1).
 .ft_scalar_equal_fast <- function(a, b, domain = NULL, error_message = "Values must support scalar ordering with `<` and `>`.") {
+  # Equality helper mirrors compare strategy: fast primitive check first, then
+  # fallback through comparison semantics.
   if(.ft_scalar_is_fast_domain(domain)) {
     eq <- a == b
     if(is.logical(eq) && length(eq) == 1L && !is.na(eq)) {

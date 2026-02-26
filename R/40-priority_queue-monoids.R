@@ -1,4 +1,6 @@
-# choose the left-most entry on ties
+#SO
+
+# choose the left-most (a) entry on ties
 # Runtime: O(1).
 .pq_choose_min <- function(a, b) {
   if(!isTRUE(a$has)) {
@@ -23,7 +25,7 @@
   a
 }
 
-# choose the left-most entry on ties
+# choose the left-most (a) entry on ties
 # Runtime: O(1).
 .pq_choose_max <- function(a, b) {
   if(!isTRUE(a$has)) {
@@ -52,6 +54,8 @@
 pq_min_measure_monoid <- function() {
   measure_monoid(
     .pq_choose_min,
+    # `has` distinguishes true identity (empty aggregate) from measured values.
+    # We avoid overloading `priority = NULL` as state.
     list(has = FALSE, priority = NULL),
     function(el) {
       list(has = TRUE, priority = el$priority)
@@ -63,6 +67,7 @@ pq_min_measure_monoid <- function() {
 pq_max_measure_monoid <- function() {
   measure_monoid(
     .pq_choose_max,
+    # Same sentinel contract as min monoid identity.
     list(has = FALSE, priority = NULL),
     function(el) {
       list(has = TRUE, priority = el$priority)

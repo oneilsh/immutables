@@ -1,3 +1,5 @@
+#SO
+
 # Runtime: O(n) total from entry traversal + linear queue rebuild.
 .pq_apply_impl <- function(q, f, ..., preserve_custom_monoids = TRUE) {
   .pq_assert_queue(q)

@@ -1,3 +1,5 @@
+#SO
+
 # Runtime: O(log n) near right edge, with O(1) local name-state checks.
 .pq_append_entry <- function(q, entry) {
   ms <- attr(q, "monoids", exact = TRUE)

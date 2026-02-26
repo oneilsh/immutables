@@ -1,4 +1,6 @@
 # Runtime: O(1).
+# Central type/shape gate for public interval methods.
+# Used by: indexing, query API, apply, print, methods.
 .ivx_assert_index <- function(x) {
   if(!inherits(x, "interval_index") || !is_structural_node(x)) {
     stop("`x` must be an interval_index.")
@@ -7,11 +9,15 @@
 }
 
 # Runtime: O(1).
+# Reads the canonical endpoint domain stored on an interval_index object.
+# Used by: insert/query normalization and wrapper restoration.
 .ivx_endpoint_type_state <- function(x) {
   attr(x, "ivx_endpoint_type", exact = TRUE)
 }
 
 # Runtime: O(1).
+# Validates user-facing bound syntax; single source of truth for accepted forms.
+# Used by: .as_interval_index(), .ivx_resolve_bounds().
 .ivx_normalize_bounds <- function(bounds) {
   if(!is.character(bounds) || length(bounds) != 1L || is.na(bounds)) {
     stop("`bounds` must be one of: [), [], (), (].")
@@ -23,6 +29,8 @@
 }
 
 # Runtime: O(1).
+# Decodes bounds string into booleans consumed by query spec builders.
+# Used by: .ivx_spec_* query specification helpers.
 .ivx_bounds_flags <- function(bounds) {
   list(
     include_start = identical(substr(bounds, 1L, 1L), "["),
@@ -31,6 +39,8 @@
 }
 
 # Runtime: O(1).
+# Normalizes one endpoint value (scalar, non-missing, compatible type, orderable).
+# Used by: point-query normalization and interval normalization.
 .ivx_normalize_endpoint <- function(value, arg_name, endpoint_type = NULL) {
   if(length(value) != 1L) {
     stop(sprintf("`%s` must be a scalar value.", arg_name))
@@ -53,6 +63,8 @@
 }
 
 # Runtime: O(1).
+# Normalizes start/end pair and enforces start <= end in one place.
+# Used by: constructors, insert, relation-query argument validation, entry parse.
 .ivx_normalize_interval <- function(start, end, endpoint_type = NULL, start_name = "start", end_name = "end") {
   ns <- .ivx_normalize_endpoint(start, start_name, endpoint_type = endpoint_type)
   ne <- .ivx_normalize_endpoint(end, end_name, endpoint_type = ns$endpoint_type)
@@ -64,6 +76,8 @@
   list(start = ns$value, end = ne$value, endpoint_type = ns$endpoint_type)
 }
 
+# Structural wrapper: attaches interval classes + endpoint/bounds attrs.
+# Used by: constructors and restoration/wrap helpers.
 .as_interval_index <- function(x, endpoint_type = NULL, bounds = "[)") {
   if(!is_structural_node(x)) {
     stop("Expected a structural tree node.")
@@ -84,6 +98,8 @@
 }
 
 # Runtime: O(1).
+# Re-wraps a structural tree with interval metadata inherited from a template.
+# Used by: mutation/query rebuild paths and empty-like construction.
 .ivx_wrap_like <- function(template, tree, endpoint_type = NULL, bounds = NULL) {
   ep <- if(is.null(endpoint_type)) .ivx_endpoint_type_state(template) else endpoint_type
   b <- .ivx_resolve_bounds(template, bounds)
@@ -91,6 +107,8 @@
 }
 
 # Runtime: O(1).
+# Validates/canonicalizes one stored entry payload.
+# Used by: full-tree validation during subclass restore.
 .ivx_parse_entry <- function(entry, context = "interval_index", endpoint_type = NULL) {
   if(!is.list(entry)) {
     stop(context, " entries must be named lists with fields: item, start, end (optional: key).")
@@ -129,6 +147,8 @@
 }
 
 # Runtime: O(n) to validate all entries.
+# Walks every entry to enforce interval payload and endpoint-type invariants.
+# Used by: .ivx_restore_tree().
 .ivx_validate_tree_entries <- function(x, endpoint_type = NULL, context = "interval_index") {
   els <- .ft_to_list(x)
   if(length(els) == 0L) {
@@ -145,6 +165,8 @@
 }
 
 # Runtime: O(n) validation + O(1) wrap.
+# Safe interval subclass restoration for trees produced by shared flexseq ops.
+# Used by: .ft_restore_subclass() in core flexseq API.
 .ivx_restore_tree <- function(x, template = NULL, context = "interval_index") {
   endpoint_type <- if(is.null(template)) NULL else .ivx_endpoint_type_state(template)
   bounds <- if(is.null(template)) "[)" else .ivx_resolve_bounds(template, NULL)
@@ -152,12 +174,16 @@
   .as_interval_index(x, endpoint_type = endpoint_type, bounds = bounds)
 }
 
+# Fast structural-node classifier for internal traversals.
+# Used by: .ivx_entries() and query-engine subtree size/traversal logic.
 .ivx_is_structural_fast <- function(node) {
   cls <- class(node)
   !is.null(cls) && any(cls %in% c("Empty", "Single", "Deep", "Digit", "Node"))
 }
 
 # Runtime: O(n).
+# Materializes interval entries in left-to-right order with preallocation.
+# Used by: interval bounds/query/apply paths and query-engine prune fallback.
 .ivx_entries <- function(x) {
   ms <- attr(x, "measures", exact = TRUE)
   n <- if(!is.null(ms) && !is.null(ms[[".size"]])) {
@@ -209,12 +235,16 @@
 }
 
 # Runtime: O(1).
+# Builds an empty interval_index preserving class/attrs/monoids from template.
+# Used by: query miss/slice helpers and split partitioning.
 .ivx_empty_like <- function(template) {
   ms <- resolve_tree_monoids(template, required = TRUE)
   .ivx_wrap_like(template, empty_tree(monoids = ms))
 }
 
 # Runtime: O(1).
+# Resolves effective bounds for an operation (override or object default).
+# Used by: query API entrypoints, print header, and wrapper restoration.
 .ivx_resolve_bounds <- function(x, bounds = NULL) {
   if(!is.null(bounds)) {
     return(.ivx_normalize_bounds(bounds))

@@ -1,3 +1,5 @@
+#SO
+
 # Runtime: O(1).
 .oms_assert_set <- function(x) {
   if(!inherits(x, "ordered_sequence") || !is_structural_node(x)) {

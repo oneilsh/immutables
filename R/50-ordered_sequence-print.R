@@ -1,3 +1,5 @@
+#SO
+
 #' Print an ordered sequence summary
 #'
 #' @param x An `ordered_sequence`.

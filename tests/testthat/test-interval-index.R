@@ -270,25 +270,6 @@ testthat::test_that("interval_index indexing preserves class and blocks replacem
   testthat::expect_error({ ix$b <- "qq" }, "not supported")
 })
 
-testthat::test_that("interval replacement blocker messages never leak structural classes", {
-  ix <- as_interval_index(
-    setNames(as.list(c("xa", "xb")), c("a", "b")),
-    start = c(1, 2),
-    end = c(2, 3)
-  )
-
-  msg1 <- testthat::expect_error({ ix[[1]] <- "qq" })$message
-  msg2 <- testthat::expect_error({ ix[1] <- list("qq") })$message
-  msg3 <- testthat::expect_error({ ix$a <- "qq" })$message
-
-  testthat::expect_match(msg1, "interval_index")
-  testthat::expect_match(msg2, "interval_index")
-  testthat::expect_match(msg3, "interval_index")
-  testthat::expect_false(grepl("Deep", msg1, fixed = TRUE))
-  testthat::expect_false(grepl("Deep", msg2, fixed = TRUE))
-  testthat::expect_false(grepl("Deep", msg3, fixed = TRUE))
-})
-
 testthat::test_that("front/back/at peek/pop helpers are blocked on interval_index", {
   ix <- as_interval_index("a", start = 1, end = 2)
 

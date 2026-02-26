@@ -113,6 +113,13 @@ as_flexseq.default <- function(x) {
   .as_flexseq_build.default(x, monoids = NULL)
 }
 
+#' @method as_flexseq flexseq
+#' @export
+# Runtime: O(1).
+as_flexseq.flexseq <- function(x) {
+  x
+}
+
 #' Concatenate Sequences
 #'
 #' @method c flexseq

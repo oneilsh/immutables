@@ -115,6 +115,8 @@
   norm <- .ivx_normalize_interval(entry[["start"]], entry[["end"]], endpoint_type = endpoint_type)
 
   if("key" %in% nm) {
+    # Backward/interop tolerance: accept explicit `key`, but require it to match
+    # `start` so interval key semantics stay canonical.
     if(.ivx_compare_scalar(entry[["key"]], norm$start, norm$endpoint_type) != 0L) {
       stop(context, " entry `key` must equal `start`.")
     }

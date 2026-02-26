@@ -1,4 +1,8 @@
+#SO
+
 .ivx_make_entry <- function(item, start, end) {
+  # `key` mirrors `start` so interval entries remain compatible with ordered
+  # key monoid paths (e.g. `.oms_max_key`) when those monoids are present.
   list(item = item, start = start, end = end, key = start)
 }
 

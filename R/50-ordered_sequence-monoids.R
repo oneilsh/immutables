@@ -1,3 +1,5 @@
+#SO
+
 # Runtime: O(1).
 .ft_scalar_domain <- function(v) {
   if(inherits(v, "Date")) {

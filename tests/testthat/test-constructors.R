@@ -39,3 +39,12 @@ testthat::test_that("constructors enforce required metadata args when elements a
   testthat::expect_error(as_interval_index(list("a"), end = 2), "argument \"start\" is missing")
   testthat::expect_error(as_interval_index(list("a"), start = 1), "argument \"end\" is missing")
 })
+
+testthat::test_that("as_flexseq on flexseq is identity-safe for named elements", {
+  fx <- flexseq(fx = "x", fy = "y")
+  out <- as_flexseq(fx)
+
+  testthat::expect_s3_class(out, "flexseq")
+  testthat::expect_identical(as.list(out), as.list(fx))
+  testthat::expect_identical(names(as.list(out)), c("fx", "fy"))
+})

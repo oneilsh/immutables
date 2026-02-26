@@ -34,7 +34,7 @@ Interpretation:
 
 ## First Files to Read
 1. `NAMESPACE` (what is exported and dispatched right now).
-2. `R/40-ordered_sequence-core.R`
+2. `R/50-ordered_sequence-ops.R`
 3. `R/40-priority_queue-constructors.R`
 4. `R/40-priority_queue-queue-ops.R`
 5. `tests/testthat/test-ordered-sequence.R`
@@ -101,7 +101,8 @@ Interpretation:
   - `R/30-api-flexseq-indexing.R`
   - `R/40-priority_queue-indexing.R`
   - `R/40-priority_queue-queue-ops.R`
-  - `R/40-ordered_sequence-core.R`
+  - `R/50-ordered_sequence-indexing.R`
+  - `R/50-ordered_sequence-ops.R`
   - `_pkgdown.yml` + generated man/NAMESPACE surface
 
 ## Change Checklist

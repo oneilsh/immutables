@@ -39,13 +39,6 @@
   `[[.flexseq`(x, nm)
 }
 
-#' @export
-#' @noRd
-`$.ordered_sequence` <- function(x, name) {
-  nm <- .ft_dollar_name(substitute(name))
-  `[[.ordered_sequence`(x, nm)
-}
-
 #' @rdname sub-.interval_index
 #' @method $ interval_index
 #' @param name Element name (for `$` and `$<-`).
@@ -70,12 +63,6 @@
 `$<-.flexseq` <- function(x, name, value) {
   nm <- .ft_dollar_name(substitute(name))
   `[[<-.flexseq`(x, nm, value)
-}
-
-#' @export
-#' @noRd
-`$<-.ordered_sequence` <- function(x, name, value) {
-  .ft_stop_ordered_like(x, "$<-", "Replacement indexing is not supported.")
 }
 
 #' @rdname sub-.interval_index

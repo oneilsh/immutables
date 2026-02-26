@@ -131,24 +131,6 @@ as_flexseq.priority_queue <- function(x) {
 }
 
 # Runtime: O(n) from list materialization + linear rebuild.
-.as_flexseq_build.ordered_sequence <- function(x, monoids = NULL) {
-  entries <- as.list.flexseq(x)
-  out_monoids <- monoids
-  if(is.null(out_monoids)) {
-    ms <- attr(x, "monoids", exact = TRUE)
-    out_monoids <- ms[setdiff(names(ms), c(".oms_max_key"))]
-  }
-  .as_flexseq_build.default(entries, monoids = out_monoids)
-}
-
-#' @method as_flexseq ordered_sequence
-#' @export
-# Runtime: O(n) from list materialization + linear rebuild.
-as_flexseq.ordered_sequence <- function(x) {
-  .as_flexseq_build.ordered_sequence(x, monoids = NULL)
-}
-
-# Runtime: O(n) from list materialization + linear rebuild.
 .as_flexseq_build.interval_index <- function(x, monoids = NULL) {
   entries <- as.list.flexseq(x)
   out_monoids <- monoids
@@ -189,24 +171,6 @@ c.flexseq <- function(..., recursive = FALSE) {
   .ft_restore_subclass(out, xs[[1]], context = "c()")
 }
 
-#' Ordered sequences cannot be concatenated with `c()`
-#'
-#' Rebuild with `ordered_sequence()` / `as_ordered_sequence()` if you need to
-#' combine ordered keyed values.
-#'
-#' @method c ordered_sequence
-#' @param ... Ordered objects.
-#' @param recursive Unused.
-#' @return Never returns; always errors.
-#' @export
-#' @noRd
-# Runtime: O(1).
-c.ordered_sequence <- function(..., recursive = FALSE) {
-  xs <- list(...)
-  target <- if(length(xs) == 0L) "ordered_sequence" else .ft_ordered_owner_class(xs[[1L]])
-  stop(sprintf("`c()` is not supported for %s. Cast first with `as_flexseq()`.", target))
-}
-
 #' @export
 #' @noRd
 # Runtime: O(1).
@@ -233,17 +197,6 @@ plot.flexseq <- function(x, ...) {
 #' @export
 # Runtime: O(n) to build plot graph data.
 plot.priority_queue <- function(x, ...) {
-  plot.flexseq(x, ...)
-}
-
-#' Plot an Ordered Sequence Tree
-#'
-#' @method plot ordered_sequence
-#' @param x An `ordered_sequence`.
-#' @param ... Passed to the internal tree plotting routine.
-#' @export
-# Runtime: O(n) to build plot graph data.
-plot.ordered_sequence <- function(x, ...) {
   plot.flexseq(x, ...)
 }
 

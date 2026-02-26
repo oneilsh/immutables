@@ -130,24 +130,6 @@ as_flexseq.priority_queue <- function(x) {
   .as_flexseq_build.priority_queue(x, monoids = NULL)
 }
 
-# Runtime: O(n) from list materialization + linear rebuild.
-.as_flexseq_build.interval_index <- function(x, monoids = NULL) {
-  entries <- as.list.flexseq(x)
-  out_monoids <- monoids
-  if(is.null(out_monoids)) {
-    ms <- attr(x, "monoids", exact = TRUE)
-    out_monoids <- ms[setdiff(names(ms), c(".ivx_max_start", ".ivx_max_end", ".ivx_min_end", ".oms_max_key"))]
-  }
-  .as_flexseq_build.default(entries, monoids = out_monoids)
-}
-
-#' @method as_flexseq interval_index
-#' @export
-# Runtime: O(n) from list materialization + linear rebuild.
-as_flexseq.interval_index <- function(x) {
-  .as_flexseq_build.interval_index(x, monoids = NULL)
-}
-
 #' Concatenate Sequences
 #'
 #' @method c flexseq

@@ -4,7 +4,7 @@
 \alias{fapply.interval_index}
 \title{Apply a function over interval index entries}
 \usage{
-\method{fapply}{interval_index}(X, FUN, ...)
+\method{fapply}{interval_index}(X, FUN, ..., preserve_custom_monoids = TRUE)
 }
 \arguments{
 \item{X}{An `interval_index`.}
@@ -13,6 +13,10 @@
 payload item. Interval metadata (`start`, `end`, `name`) is read-only.}
 
 \item{...}{Additional arguments passed to `FUN`.}
+
+\item{preserve_custom_monoids}{Logical scalar. If `TRUE` (default), preserve
+attached user monoids during rebuild. If `FALSE`, drop user monoids and
+keep only required interval/ordered/structural monoids.}
 }
 \value{
 A new `interval_index` with transformed entries.

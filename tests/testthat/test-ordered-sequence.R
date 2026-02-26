@@ -224,6 +224,20 @@ testthat::test_that("fapply dispatches for ordered_sequence and no reset_ties ar
   testthat::expect_error(fapply(xs, function(item, key, name) item, reset_ties = TRUE), "unused")
 })
 
+testthat::test_that("fapply can drop custom monoids for ordered_sequence", {
+  sum_item <- measure_monoid(`+`, 0, function(el) as.numeric(el$item))
+  xs <- add_monoids(as_ordered_sequence(list(10, 20), keys = c(1, 2)), list(sum_item = sum_item))
+  xs2 <- fapply(xs, function(item, key, name) item + 1, preserve_custom_monoids = FALSE)
+
+  ms <- attr(xs2, "monoids", exact = TRUE)
+  testthat::expect_true(!is.null(ms[[".size"]]))
+  testthat::expect_true(!is.null(ms[[".named_count"]]))
+  testthat::expect_true(!is.null(ms[[".oms_max_key"]]))
+  testthat::expect_true(is.null(ms[["sum_item"]]))
+  testthat::expect_error(node_measure(xs2, "sum_item"), "Missing cached measure")
+  testthat::expect_equal(as.list(xs2), list(11, 21))
+})
+
 testthat::test_that("ordered_sequence casts down to flexseq explicitly", {
   sum_key <- measure_monoid(`+`, 0, function(el) el$key)
   xs <- add_monoids(as_ordered_sequence(

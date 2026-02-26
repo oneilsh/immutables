@@ -146,10 +146,26 @@ testthat::test_that("fapply preserves priority queue entry names", {
   testthat::expect_equal(q2$kx, "kx:x")
 })
 
+testthat::test_that("fapply can drop custom monoids for priority_queue", {
+  sum_item <- measure_monoid(`+`, 0, function(el) as.numeric(el$item))
+  q <- add_monoids(priority_queue(1, 2, priorities = c(2, 1)), list(sum_item = sum_item))
+  q2 <- fapply(q, function(item, priority, name) item * 10, preserve_custom_monoids = FALSE)
+
+  ms <- attr(q2, "monoids", exact = TRUE)
+  testthat::expect_true(!is.null(ms[[".size"]]))
+  testthat::expect_true(!is.null(ms[[".named_count"]]))
+  testthat::expect_true(!is.null(ms[[".pq_min"]]))
+  testthat::expect_true(!is.null(ms[[".pq_max"]]))
+  testthat::expect_true(is.null(ms[["sum_item"]]))
+  testthat::expect_error(node_measure(q2, "sum_item"), "Missing cached measure")
+  testthat::expect_equal(peek_min(q2), 20)
+})
+
 testthat::test_that("fapply validates priority queue inputs", {
   q <- priority_queue("a", priorities = 1)
   testthat::expect_error(fapply.priority_queue(as_flexseq(1:3), FUN = identity), "`q` must be a priority_queue")
   testthat::expect_error(fapply(q, 1), "`FUN` must be a function")
+  testthat::expect_error(fapply(q, identity, preserve_custom_monoids = NA), "`preserve_custom_monoids` must be TRUE or FALSE")
 })
 
 testthat::test_that("priority_queue blocks split helpers and allows locate helper", {

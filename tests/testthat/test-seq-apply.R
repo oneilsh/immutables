@@ -37,7 +37,7 @@ testthat::test_that("fapply preserves user monoids for flexseq", {
 testthat::test_that("fapply can drop user monoids for flexseq", {
   sum_m <- measure_monoid(`+`, 0, as.numeric)
   x <- add_monoids(as_flexseq(1:4), list(sum = sum_m))
-  y <- fapply(x, function(v) v * 2, preserve_monoids = FALSE)
+  y <- fapply(x, function(v) v * 2, preserve_custom_monoids = FALSE)
 
   ms <- attr(y, "monoids", exact = TRUE)
   testthat::expect_true(!is.null(ms[[".size"]]))
@@ -51,5 +51,5 @@ testthat::test_that("fapply validates flexseq inputs", {
   x <- as_flexseq(1:3)
   testthat::expect_error(fapply.flexseq(list(1, 2, 3), FUN = identity), "`x` must be a flexseq")
   testthat::expect_error(fapply(x, 1), "`FUN` must be a function")
-  testthat::expect_error(fapply(x, identity, preserve_monoids = NA), "`preserve_monoids` must be TRUE or FALSE")
+  testthat::expect_error(fapply(x, identity, preserve_custom_monoids = NA), "`preserve_custom_monoids` must be TRUE or FALSE")
 })

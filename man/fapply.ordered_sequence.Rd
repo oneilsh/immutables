@@ -4,7 +4,7 @@
 \alias{fapply.ordered_sequence}
 \title{Apply a function over ordered sequence entries}
 \usage{
-\method{fapply}{ordered_sequence}(X, FUN, ...)
+\method{fapply}{ordered_sequence}(X, FUN, ..., preserve_custom_monoids = TRUE)
 }
 \arguments{
 \item{X}{An `ordered_sequence`.}
@@ -13,6 +13,10 @@
 item. Key metadata (`key`, `name`) is read-only.}
 
 \item{...}{Additional arguments passed to `FUN`.}
+
+\item{preserve_custom_monoids}{Logical scalar. If `TRUE` (default), preserve
+attached user monoids during rebuild. If `FALSE`, drop user monoids and
+keep only required ordered/structural monoids.}
 }
 \value{
 A new `ordered_sequence` with transformed entries.

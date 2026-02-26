@@ -4,7 +4,7 @@
 \alias{fapply.priority_queue}
 \title{Apply a function over priority queue entries}
 \usage{
-\method{fapply}{priority_queue}(X, FUN, ...)
+\method{fapply}{priority_queue}(X, FUN, ..., preserve_custom_monoids = TRUE)
 }
 \arguments{
 \item{X}{A `priority_queue`.}
@@ -13,6 +13,10 @@
 payload item. Queue metadata (`priority`, `name`) is read-only.}
 
 \item{...}{Additional arguments passed to `FUN`.}
+
+\item{preserve_custom_monoids}{Logical scalar. If `TRUE` (default), preserve
+attached user monoids during rebuild. If `FALSE`, drop user monoids and
+keep only required queue/structural monoids.}
 }
 \value{
 A new `priority_queue` with transformed entries.

@@ -1,15 +1,15 @@
 #SO
 
 # Runtime: O(n) total (O(n) traversal + O(n) linear rebuild).
-.seq_apply_impl <- function(x, f, ..., preserve_monoids = TRUE) {
+.seq_apply_impl <- function(x, f, ..., preserve_custom_monoids = TRUE) {
   if(!inherits(x, "flexseq")) {
     stop("`x` must be a flexseq.")
   }
   if(!is.function(f)) {
     stop("`f` must be a function.")
   }
-  if(!is.logical(preserve_monoids) || length(preserve_monoids) != 1L || is.na(preserve_monoids)) {
-    stop("`preserve_monoids` must be TRUE or FALSE.")
+  if(!is.logical(preserve_custom_monoids) || length(preserve_custom_monoids) != 1L || is.na(preserve_custom_monoids)) {
+    stop("`preserve_custom_monoids` must be TRUE or FALSE.")
   }
 
   els <- .ft_to_list(x)
@@ -34,7 +34,7 @@
     }
   }
 
-  out_monoids <- if(isTRUE(preserve_monoids)) {
+  out_monoids <- if(isTRUE(preserve_custom_monoids)) {
     resolve_tree_monoids(x, required = TRUE)
   } else {
     ensure_size_monoids(list(.size = size_measure_monoid()))
@@ -48,15 +48,15 @@
 #' @method fapply flexseq
 #' @param X A `flexseq`.
 #' @param FUN Function to apply to each element.
-#' @param preserve_monoids Logical scalar. If `TRUE` (default), rebuild with the
+#' @param preserve_custom_monoids Logical scalar. If `TRUE` (default), rebuild with the
 #'   full current monoid set (including user monoids). If `FALSE`, rebuild using
 #'   only required structural monoids (`.size`, `.named_count`).
 #' @param ... Additional arguments passed to `FUN`.
 #' @return A new `flexseq` with transformed elements.
 #' @export
-fapply.flexseq <- function(X, FUN, ..., preserve_monoids = TRUE) {
+fapply.flexseq <- function(X, FUN, ..., preserve_custom_monoids = TRUE) {
   if(!is.function(FUN)) {
     stop("`FUN` must be a function.")
   }
-  .seq_apply_impl(X, FUN, ..., preserve_monoids = preserve_monoids)
+  .seq_apply_impl(X, FUN, ..., preserve_custom_monoids = preserve_custom_monoids)
 }

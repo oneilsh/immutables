@@ -331,6 +331,7 @@ testthat::test_that("fapply for interval_index updates payload only and keeps in
   b3 <- interval_bounds(ix3)
   testthat::expect_equal(unname(lapply(b3$start, identity)), unname(lapply(b0$start, identity)))
   testthat::expect_equal(unname(lapply(b3$end, identity)), unname(lapply(b0$end, identity)))
+  testthat::expect_error(fapply(ix, identity, preserve_custom_monoids = NA), "`preserve_custom_monoids` must be TRUE or FALSE")
 })
 
 testthat::test_that("interval_index recomputes user monoids across insert, fapply, and slices", {
@@ -366,6 +367,22 @@ testthat::test_that("interval_index recomputes user monoids across insert, fappl
   testthat::expect_equal(node_measure(popped$remaining, "sum_item"), 72)
   testthat::expect_equal(node_measure(popped$element, "width_sum"), 5)
   testthat::expect_equal(node_measure(popped$remaining, "width_sum"), 3)
+})
+
+testthat::test_that("fapply can drop custom monoids for interval_index", {
+  sum_item <- measure_monoid(`+`, 0, function(el) as.numeric(el$item))
+  ix <- add_monoids(as_interval_index(as.list(c(10, 20)), start = c(1, 3), end = c(2, 5)), list(sum_item = sum_item))
+  ix2 <- fapply(ix, function(item, start, end, name) item + 1, preserve_custom_monoids = FALSE)
+
+  ms <- attr(ix2, "monoids", exact = TRUE)
+  testthat::expect_true(!is.null(ms[[".size"]]))
+  testthat::expect_true(!is.null(ms[[".named_count"]]))
+  testthat::expect_true(!is.null(ms[[".ivx_max_start"]]))
+  testthat::expect_true(!is.null(ms[[".ivx_max_end"]]))
+  testthat::expect_true(!is.null(ms[[".ivx_min_end"]]))
+  testthat::expect_true(is.null(ms[["sum_item"]]))
+  testthat::expect_error(node_measure(ix2, "sum_item"), "Missing cached measure")
+  testthat::expect_equal(as.list(ix2), as.list(c(11, 21)))
 })
 
 testthat::test_that("interval_index casts down to flexseq explicitly", {

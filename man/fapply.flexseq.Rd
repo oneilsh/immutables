@@ -4,7 +4,7 @@
 \alias{fapply.flexseq}
 \title{Apply a function over flexseq elements}
 \usage{
-\method{fapply}{flexseq}(X, FUN, ..., preserve_monoids = TRUE)
+\method{fapply}{flexseq}(X, FUN, ..., preserve_custom_monoids = TRUE)
 }
 \arguments{
 \item{X}{A `flexseq`.}
@@ -13,7 +13,7 @@
 
 \item{...}{Additional arguments passed to `FUN`.}
 
-\item{preserve_monoids}{Logical scalar. If `TRUE` (default), rebuild with the
+\item{preserve_custom_monoids}{Logical scalar. If `TRUE` (default), rebuild with the
 full current monoid set (including user monoids). If `FALSE`, rebuild using
 only required structural monoids (`.size`, `.named_count`).}
 }

@@ -160,12 +160,7 @@
 #' length(elements_between(xs, 1, 1))
 #' @export
 as_ordered_sequence <- function(x, keys) {
-  .as_ordered_sequence_build(x, keys = keys, monoids = NULL)
-}
-
-# Runtime: O(n log n) from build and ordering.
-.as_ordered_sequence_build <- function(x, keys = NULL, monoids = NULL) {
-  .oms_build_from_items(as.list(x), keys = keys, monoids = monoids)
+  .oms_build_from_items(as.list(x), keys = keys, monoids = NULL)
 }
 
 # Runtime: O(n log n) from build and ordering.
@@ -183,5 +178,5 @@ ordered_sequence <- function(..., keys) {
   if(missing(keys)) {
     keys <- NULL
   }
-  .as_ordered_sequence_build(list(...), keys = keys, monoids = NULL)
+  .oms_build_from_items(list(...), keys = keys, monoids = NULL)
 }

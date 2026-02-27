@@ -1,3 +1,5 @@
+#SO
+
 # Internal insert engine preserving interval ordering by start.
 # **Inputs:** `x` interval_index; `entry` canonical entry; optional `endpoint_type`.
 # **Outputs:** updated interval_index with inserted entry.

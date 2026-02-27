@@ -256,7 +256,8 @@ testthat::test_that("interval_index indexing preserves class and blocks replacem
 
   sub <- ix[c(1, 3)]
   testthat::expect_s3_class(sub, "interval_index")
-  testthat::expect_equal(as.list(sub), list("xa", "xc"))
+  testthat::expect_equal(as.list(sub), list(a = "xa", c = "xc"))
+  testthat::expect_identical(names(as.list(sub)), c("a", "c"))
 
   testthat::expect_equal(ix[[2]], "xb")
   testthat::expect_equal(ix[["c"]], "xc")

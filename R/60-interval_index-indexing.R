@@ -35,7 +35,7 @@ NULL
     if(length(idx) == 0L) {
       return(.ivx_wrap_like(x, empty_tree(monoids = ms)))
     }
-    out <- lapply(.ft_get_elems_at(x, idx), .ft_strip_name)
+    out <- .ft_prepare_subset_entries(.ft_get_elems_at(x, idx))
     return(.ivx_wrap_like(x, tree_from(out, monoids = ms)))
   }
 
@@ -46,7 +46,7 @@ NULL
     }
     pos <- .ft_match_name_indices(x, idx, strict_missing = TRUE)
     pos <- .ord_assert_positions_strict(pos)
-    out <- lapply(.ft_get_elems_at(x, pos), .ft_strip_name)
+    out <- .ft_prepare_subset_entries(.ft_get_elems_at(x, pos))
     return(.ivx_wrap_like(x, tree_from(out, monoids = ms)))
   }
 
@@ -55,7 +55,7 @@ NULL
     return(.ivx_wrap_like(x, empty_tree(monoids = ms)))
   }
   idx <- .ord_assert_positions_strict(idx)
-  out <- lapply(.ft_get_elems_at(x, idx), .ft_strip_name)
+  out <- .ft_prepare_subset_entries(.ft_get_elems_at(x, idx))
   .ivx_wrap_like(x, tree_from(out, monoids = ms))
 }
 

@@ -163,17 +163,20 @@ testthat::test_that("ordered subsetting requires strictly increasing mapped posi
 
   inc <- xs[c(1, 3)]
   testthat::expect_s3_class(inc, "ordered_sequence")
-  testthat::expect_equal(as.list(inc), list("xa", "xc"))
+  testthat::expect_equal(as.list(inc), list(a = "xa", c = "xc"))
+  testthat::expect_identical(names(as.list(inc)), c("a", "c"))
 
   by_name <- xs[c("a", "c")]
-  testthat::expect_equal(as.list(by_name), list("xa", "xc"))
+  testthat::expect_equal(as.list(by_name), list(a = "xa", c = "xc"))
+  testthat::expect_identical(names(as.list(by_name)), c("a", "c"))
 
   testthat::expect_equal(xs[[2]], "xb")
   testthat::expect_equal(xs[["c"]], "xc")
   testthat::expect_equal(xs$c, "xc")
 
   lgl <- xs[c(TRUE, FALSE)]
-  testthat::expect_equal(as.list(lgl), list("xa", "xc"))
+  testthat::expect_equal(as.list(lgl), list(a = "xa", c = "xc"))
+  testthat::expect_identical(names(as.list(lgl)), c("a", "c"))
 
   testthat::expect_error(xs[c(3, 1)], "strictly increasing")
   testthat::expect_error(xs[c(2, 2)], "strictly increasing")

@@ -146,6 +146,23 @@
   el
 }
 
+# prepare selected entries for subset rebuild while preserving name invariants:
+# keep names only when all selected entries are named uniquely; otherwise drop all.
+# Runtime: O(k), where k = number of selected entries.
+.ft_prepare_subset_entries <- function(out) {
+  if(length(out) == 0L) {
+    return(out)
+  }
+  nms <- vapply(out, function(el) {
+    nm <- .ft_get_name(el)
+    if(is.null(nm)) NA_character_ else nm
+  }, character(1))
+  if(any(is.na(nms)) || any(nms == "") || anyDuplicated(nms) > 0L) {
+    return(lapply(out, .ft_strip_name))
+  }
+  out
+}
+
 # collect internal element names in left-to-right order.
 # Runtime: O(n).
 .ft_collect_names <- function(t) {
@@ -436,7 +453,7 @@
     if(length(idx) == 0L) {
       return(.ft_restore_subclass(empty_tree(monoids = ms), x, context = "["))
     }
-    out <- lapply(.ft_get_elems_at(x, idx), .ft_strip_name)
+    out <- .ft_prepare_subset_entries(.ft_get_elems_at(x, idx))
     return(.ft_restore_subclass(tree_from(out, monoids = ms), x, context = "["))
   }
 
@@ -453,8 +470,11 @@
     if(length(valid) > 0L) {
       vals <- .ft_get_elems_at(x, as.integer(pos[valid]))
       for(j in seq_along(valid)) {
-        out[[valid[[j]]]] <- .ft_strip_name(vals[[j]])
+        out[[valid[[j]]]] <- vals[[j]]
       }
+      out <- .ft_prepare_subset_entries(out)
+    } else {
+      out <- .ft_prepare_subset_entries(out)
     }
     return(.ft_restore_subclass(tree_from(out, monoids = ms), x, context = "["))
   }
@@ -463,7 +483,7 @@
   if(length(idx) == 0L) {
     return(.ft_restore_subclass(empty_tree(monoids = ms), x, context = "["))
   }
-  out <- lapply(.ft_get_elems_at(x, idx), .ft_strip_name)
+  out <- .ft_prepare_subset_entries(.ft_get_elems_at(x, idx))
   .ft_restore_subclass(tree_from(out, monoids = ms), x, context = "[")
 }
 

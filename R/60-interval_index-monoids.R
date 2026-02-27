@@ -1,3 +1,5 @@
+#SO
+
 # Runtime: O(1).
 # Determines endpoint scalar domain tag.
 # **Inputs:** scalar endpoint `v`.

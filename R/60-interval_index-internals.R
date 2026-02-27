@@ -1,3 +1,5 @@
+#SO
+
 # Runtime: O(1).
 # Central type/shape gate for public interval methods.
 # **Inputs:** object `x`.

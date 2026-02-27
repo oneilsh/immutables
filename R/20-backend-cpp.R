@@ -1,3 +1,5 @@
+#SO
+
 # Runtime: O(1).
 .ft_cpp_enabled <- function() {
   isTRUE(getOption("immutables.use_cpp", TRUE))
@@ -56,7 +58,7 @@
   .Call("ft_cpp_tree_from_sorted", elements, monoids, PACKAGE = "immutables")
 }
 
-# Runtime: O(log n) typical spine depth for balanced trees.
+# Runtime: O(log n1 + log n2) in the depths/sizes of both input trees.
 .ft_cpp_concat <- function(x, y, monoids) {
   .Call("ft_cpp_concat", x, y, monoids, PACKAGE = "immutables")
 }
@@ -66,12 +68,14 @@
   .Call("ft_cpp_oms_insert", x, entry, monoids, key_type, PACKAGE = "immutables")
 }
 
-# Runtime: O(log n) near locate point depth.
+# Runtime: O(c_pred log n), where c_pred is the cost of one predicate call.
+# Structural traversal visits O(log n) nodes; predicate work is per visited node,
 .ft_cpp_locate <- function(t, predicate, monoids, monoid_name, accumulator) {
   .Call("ft_cpp_locate", t, predicate, monoids, monoid_name, accumulator, PACKAGE = "immutables")
 }
 
-# Runtime: O(log n) near split point depth.
+# Runtime: O(log n * c_pred), where c_pred is the cost of one predicate call.
+# As with locate, O(log n) traversal steps each may invoke predicate evaluation.
 .ft_cpp_split_tree <- function(t, predicate, monoids, monoid_name, accumulator) {
   .Call("ft_cpp_split_tree", t, predicate, monoids, monoid_name, accumulator, PACKAGE = "immutables")
 }

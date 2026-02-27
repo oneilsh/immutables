@@ -6,7 +6,7 @@ Apply a function over ordered sequence entries
 
 ``` r
 # S3 method for class 'ordered_sequence'
-fapply(X, FUN, ...)
+fapply(X, FUN, ..., preserve_custom_monoids = TRUE)
 ```
 
 ## Arguments
@@ -23,6 +23,12 @@ fapply(X, FUN, ...)
 - ...:
 
   Additional arguments passed to \`FUN\`.
+
+- preserve_custom_monoids:
+
+  Logical scalar. If \`TRUE\` (default), preserve attached user monoids
+  during rebuild. If \`FALSE\`, drop user monoids and keep only required
+  ordered/structural monoids.
 
 ## Value
 

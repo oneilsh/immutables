@@ -6,7 +6,7 @@ Apply a function over interval index entries
 
 ``` r
 # S3 method for class 'interval_index'
-fapply(X, FUN, ...)
+fapply(X, FUN, ..., preserve_custom_monoids = TRUE)
 ```
 
 ## Arguments
@@ -24,6 +24,12 @@ fapply(X, FUN, ...)
 - ...:
 
   Additional arguments passed to \`FUN\`.
+
+- preserve_custom_monoids:
+
+  Logical scalar. If \`TRUE\` (default), preserve attached user monoids
+  during rebuild. If \`FALSE\`, drop user monoids and keep only required
+  interval/ordered/structural monoids.
 
 ## Value
 

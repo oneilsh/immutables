@@ -8,7 +8,7 @@ ends, O(log n) indexing and replacement, and efficient split/concat.
 - [`flexseq()`](https://oneilsh.github.io/immutables/reference/flexseq.md)
   : Construct a Persistent Flexible Sequence
 - [`as_flexseq()`](https://oneilsh.github.io/immutables/reference/as_flexseq.md)
-  : Coerce to a Persistent Flexible Sequence
+  : Coerce to flexseq
 - [`push_front()`](https://oneilsh.github.io/immutables/reference/push_front.md)
   : Push an element to the front
 - [`push_back()`](https://oneilsh.github.io/immutables/reference/push_back.md)
@@ -74,7 +74,9 @@ for full sequence operations.
   [`` `[[`( ``*`<priority_queue>`*`)`](https://oneilsh.github.io/immutables/reference/sub-.priority_queue.md)
   [`` `[<-`( ``*`<priority_queue>`*`)`](https://oneilsh.github.io/immutables/reference/sub-.priority_queue.md)
   [`` `[[<-`( ``*`<priority_queue>`*`)`](https://oneilsh.github.io/immutables/reference/sub-.priority_queue.md)
-  : Index a priority queue by name
+  [`` `$`( ``*`<priority_queue>`*`)`](https://oneilsh.github.io/immutables/reference/sub-.priority_queue.md)
+  [`` `$<-`( ``*`<priority_queue>`*`)`](https://oneilsh.github.io/immutables/reference/sub-.priority_queue.md)
+  : Indexing for Priority Queues
 - [`print(`*`<priority_queue>`*`)`](https://oneilsh.github.io/immutables/reference/print.priority_queue.md)
   : Print a Priority Queue
 - [`length(`*`<priority_queue>`*`)`](https://oneilsh.github.io/immutables/reference/length.priority_queue.md)
@@ -114,7 +116,9 @@ is not supported.
   [`` `[[`( ``*`<ordered_sequence>`*`)`](https://oneilsh.github.io/immutables/reference/sub-.ordered_sequence.md)
   [`` `[<-`( ``*`<ordered_sequence>`*`)`](https://oneilsh.github.io/immutables/reference/sub-.ordered_sequence.md)
   [`` `[[<-`( ``*`<ordered_sequence>`*`)`](https://oneilsh.github.io/immutables/reference/sub-.ordered_sequence.md)
-  : Index an ordered sequence
+  [`` `$`( ``*`<ordered_sequence>`*`)`](https://oneilsh.github.io/immutables/reference/sub-.ordered_sequence.md)
+  [`` `$<-`( ``*`<ordered_sequence>`*`)`](https://oneilsh.github.io/immutables/reference/sub-.ordered_sequence.md)
+  : Indexing for Ordered Sequences
 - [`print(`*`<ordered_sequence>`*`)`](https://oneilsh.github.io/immutables/reference/print.ordered_sequence.md)
   : Print an ordered sequence summary
 - [`length(`*`<ordered_sequence>`*`)`](https://oneilsh.github.io/immutables/reference/length.ordered_sequence.md)
@@ -155,13 +159,13 @@ query/pop helpers over ordered interval endpoints.
   : Pop intervals within a query interval
 - [`interval_bounds()`](https://oneilsh.github.io/immutables/reference/interval_bounds.md)
   : Get interval bounds in sequence order
-- [`` `$`( ``*`<interval_index>`*`)`](https://oneilsh.github.io/immutables/reference/sub-.interval_index.md)
-  [`` `$<-`( ``*`<interval_index>`*`)`](https://oneilsh.github.io/immutables/reference/sub-.interval_index.md)
-  [`` `[`( ``*`<interval_index>`*`)`](https://oneilsh.github.io/immutables/reference/sub-.interval_index.md)
+- [`` `[`( ``*`<interval_index>`*`)`](https://oneilsh.github.io/immutables/reference/sub-.interval_index.md)
   [`` `[[`( ``*`<interval_index>`*`)`](https://oneilsh.github.io/immutables/reference/sub-.interval_index.md)
   [`` `[<-`( ``*`<interval_index>`*`)`](https://oneilsh.github.io/immutables/reference/sub-.interval_index.md)
   [`` `[[<-`( ``*`<interval_index>`*`)`](https://oneilsh.github.io/immutables/reference/sub-.interval_index.md)
-  : Index an interval index
+  [`` `$`( ``*`<interval_index>`*`)`](https://oneilsh.github.io/immutables/reference/sub-.interval_index.md)
+  [`` `$<-`( ``*`<interval_index>`*`)`](https://oneilsh.github.io/immutables/reference/sub-.interval_index.md)
+  : Indexing for Interval Indexes
 - [`print(`*`<interval_index>`*`)`](https://oneilsh.github.io/immutables/reference/print.interval_index.md)
   : Print an interval index summary
 - [`length(`*`<interval_index>`*`)`](https://oneilsh.github.io/immutables/reference/length.interval_index.md)

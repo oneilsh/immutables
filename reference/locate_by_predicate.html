@@ -37,7 +37,7 @@ trees."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Locate First Predicate Flip Without Reconstructing Context Trees</h1>
-      <small class="dont-index">Source: <a href="https://github.com/oneilsh/immutables/blob/main/R/30-api-flexseq-locate.R" class="external-link"><code>R/30-api-flexseq-locate.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/oneilsh/immutables/blob/main/R/20-api-generics.R" class="external-link"><code>R/20-api-generics.R</code></a></small>
       <div class="d-none name"><code>locate_by_predicate.Rd</code></div>
     </div>
 
@@ -88,66 +88,14 @@ trees.</p>
   If `TRUE`: `list(found, elem, metadata = list(left_measure, hit_measure,
   right_measure, index))`.</p>
     </div>
-
     <div class="section level2">
-    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="as_flexseq.html">as_flexseq</a></span><span class="op">(</span><span class="va">letters</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">x</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Unnamed flexseq with 6 elements.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Elements:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "a"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "b"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ... (skipping 2 elements)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [[5]]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "e"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [[6]]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "f"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">loc</span> <span class="op">&lt;-</span> <span class="fu">locate_by_predicate</span><span class="op">(</span><span class="va">x</span>, <span class="kw">function</span><span class="op">(</span><span class="va">v</span><span class="op">)</span> <span class="va">v</span> <span class="op">&gt;=</span> <span class="fl">4</span>, <span class="st">".size"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">loc</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $found</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $elem</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "d"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># include metadata with a custom monoid</span></span></span>
-<span class="r-in"><span><span class="va">sum_m</span> <span class="op">&lt;-</span> <span class="fu"><a href="measure_monoid.html">measure_monoid</a></span><span class="op">(</span><span class="va">`+`</span>, <span class="fl">0</span>, <span class="va">as.numeric</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">x2</span> <span class="op">&lt;-</span> <span class="fu"><a href="add_monoids.html">add_monoids</a></span><span class="op">(</span><span class="fu"><a href="as_flexseq.html">as_flexseq</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sum <span class="op">=</span> <span class="va">sum_m</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">loc2</span> <span class="op">&lt;-</span> <span class="fu">locate_by_predicate</span><span class="op">(</span><span class="va">x2</span>, <span class="kw">function</span><span class="op">(</span><span class="va">v</span><span class="op">)</span> <span class="va">v</span> <span class="op">&gt;=</span> <span class="fl">10</span>, <span class="st">"sum"</span>, include_metadata <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">loc2</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $found</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $elem</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 4</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $metadata</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $metadata$left_measure</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 6</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $metadata$hit_measure</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 10</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $metadata$right_measure</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 11</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $metadata$index</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 4</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-</code></pre></div>
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>For `priority_queue` objects, `metadata$index` (when requested) is the
+internal structural position in the underlying sequence representation. It is
+not related to priority rank and is not stable across queue updates, so it
+should be treated as diagnostic metadata only.</p>
     </div>
+
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 

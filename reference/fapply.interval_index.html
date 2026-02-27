@@ -33,7 +33,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Apply a function over interval index entries</h1>
-      <small class="dont-index">Source: <a href="https://github.com/oneilsh/immutables/blob/main/R/40-interval_index-core.R" class="external-link"><code>R/40-interval_index-core.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/oneilsh/immutables/blob/main/R/60-interval_index-apply.R" class="external-link"><code>R/60-interval_index-apply.R</code></a></small>
       <div class="d-none name"><code>fapply.interval_index.Rd</code></div>
     </div>
 
@@ -44,7 +44,7 @@
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S3 method for class 'interval_index'</span></span>
-<span><span class="fu"><a href="fapply.html">fapply</a></span><span class="op">(</span><span class="va">X</span>, <span class="va">FUN</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="fapply.html">fapply</a></span><span class="op">(</span><span class="va">X</span>, <span class="va">FUN</span>, <span class="va">...</span>, preserve_custom_monoids <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -62,6 +62,12 @@ payload item. Interval metadata (`start`, `end`, `name`) is read-only.</p></dd>
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>Additional arguments passed to `FUN`.</p></dd>
+
+
+<dt id="arg-preserve-custom-monoids">preserve_custom_monoids<a class="anchor" aria-label="anchor" href="#arg-preserve-custom-monoids"></a></dt>
+<dd><p>Logical scalar. If `TRUE` (default), preserve
+attached user monoids during rebuild. If `FALSE`, drop user monoids and
+keep only required interval/ordered/structural monoids.</p></dd>
 
 </dl></div>
     <div class="section level2">

@@ -16,4 +16,15 @@ interval_bounds(x)
 
 ## Value
 
-Data frame with list-columns \`start\` and \`end\`.
+A data frame in current sequence order with one row per entry and two
+list-columns:
+
+- \`start\`:
+
+  Start endpoint for each entry.
+
+- \`end\`:
+
+  End endpoint for each entry.
+
+Returns a zero-row data frame with the same columns for empty indexes.

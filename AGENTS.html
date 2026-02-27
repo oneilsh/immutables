@@ -73,8 +73,9 @@
 <h2 id="first-files-to-read">First Files to Read<a class="anchor" aria-label="anchor" href="#first-files-to-read"></a></h2>
 <ol style="list-style-type: decimal"><li>
 <code>NAMESPACE</code> (what is exported and dispatched right now).</li>
-<li><code>R/40-ordered_sequence-core.R</code></li>
-<li><code>R/40-priority_queue-core.R</code></li>
+<li><code>R/50-ordered_sequence-ops.R</code></li>
+<li><code>R/40-priority_queue-constructors.R</code></li>
+<li><code>R/40-priority_queue-queue-ops.R</code></li>
 <li><code>tests/testthat/test-ordered-sequence.R</code></li>
 <li><code>tests/testthat/test-priority-queue.R</code></li>
 <li><code>tests/testthat/test-cpp-parity.R</code></li>
@@ -162,8 +163,10 @@
 <li>When changing C++ wrappers or behavior, update both parity and GC safety coverage.</li>
 <li>High-churn areas (re-check tests after edits):
 <ul><li><code>R/30-api-flexseq-indexing.R</code></li>
-<li><code>R/40-priority_queue-core.R</code></li>
-<li><code>R/40-ordered_sequence-core.R</code></li>
+<li><code>R/40-priority_queue-indexing.R</code></li>
+<li><code>R/40-priority_queue-queue-ops.R</code></li>
+<li><code>R/50-ordered_sequence-indexing.R</code></li>
+<li><code>R/50-ordered_sequence-ops.R</code></li>
 <li>
 <code>_pkgdown.yml</code> + generated man/NAMESPACE surface</li>
 </ul></li>
@@ -246,6 +249,12 @@
 <li>
 <strong>Testing</strong>: <code>IMMUTABLES_GC_STRESS=1</code> with <code>gctorture2(1)</code> reliably triggers these bugs. Always run GC torture after any C++ changes touching SEXP temporaries.</li>
 </ul></li>
+<li>
+<code>local</code>: added repo-local review workflow skill at <code>.agents/skills/immutables-review/SKILL.md</code> plus durable review artifacts under <code>.review/</code> (<code>curriculum.md</code>, <code>progress-ledger.md</code>, <code>issue-queue.md</code>). Default review rule: do not run tests without explicit user approval unless the user grants a temporary session override.</li>
+<li>
+<code>local</code>: review intent is user learning-first: each session should choose the best next topic, point to specific code anchors (file + line), and explain behavior/invariants in those exact sections.</li>
+<li>
+<code>local</code>: when a review is started/resumed (“review”, “continue review”), default response mode must be guided walkthrough with anchor-based explanations; do not fall back to silent audit-style “no issues” summaries unless the user explicitly asks for findings-only mode.</li>
 </ul></div>
 </div>
 

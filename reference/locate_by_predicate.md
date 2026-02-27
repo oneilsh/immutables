@@ -44,62 +44,10 @@ If \`include_metadata = FALSE\`: \`list(found, elem)\`. If \`TRUE\`:
 \`list(found, elem, metadata = list(left_measure, hit_measure,
 right_measure, index))\`.
 
-## Examples
+## Details
 
-``` r
-x <- as_flexseq(letters[1:6])
-x
-#> Unnamed flexseq with 6 elements.
-#> 
-#> Elements:
-#> 
-#> [[1]]
-#> [1] "a"
-#> 
-#> [[2]]
-#> [1] "b"
-#> 
-#> ... (skipping 2 elements)
-#> 
-#> [[5]]
-#> [1] "e"
-#> 
-#> [[6]]
-#> [1] "f"
-#> 
-
-loc <- locate_by_predicate(x, function(v) v >= 4, ".size")
-loc
-#> $found
-#> [1] TRUE
-#> 
-#> $elem
-#> [1] "d"
-#> 
-
-# include metadata with a custom monoid
-sum_m <- measure_monoid(`+`, 0, as.numeric)
-x2 <- add_monoids(as_flexseq(1:6), list(sum = sum_m))
-loc2 <- locate_by_predicate(x2, function(v) v >= 10, "sum", include_metadata = TRUE)
-loc2
-#> $found
-#> [1] TRUE
-#> 
-#> $elem
-#> [1] 4
-#> 
-#> $metadata
-#> $metadata$left_measure
-#> [1] 6
-#> 
-#> $metadata$hit_measure
-#> [1] 10
-#> 
-#> $metadata$right_measure
-#> [1] 11
-#> 
-#> $metadata$index
-#> [1] 4
-#> 
-#> 
-```
+For \`priority_queue\` objects, \`metadata\$index\` (when requested) is
+the internal structural position in the underlying sequence
+representation. It is not related to priority rank and is not stable
+across queue updates, so it should be treated as diagnostic metadata
+only.

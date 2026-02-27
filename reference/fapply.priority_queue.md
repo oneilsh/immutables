@@ -6,7 +6,7 @@ Apply a function over priority queue entries
 
 ``` r
 # S3 method for class 'priority_queue'
-fapply(X, FUN, ...)
+fapply(X, FUN, ..., preserve_custom_monoids = TRUE)
 ```
 
 ## Arguments
@@ -23,6 +23,12 @@ fapply(X, FUN, ...)
 - ...:
 
   Additional arguments passed to \`FUN\`.
+
+- preserve_custom_monoids:
+
+  Logical scalar. If \`TRUE\` (default), preserve attached user monoids
+  during rebuild. If \`FALSE\`, drop user monoids and keep only required
+  queue/structural monoids.
 
 ## Value
 

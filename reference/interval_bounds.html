@@ -33,7 +33,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Get interval bounds in sequence order</h1>
-      <small class="dont-index">Source: <a href="https://github.com/oneilsh/immutables/blob/main/R/40-interval_index-core.R" class="external-link"><code>R/40-interval_index-core.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/oneilsh/immutables/blob/main/R/60-interval_index-query-api.R" class="external-link"><code>R/60-interval_index-query-api.R</code></a></small>
       <div class="d-none name"><code>interval_bounds.Rd</code></div>
     </div>
 
@@ -56,7 +56,15 @@
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>Data frame with list-columns `start` and `end`.</p>
+    <p>A data frame in current sequence order with one row per entry and
+  two list-columns:</p><dl><dt>`start`</dt>
+<dd><p>Start endpoint for each entry.</p></dd>
+
+    <dt>`end`</dt>
+<dd><p>End endpoint for each entry.</p></dd>
+
+
+</dl><p>Returns a zero-row data frame with the same columns for empty indexes.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

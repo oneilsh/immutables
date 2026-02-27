@@ -47,13 +47,14 @@ historical docs/blog-style examples.
 ## First Files to Read
 
 1.  `NAMESPACE` (what is exported and dispatched right now).
-2.  `R/40-ordered_sequence-core.R`
-3.  `R/40-priority_queue-core.R`
-4.  `tests/testthat/test-ordered-sequence.R`
-5.  `tests/testthat/test-priority-queue.R`
-6.  `tests/testthat/test-cpp-parity.R`
-7.  `tests/testthat/test-cpp-gc-safety.R`
-8.  `meta/bench_runner.R`
+2.  `R/50-ordered_sequence-ops.R`
+3.  `R/40-priority_queue-constructors.R`
+4.  `R/40-priority_queue-queue-ops.R`
+5.  `tests/testthat/test-ordered-sequence.R`
+6.  `tests/testthat/test-priority-queue.R`
+7.  `tests/testthat/test-cpp-parity.R`
+8.  `tests/testthat/test-cpp-gc-safety.R`
+9.  `meta/bench_runner.R`
 
 ## Ground Rules
 
@@ -123,8 +124,10 @@ historical docs/blog-style examples.
   safety coverage.
 - High-churn areas (re-check tests after edits):
   - `R/30-api-flexseq-indexing.R`
-  - `R/40-priority_queue-core.R`
-  - `R/40-ordered_sequence-core.R`
+  - `R/40-priority_queue-indexing.R`
+  - `R/40-priority_queue-queue-ops.R`
+  - `R/50-ordered_sequence-indexing.R`
+  - `R/50-ordered_sequence-ops.R`
   - `_pkgdown.yml` + generated man/NAMESPACE surface
 
 ## Change Checklist
@@ -303,3 +306,17 @@ of the API or underlying implementations change.
   - **Testing**: `IMMUTABLES_GC_STRESS=1` with `gctorture2(1)` reliably
     triggers these bugs. Always run GC torture after any C++ changes
     touching SEXP temporaries.
+- `local`: added repo-local review workflow skill at
+  `.agents/skills/immutables-review/SKILL.md` plus durable review
+  artifacts under `.review/` (`curriculum.md`, `progress-ledger.md`,
+  `issue-queue.md`). Default review rule: do not run tests without
+  explicit user approval unless the user grants a temporary session
+  override.
+- `local`: review intent is user learning-first: each session should
+  choose the best next topic, point to specific code anchors (file +
+  line), and explain behavior/invariants in those exact sections.
+- `local`: when a review is started/resumed (“review”, “continue
+  review”), default response mode must be guided walkthrough with
+  anchor-based explanations; do not fall back to silent audit-style “no
+  issues” summaries unless the user explicitly asks for findings-only
+  mode.

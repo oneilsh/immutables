@@ -6,7 +6,7 @@ Apply a function over flexseq elements
 
 ``` r
 # S3 method for class 'flexseq'
-fapply(X, FUN, ...)
+fapply(X, FUN, ..., preserve_custom_monoids = TRUE)
 ```
 
 ## Arguments
@@ -22,6 +22,12 @@ fapply(X, FUN, ...)
 - ...:
 
   Additional arguments passed to \`FUN\`.
+
+- preserve_custom_monoids:
+
+  Logical scalar. If \`TRUE\` (default), rebuild with the full current
+  monoid set (including user monoids). If \`FALSE\`, rebuild using only
+  required structural monoids (\`.size\`, \`.named_count\`).
 
 ## Value
 

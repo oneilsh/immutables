@@ -1,3 +1,5 @@
+#SO
+
 # Runtime: O(1).
 # Formats bounds string into human-readable phrase for headers.
 # **Inputs:** scalar `bounds` string.

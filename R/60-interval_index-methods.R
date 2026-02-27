@@ -1,3 +1,5 @@
+#SO
+
 # Runtime: O(n) from list materialization + linear rebuild.
 # Internal cast-down builder for interval_index -> flexseq.
 # **Inputs:** `x` interval_index; optional `monoids`.

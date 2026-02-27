@@ -1,3 +1,5 @@
+#SO
+
 #' Indexing for Interval Indexes
 #'
 #' Read indexing returns `interval_index` subsets while preserving interval/key

@@ -164,35 +164,14 @@
   )
 }
 
-# Runtime: O(n) to validate all entries.
-# Walks every entry to enforce interval payload and endpoint-type invariants.
-# **Inputs:** structural tree `x`; optional scalar `endpoint_type`; scalar `context`.
-# **Outputs:** resolved endpoint_type for validated tree.
-# **Used by:** .ivx_restore_tree().
-.ivx_validate_tree_entries <- function(x, endpoint_type = NULL, context = "interval_index") {
-  els <- .ft_to_list(x)
-  if(length(els) == 0L) {
-    return(endpoint_type)
-  }
-
-  out_type <- endpoint_type
-  for(el in els) {
-    parsed <- .ivx_parse_entry(el, context = context, endpoint_type = out_type)
-    out_type <- parsed$endpoint_type
-  }
-
-  out_type
-}
-
-# Runtime: O(n) validation + O(1) wrap.
-# Safe interval subclass restoration for trees produced by shared flexseq ops.
+# Runtime: O(1) metadata restoration/wrap.
+# Interval subclass restoration for trees produced by shared flexseq ops.
 # **Inputs:** structural tree `x`; optional `template` interval_index; scalar `context`.
-# **Outputs:** validated interval_index wrapper.
+# **Outputs:** interval_index wrapper preserving endpoint_type/bounds metadata.
 # **Used by:** .ft_restore_subclass() in core flexseq API.
 .ivx_restore_tree <- function(x, template = NULL, context = "interval_index") {
   endpoint_type <- if(is.null(template)) NULL else .ivx_endpoint_type_state(template)
   bounds <- if(is.null(template)) "[)" else .ivx_resolve_bounds(template, NULL)
-  endpoint_type <- .ivx_validate_tree_entries(x, endpoint_type = endpoint_type, context = context)
   .as_interval_index(x, endpoint_type = endpoint_type, bounds = bounds)
 }
 

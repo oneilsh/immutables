@@ -1,6 +1,9 @@
 #include <Rcpp.h>
 #include <algorithm>
 
+// SO
+// Core methods match reference R core methods
+
 using namespace Rcpp;
 
 namespace {

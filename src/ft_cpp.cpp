@@ -242,6 +242,9 @@ SEXP get_by_index_impl(SEXP x, int idx) {
 
 void collect_names_impl(SEXP x, CharacterVector& out, int& pos) {
   if(!is_structural_node_cpp(x)) {
+    if(pos >= out.size()) {
+      stop("Name collection overflow: more leaves than expected from .size measure.");
+    }
     SEXP nm = Rf_getAttrib(x, ft_name_sym);
     if(Rf_isNull(nm) || XLENGTH(nm) == 0) {
       out[pos++] = NA_STRING;
@@ -1399,7 +1402,8 @@ List locate_tree_impl_cpp(
       if(as<bool>(res["found"])) {
         Shield<SEXP> r(static_cast<SEXP>(res["right_measure"]));
         Shield<SEXP> rr(monoid_combine(r, mmid, monoid_name, monoid_spec, &f));
-        res["right_measure"] = monoid_combine(rr, msf, monoid_name, monoid_spec, &f);
+        Shield<SEXP> new_right(monoid_combine(rr, msf, monoid_name, monoid_spec, &f));
+        res["right_measure"] = static_cast<SEXP>(new_right);
       }
       return res;
     }
@@ -1410,7 +1414,8 @@ List locate_tree_impl_cpp(
       );
       if(as<bool>(res["found"])) {
         Shield<SEXP> r(static_cast<SEXP>(res["right_measure"]));
-        res["right_measure"] = monoid_combine(r, msf, monoid_name, monoid_spec, &f);
+        Shield<SEXP> new_right(monoid_combine(r, msf, monoid_name, monoid_spec, &f));
+        res["right_measure"] = static_cast<SEXP>(new_right);
       }
       return res;
     }

@@ -1,3 +1,5 @@
+#SO
+
 # Point containment predicate for fallback/non-fast endpoint types.
 # **Inputs:** scalar `start`, `end`, `point`; scalar `bounds` string; scalar `endpoint_type`.
 # **Outputs:** scalar logical; TRUE when `point` is inside [start,end] under `bounds`.
@@ -98,6 +100,8 @@
   start <- if(is.null(lower)) {
     1L
   } else {
+    # determine start index; if strict == TRUE then first index with start > key,
+    # if FALSE then first index with start >= key
     .ivx_bound_index_prepared(x, lower, strict = isTRUE(lower_strict))
   }
 
@@ -109,6 +113,7 @@
   }
 
   if(start > n || end_excl <= start) {
+    # empty span
     return(list(start = as.integer(start), end_excl = as.integer(end_excl), empty = TRUE))
   }
 
@@ -213,7 +218,8 @@
   list(element = NULL, start = NULL, end = NULL, remaining = x)
 }
 
-# Runtime: O(s), where s is traversed subtree size after pruning.
+# Runtime: O(s), where s is traversed subtree size after aggressive pruning 
+# based on subtree span and query span.
 # Traverses candidate tree with spec predicates and optional unmatched collection.
 # **Inputs:**
 #
@@ -359,7 +365,7 @@
   ms <- resolve_tree_monoids(x, required = TRUE)
   use_window_fast_path <- isTRUE(.ft_cpp_can_use(ms))
 
-  # Phase 1: derive candidate start-index window from query-spec bounds.
+  # Phase 1: derive candidate start-index window span from query-spec bounds.
   span <- .ivx_query_candidate_span(
     x,
     lower = spec$lower,
@@ -367,6 +373,7 @@
     upper = spec$upper,
     upper_strict = spec$upper_strict
   )
+  # if the span is empty we return no data (depending on peek/pop/which behavior)
   if(isTRUE(span$empty)) {
     if(identical(mode, "peek")) {
       return(.ivx_query_peek_miss(x, which = which))

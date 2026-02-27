@@ -1,3 +1,5 @@
+#SO
+
 # Runtime: O(n).
 # Returns per-entry interval endpoints in current sequence order.
 # **Inputs:** `x` interval_index.
@@ -6,7 +8,13 @@
 #' Get interval bounds in sequence order
 #'
 #' @param x An `interval_index`.
-#' @return Data frame with list-columns `start` and `end`.
+#' @return A data frame in current sequence order with one row per entry and
+#'   two list-columns:
+#'   \describe{
+#'     \item{`start`}{Start endpoint for each entry.}
+#'     \item{`end`}{End endpoint for each entry.}
+#'   }
+#'   Returns a zero-row data frame with the same columns for empty indexes.
 #' @export
 interval_bounds <- function(x) {
   .ivx_assert_index(x)

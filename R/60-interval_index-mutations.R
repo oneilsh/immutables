@@ -12,21 +12,19 @@
   )
 
   out <- if(length(x) == 0L) {
-    if(.ivx_supports_oms_key_type(ep)) {
+    # First insert may need to upgrade required monoids once endpoint type is known.
+    # Use one append path here; C++ ordered insert is kept for non-empty trees.
+    base <- x
+    if(.ivx_supports_oms_key_type(ep) && is.null(ms[[".oms_max_key"]])) {
       monoids0 <- attr(x, "monoids", exact = TRUE)
       user0 <- monoids0[setdiff(
         names(monoids0),
         c(".size", ".named_count", ".ivx_max_start", ".ivx_max_end", ".ivx_min_end", ".oms_max_key")
       )]
       ms0 <- .ivx_merge_monoids(if(length(user0) == 0L) NULL else user0, endpoint_type = ep)
-      if(.ft_cpp_can_use(ms0) && !is.null(ms0[[".oms_max_key"]])) {
-        .ft_cpp_oms_insert(empty_tree(monoids = ms0), entry, ms0, ep)
-      } else {
-        .ft_push_back_impl(empty_tree(monoids = ms0), entry, context = "insert()")
-      }
-    } else {
-      .ft_push_back_impl(x, entry, context = "insert()")
+      base <- empty_tree(monoids = ms0)
     }
+    .ft_push_back_impl(base, entry, context = "insert()")
   } else if(can_use_cpp_key_insert) {
     .ft_cpp_oms_insert(x, entry, ms, ep)
   } else {

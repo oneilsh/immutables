@@ -157,7 +157,7 @@
   )
 }
 
-# Runtime: O(m), where m = number of user-supplied monoids.
+# Runtime: O(1).
 # Reports whether interval endpoint type can reuse ordered key monoids.
 # **Inputs:** scalar character `endpoint_type`.
 # **Outputs:** scalar logical.
